@@ -92,6 +92,9 @@ DATABASES = {
             'init_command': 'SET default_storage_engine=INNODB',
             'charset': 'utf8mb4',
         },
+        'TEST': {
+            'MIRROR': 'default'
+        }
     }
 }
 

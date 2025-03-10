@@ -9,8 +9,6 @@ services:
       - python_sock:/var/run/python
       - ./backend/static:/var/www/backend/static:ro
       - ./backend/media:/var/www/backend/media:ro
-    ports:
-      - 10021:80
 
   backend:
     image: visits_django/backend

@@ -11,7 +11,7 @@ class SessionTestCase(TestCase):
             username="test_user", password="test_user_secret_password"
         )
         response = self.client.post(
-            "/token/",
+            "/api/token/",
             {"username": "test_user", "password": "test_user_secret_password"},
         )
         self.access_token = response.data.get("access")
@@ -20,7 +20,7 @@ class SessionTestCase(TestCase):
         assert_date = timezone.now()
         assert_date.replace(hour=9, minute=0, second=0)
         response = self.client.post(
-            "/v1/visits/enter",
+            "/api/v1/visits/enter",
             {"check_in": assert_date.isoformat()},
             content_type="application/json",
             headers={"Authorization": f"Bearer {self.access_token}"},
@@ -45,7 +45,7 @@ class SessionTestCase(TestCase):
 
         assert_date.replace(hour=10)
         response = self.client.put(
-            "/v1/visits/enter",
+            "/api/v1/visits/enter",
             {"id": entry.id, "check_in": assert_date.isoformat()},
             content_type="application/json",
             headers={"Authorization": f"Bearer {self.access_token}"},
@@ -65,7 +65,7 @@ class SessionTestCase(TestCase):
         )
         assert_date.replace(hour=10)
         response = self.client.put(
-            "/v1/visits/exit",
+            "/api/v1/visits/exit",
             {"id": entry.id, "check_out": assert_date.isoformat()},
             content_type="application/json",
             headers={"Authorization": f"Bearer {self.access_token}"},
