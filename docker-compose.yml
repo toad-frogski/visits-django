@@ -1,0 +1,22 @@
+volumes:
+  python_sock:
+
+services:
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - python_sock:/var/run/python
+      - ./backend/static:/var/www/backend/static:ro
+      - ./backend/media:/var/www/backend/media:ro
+    ports:
+      - 10021:80
+
+  backend:
+    image: visits_django/backend
+    build: docker/backend
+    volumes:
+      - python_sock:/var/run/python
+      - ./backend:/var/www/backend
+    env_file:
+      - ./backend/.env
