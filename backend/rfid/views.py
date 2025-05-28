@@ -2,7 +2,11 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.exceptions import APIException
 
+from visits.models import SessionEntry
 from visits.services.session_service import SessionService
 
 from .authentication import RFIDAuthentication
@@ -21,15 +25,16 @@ class EnterView(APIView):
     authentication_classes = [RFIDAuthentication]
 
     def post(self, request):
-        serializer = serializers.EnterRequestSerializer(data=request.data)
-
         session_service = SessionService()
 
-        return Response({"message": "RFID entry processed"}, status=200)
+        try:
+            session_service.enter(
+                request.user, type=SessionEntry.Type.SYSTEM, check_in=timezone.now()
+            )
+        except Exception as e:
+            return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def put(self, request):
-        # Logic for updating RFID entry
-        return Response({"message": "RFID entry updated"}, status=200)
+        return Response({"message": "RFID entry processed"}, status=status.HTTP_200_OK)
 
 
 class ExitView(APIView):
@@ -37,9 +42,11 @@ class ExitView(APIView):
     authentication_classes = [RFIDAuthentication]
 
     def post(self, request):
-        # Logic for handling RFID exit
-        return Response({"message": "RFID exit processed"}, status=200)
+        session_service = SessionService()
 
-    def put(self, request):
-        # Logic for updating RFID exit
-        return Response({"message": "RFID exit updated"}, status=200)
+        try:
+            session_service.exit(request.user, type=SessionEntry.Type.SYSTEM, check_out=timezone.now())
+        except Exception as e:
+            return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"message": "RFID exit processed"}, status=status.HTTP_200_OK)

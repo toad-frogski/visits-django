@@ -6,7 +6,7 @@ from django.utils import timezone
 class SessionService:
 
     @staticmethod
-    def enter(user, check_in: datetime, type: SessionEntry.Type):
+    def enter(user, type: SessionEntry.Type, check_in: datetime):
         session, _ = Session.objects.get_or_create(
             user=user, date=timezone.now().date()
         )
@@ -26,6 +26,14 @@ class SessionService:
         )
 
     @staticmethod
-    def exit(user, entry_id: int, type: SessionEntry.Type, check_out: datetime):
+    def exit(user, type: SessionEntry.Type, check_out: datetime):
         session = Session.objects.get(user=user, date=timezone.now())
-        session.update_entry(entry_id, type, check_out=check_out)
+        last_entry = session.get_last_entry()
+
+        if last_entry is None:
+            raise SessionEntry.DoesNotExist("No entry found to exit.")
+
+        if last_entry.check_out is not None:
+            raise Exception("Entry already checked out.")
+
+        session.update_entry(last_entry.id, type, check_out=check_out)
