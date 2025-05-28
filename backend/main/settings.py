@@ -36,6 +36,7 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(" ")
 
 INSTALLED_APPS = [
     "visits",
+    "rfid",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -87,7 +88,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'USER': os.getenv('DB_USER', ''),
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'PORT': '3306',
+        'PORT': os.getenv('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': 'SET default_storage_engine=INNODB',
             'charset': 'utf8mb4',

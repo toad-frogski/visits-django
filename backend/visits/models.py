@@ -50,11 +50,9 @@ class Session(models.Model):
     def get_last_entry(self):
         return self.sessionentry_set.order_by("-id").first()
 
-    def add_enter(self, check_in: datetime, type: SessionEntry.Type) -> SessionEntry:
+    def add_enter(self, check_in: datetime, type: SessionEntry.Type):
         entry = SessionEntry(session=self, check_in=check_in, type=type)
         entry.save()
-
-        return entry
 
     def update_entry(
         self,
@@ -62,7 +60,7 @@ class Session(models.Model):
         type: SessionEntry.Type = SessionEntry.Type.SYSTEM,
         check_in: datetime | None = None,
         check_out: datetime | None = None,
-    ) -> SessionEntry:
+    ):
         entry = self.sessionentry_set.get(id=entry_id)
 
         if check_in is not None:
@@ -73,5 +71,3 @@ class Session(models.Model):
 
         entry.type = type
         entry.save()
-
-        return entry

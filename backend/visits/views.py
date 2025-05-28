@@ -1,3 +1,4 @@
+from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
@@ -8,6 +9,8 @@ from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+
+from visits.services.session_service import SessionService
 
 from . import serializers
 from .models import Session, SessionEntry, SessionEntryComment
@@ -20,15 +23,14 @@ class EnterView(APIView):
     def post(self, request):
         serializer = serializers.SessionEnterPostRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        session, created = Session.objects.get_or_create(
-            user=request.user, date=timezone.now()
-        )
 
-        check_in = serializer.validated_data.get("check_in")
-        type = serializer.validated_data.get("type")
+        check_in: datetime = serializer.validated_data.get("check_in")
+        type: SessionEntry.Type = serializer.validated_data.get("type")
+
+        session_service = SessionService()
 
         try:
-            session.add_enter(check_in=check_in, type=type)
+            session_service.enter(user=request.user, check_in=check_in, type=type)
         except Exception as e:
             return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -38,17 +40,18 @@ class EnterView(APIView):
         serializer = serializers.SessionEnterPutRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        entry_id: int = serializer.validated_data.get("id")
+        check_in: datetime = serializer.validated_data.get("check_in")
+        type: SessionEntry.Type = serializer.validated_data.get("type")
+
+        session_service = SessionService()
+
         try:
-            session = Session.objects.get(user=request.user, date=timezone.now())
+            session_service.update_entry(
+                user=request.user, entry_id=entry_id, type=type, check_in=check_in
+            )
         except Session.DoesNotExist as e:
             return APIException(detail=e, code=status.HTTP_404_NOT_FOUND)
-
-        entry_id = serializer.validated_data.get("id")
-        check_in = serializer.validated_data.get("check_in")
-        type = serializer.validated_data.get("type")
-
-        try:
-            session.update_entry(entry_id, type, check_in)
         except Exception as e:
             return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -63,17 +66,16 @@ class ExitView(APIView):
         serializer = serializers.SessionExitPostRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        entry_id = serializer.validated_data.get("id")
-        check_out = serializer.validated_data.get("check_out")
-        type = serializer.validated_data.get("type")
+        entry_id: int = serializer.validated_data.get("id")
+        check_out: datetime = serializer.validated_data.get("check_out")
+        type: SessionEntry.Type = serializer.validated_data.get("type")
+
+        session_service = SessionService()
 
         try:
-            session = Session.objects.get(user=request.user, date=timezone.now())
+            session_service.exit(request.user, entry_id, type, check_out)
         except Session.DoesNotExist as e:
             return APIException(detail=e, code=status.HTTP_404_NOT_FOUND)
-
-        try:
-            session.update_entry(entry_id, type, check_out=check_out)
         except Exception as e:
             return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -86,10 +88,11 @@ class CommentViewSet(viewsets.ViewSet):
         entry = get_object_or_404(SessionEntry, id=entry_id)
         serializer = serializers.CommentRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        comment = serializer.validated_data.get("comment")
+
+        comment_data: str = serializer.validated_data.get("comment")
 
         try:
-            entry.set_comment(comment)
+            entry.set_comment(comment_data)
         except Exception as e:
             return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -109,8 +112,10 @@ class CommentViewSet(viewsets.ViewSet):
         serializer = serializers.CommentRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        comment_data: str = serializer.validated_data.get("comment")
+
         try:
-            comment.comment = serializer.validated_data.get("comment")
+            comment.comment = comment_data
             comment.save()
         except Exception as e:
             return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)

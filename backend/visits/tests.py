@@ -58,12 +58,12 @@ class SessionTestCase(TestCase):
 
     def test_create_session_exit(self):
         assert_date = timezone.now()
-        assert_date.replace(hour=9, minute=0, second=0)
+        assert_date = assert_date.replace(hour=9, minute=0, second=0)
         session = Session.objects.create(user=self.user, date=timezone.now())
         entry = SessionEntry.objects.create(
             session=session, check_in=assert_date, type=SessionEntry.Type.SYSTEM
         )
-        assert_date.replace(hour=10)
+        assert_date = assert_date.replace(hour=10)
         response = self.client.put(
             "/api/v1/visits/exit",
             {"id": entry.id, "check_out": assert_date.isoformat()},
