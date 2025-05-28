@@ -73,7 +73,9 @@ class ExitView(APIView):
         session_service = SessionService()
 
         try:
-            session_service.exit(request.user, entry_id, type, check_out)
+            session_service.update_entry(
+                request.user, entry_id, type, check_out=check_out
+            )
         except Session.DoesNotExist as e:
             return APIException(detail=e, code=status.HTTP_404_NOT_FOUND)
         except Exception as e:

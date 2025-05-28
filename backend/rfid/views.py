@@ -45,7 +45,13 @@ class ExitView(APIView):
         session_service = SessionService()
 
         try:
-            session_service.exit(request.user, type=SessionEntry.Type.SYSTEM, check_out=timezone.now())
+            session_service.exit(
+                request.user, type=SessionEntry.Type.SYSTEM, check_out=timezone.now()
+            )
+        except SessionEntry.DoesNotExist as e:
+            return APIException(detail=str(e), code=status.HTTP_404_NOT_FOUND)
+        except ValueError as e:
+            return APIException(detail=str(e), code=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

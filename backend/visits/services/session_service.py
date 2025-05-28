@@ -34,6 +34,6 @@ class SessionService:
             raise SessionEntry.DoesNotExist("No entry found to exit.")
 
         if last_entry.check_out is not None:
-            raise Exception("Entry already checked out.")
+            raise ValueError("Entry already checked out.")
 
         session.update_entry(last_entry.id, type, check_out=check_out)
