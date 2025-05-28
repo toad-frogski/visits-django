@@ -10,6 +10,11 @@ class SessionService:
         session, _ = Session.objects.get_or_create(
             user=user, date=timezone.now().date()
         )
+
+        last_entry = session.get_last_entry()
+        if last_entry and last_entry.check_out is None:
+            raise ValueError("Previous entry has not been checked out.")
+
         session.add_enter(check_in=check_in, type=type)
 
     @staticmethod

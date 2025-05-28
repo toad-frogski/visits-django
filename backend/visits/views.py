@@ -1,7 +1,7 @@
 from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError, NotFound
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -31,8 +31,10 @@ class EnterView(APIView):
 
         try:
             session_service.enter(user=request.user, check_in=check_in, type=type)
+        except ValueError as e:
+            raise ValidationError(detail=e)
         except Exception as e:
-            return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise APIException(detail=e)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -51,9 +53,9 @@ class EnterView(APIView):
                 user=request.user, entry_id=entry_id, type=type, check_in=check_in
             )
         except Session.DoesNotExist as e:
-            return APIException(detail=e, code=status.HTTP_404_NOT_FOUND)
+            raise NotFound(detail=e)
         except Exception as e:
-            return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise APIException(detail=e)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -77,9 +79,9 @@ class ExitView(APIView):
                 request.user, entry_id, type, check_out=check_out
             )
         except Session.DoesNotExist as e:
-            return APIException(detail=e, code=status.HTTP_404_NOT_FOUND)
+            raise NotFound(detail=e)
         except Exception as e:
-            return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise APIException(detail=e)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -96,7 +98,7 @@ class CommentViewSet(viewsets.ViewSet):
         try:
             entry.set_comment(comment_data)
         except Exception as e:
-            return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise APIException(detail=e)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -120,6 +122,6 @@ class CommentViewSet(viewsets.ViewSet):
             comment.comment = comment_data
             comment.save()
         except Exception as e:
-            return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(status=status.HTTP_200_OK)

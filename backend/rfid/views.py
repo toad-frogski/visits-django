@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError, NotFound
 
 from visits.models import SessionEntry
 from visits.services.session_service import SessionService
@@ -31,8 +31,10 @@ class EnterView(APIView):
             session_service.enter(
                 request.user, type=SessionEntry.Type.SYSTEM, check_in=timezone.now()
             )
+        except ValueError as e:
+            raise ValidationError(detail=e)
         except Exception as e:
-            return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise APIException(detail=e)
 
         return Response({"message": "RFID entry processed"}, status=status.HTTP_200_OK)
 
@@ -49,10 +51,10 @@ class ExitView(APIView):
                 request.user, type=SessionEntry.Type.SYSTEM, check_out=timezone.now()
             )
         except SessionEntry.DoesNotExist as e:
-            return APIException(detail=str(e), code=status.HTTP_404_NOT_FOUND)
+            raise NotFound(detail=e)
         except ValueError as e:
-            return APIException(detail=str(e), code=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError(detail=e)
         except Exception as e:
-            return APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise APIException(detail=e)
 
         return Response({"message": "RFID exit processed"}, status=status.HTTP_200_OK)

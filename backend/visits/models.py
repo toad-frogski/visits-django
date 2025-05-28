@@ -5,14 +5,6 @@ from django.utils import timezone
 from datetime import datetime
 
 
-class SessionManager(models.Manager):
-    def get_last_session(self):
-        return self
-
-    def get_active_session(self):
-        return self
-
-
 class SessionEntryComment(models.Model):
     session_entry = models.ForeignKey("SessionEntry", on_delete=models.CASCADE)
     comment = models.CharField(max_length=255)
@@ -45,7 +37,6 @@ class SessionEntry(models.Model):
 class Session(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date = models.DateField(_("Date"), default=timezone.now)
-    objects = SessionManager
 
     def get_last_entry(self):
         return self.sessionentry_set.order_by("-id").first()

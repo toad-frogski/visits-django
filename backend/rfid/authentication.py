@@ -12,8 +12,8 @@ class RFIDAuthentication(BaseAuthentication):
             return None
 
         try:
-            user = RFIDSettings.objects.get(rfid_token=rfid_token)
+            rfid_settings = RFIDSettings.objects.get(rfid_token=rfid_token)
         except RFIDSettings.DoesNotExist:
             raise AuthenticationFailed("Invalid RFID token")
 
-        return (user, None)
+        return (rfid_settings.user, None)
