@@ -3,6 +3,7 @@ volumes:
 
 services:
   nginx:
+    restart: unless-stopped
     image: nginx:alpine
     volumes:
       - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
@@ -11,6 +12,7 @@ services:
       - ./backend/media:/var/www/backend/media:ro
 
   backend:
+    restart: unless-stopped
     image: visits_django/backend
     build: docker/backend
     volumes:

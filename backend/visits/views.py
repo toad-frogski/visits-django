@@ -144,8 +144,10 @@ class CurrentSessionView(APIView):
 
         last_entry = session.get_last_entry()
 
+        # closed last session
         if session.date != today and last_entry and last_entry.check_out is not None:
             raise NotFound(detail="Session not found")
 
         serializer = serializers.SessionModelSerializer(session)
+
         return Response(serializer.data)
