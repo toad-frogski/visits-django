@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 
-from .models import SessionEntry, SessionEntryComment
+from .models import SessionEntry
 
 
 class SessionEntryCommentSerializer(serializers.Serializer):
