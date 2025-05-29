@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from django.utils import timezone
 from .models import Session, SessionEntry
+from rest_framework.response import Response
 
 
 class SessionTestCase(TestCase):
@@ -30,7 +31,7 @@ class SessionTestCase(TestCase):
         session = Session.objects.filter(user=self.user, date=timezone.now()).first()
         self.assertIsNotNone(session)
 
-        entry = session.sessionentry_set.first()
+        entry = session.sessionentry_set.first() # type: ignore
         self.assertIsNotNone(entry)
         self.assertEqual(entry.check_in, assert_date)
         self.assertEqual(entry.type, SessionEntry.Type.SYSTEM)

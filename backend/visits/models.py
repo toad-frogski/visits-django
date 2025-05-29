@@ -39,7 +39,7 @@ class Session(models.Model):
     date = models.DateField(_("Date"), default=timezone.now)
 
     def get_last_entry(self):
-        return self.sessionentry_set.order_by("-id").first()
+        return self.sessionentry_set.order_by("-id").first() # type: ignore
 
     def add_enter(self, check_in: datetime, type: SessionEntry.Type):
         entry = SessionEntry(session=self, check_in=check_in, type=type)
@@ -52,7 +52,7 @@ class Session(models.Model):
         check_in: datetime | None = None,
         check_out: datetime | None = None,
     ):
-        entry = self.sessionentry_set.get(id=entry_id)
+        entry = self.sessionentry_set.get(id=entry_id) # type: ignore
 
         if check_in is not None:
             entry.check_in = check_in

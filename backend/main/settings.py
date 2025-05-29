@@ -83,19 +83,17 @@ WSGI_APPLICATION = "main.wsgi.application"
 
 DATABASES = {
     "default": {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME', ''),
-        'HOST': os.getenv('DB_HOST', ''),
-        'USER': os.getenv('DB_USER', ''),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'PORT': os.getenv('DB_PORT', '3306'),
-        'OPTIONS': {
-            'init_command': 'SET default_storage_engine=INNODB',
-            'charset': 'utf8mb4',
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.getenv("DB_NAME", ""),
+        "HOST": os.getenv("DB_HOST", ""),
+        "USER": os.getenv("DB_USER", ""),
+        "PASSWORD": os.getenv("DB_PASSWORD", ""),
+        "PORT": os.getenv("DB_PORT", "3306"),
+        "OPTIONS": {
+            "init_command": "SET default_storage_engine=INNODB",
+            "charset": "utf8mb4",
         },
-        'TEST': {
-            'MIRROR': 'default'
-        }
+        "TEST": {"MIRROR": "default"},
     }
 }
 
@@ -156,7 +154,7 @@ AUTH_LDAP_BIND_PASSWORD = os.getenv("LDAP_BIND_PASSWORD")
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
     os.getenv("LDAP_BASE_DN"),
     ldap.SCOPE_SUBTREE,
-    os.getenv("LDAP_FILTER"),
+    os.getenv("LDAP_FILTER", "(uid=%(user)s)"),
 )
 
 REST_FRAMEWORK = {
