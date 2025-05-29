@@ -12,21 +12,21 @@ def user_populated(user: User, ldap_user: _LDAPUser, **kwargs):
     email = attrs.get("mail")
     email = email[0] if isinstance(email, list) else email
 
-    if user.email != email:
+    if email and user.email != email:
         user.email = email
         updated = True
 
     given_name = attrs.get("givenname")
     given_name = given_name[0] if isinstance(given_name, list) else given_name
 
-    if user.first_name != given_name:
+    if given_name and user.first_name != given_name:
         user.first_name = given_name
         updated = True
 
     sn = attrs.get("sn")
     sn = sn[0] if isinstance(sn, list) else sn
 
-    if user.last_name != sn:
+    if sn and user.last_name != sn:
         user.last_name = sn
         updated = True
 
