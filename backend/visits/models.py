@@ -5,14 +5,6 @@ from django.utils import timezone
 from datetime import datetime
 
 
-class SessionManager(models.Manager):
-    def get_last_session(self):
-        return self
-
-    def get_active_session(self):
-        return self
-
-
 class SessionEntryComment(models.Model):
     session_entry = models.ForeignKey("SessionEntry", on_delete=models.CASCADE)
     comment = models.CharField(max_length=255)
@@ -45,16 +37,13 @@ class SessionEntry(models.Model):
 class Session(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date = models.DateField(_("Date"), default=timezone.now)
-    objects = SessionManager
 
     def get_last_entry(self):
-        return self.sessionentry_set.order_by("-id").first()
+        return self.sessionentry_set.order_by("-id").first() # type: ignore
 
-    def add_enter(self, check_in: datetime, type: SessionEntry.Type) -> SessionEntry:
+    def add_enter(self, check_in: datetime, type: SessionEntry.Type):
         entry = SessionEntry(session=self, check_in=check_in, type=type)
         entry.save()
-
-        return entry
 
     def update_entry(
         self,
@@ -62,8 +51,8 @@ class Session(models.Model):
         type: SessionEntry.Type = SessionEntry.Type.SYSTEM,
         check_in: datetime | None = None,
         check_out: datetime | None = None,
-    ) -> SessionEntry:
-        entry = self.sessionentry_set.get(id=entry_id)
+    ):
+        entry = self.sessionentry_set.get(id=entry_id) # type: ignore
 
         if check_in is not None:
             entry.check_in = check_in
@@ -73,5 +62,3 @@ class Session(models.Model):
 
         entry.type = type
         entry.save()
-
-        return entry
