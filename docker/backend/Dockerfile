@@ -15,6 +15,7 @@ RUN pip install \
     mysqlclient \
     uwsgi \
     django-auth-ldap \
+    Pillow \
     djangorestframework-simplejwt
 
 FROM python:3.12-bookworm as runtime

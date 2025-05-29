@@ -135,17 +135,10 @@ class CurrentSessionView(APIView):
     authentication_classes = [JWTAuthentication]
 
     def get(self, request: Request):
-        today = timezone.localdate()
-
-        session = Session.objects.get_last_user_session(request.user)
+        session_service = SessionService()
+        session = session_service.get_current_session(request.user)
 
         if session is None:
-            raise NotFound(detail="Session not found")
-
-        last_entry = session.get_last_entry()
-
-        # closed last session
-        if session.date != today and last_entry and last_entry.check_out is not None:
             raise NotFound(detail="Session not found")
 
         serializer = serializers.SessionModelSerializer(session)

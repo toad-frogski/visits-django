@@ -42,3 +42,18 @@ class SessionService:
             raise ValueError("Entry already checked out.")
 
         session.update_entry(last_entry.id, type, check_out=check_out)
+
+    @staticmethod
+    def get_current_session(user) -> Session | None:
+        today = timezone.localdate()
+        session = Session.objects.get_last_user_session(user)
+
+        if session is None:
+            return None
+
+        last_entry = session.get_last_entry()
+
+        if session.date != today and last_entry and last_entry.check_out is not None:
+            return None
+
+        return session
