@@ -23,7 +23,7 @@ class RFIDSessionTestCase(TestCase):
 
         session = Session.objects.filter(user=self.user).first()
         self.assertIsNotNone(session)
-        self.assertEqual(session.sessionentry_set.count(), 1) # type: ignore
+        self.assertEqual(session.entries.count(), 1) # type: ignore
 
         response = self.client.post(
             "/api/v1/rfid/enter",

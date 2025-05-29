@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import EnterView, ExitView, CommentViewSet
+from .views import CurrentSessionView, EnterView, ExitView, CommentViewSet
 
 urlpatterns = [
+    path("current", CurrentSessionView.as_view()),
     path("enter", EnterView.as_view()),
     path("exit", ExitView.as_view()),
     path(

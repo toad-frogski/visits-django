@@ -5,10 +5,13 @@ from rest_framework.exceptions import APIException, ValidationError, NotFound
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework import viewsets
+from rest_framework.request import Request
+
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from django.db.models import Q
 
 from visits.services.session_service import SessionService
 
@@ -20,7 +23,7 @@ class EnterView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    def post(self, request):
+    def post(self, request: Request):
         serializer = serializers.SessionEnterPostRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -32,13 +35,13 @@ class EnterView(APIView):
         try:
             session_service.enter(user=request.user, check_in=check_in, type=type)
         except ValueError as e:
-            raise ValidationError(detail=e)
+            raise ValidationError(detail=str(e))
         except Exception as e:
-            raise APIException(detail=e)
+            raise APIException(detail=str(e))
 
         return Response(status=status.HTTP_200_OK)
 
-    def put(self, request):
+    def put(self, request: Request):
         serializer = serializers.SessionEnterPutRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -53,9 +56,9 @@ class EnterView(APIView):
                 user=request.user, entry_id=entry_id, type=type, check_in=check_in
             )
         except Session.DoesNotExist as e:
-            raise NotFound(detail=e)
+            raise NotFound(detail=str(e))
         except Exception as e:
-            raise APIException(detail=e)
+            raise APIException(detail=str(e))
 
         return Response(status=status.HTTP_200_OK)
 
@@ -64,7 +67,7 @@ class ExitView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    def put(self, request):
+    def put(self, request: Request):
         serializer = serializers.SessionExitPostRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -79,9 +82,9 @@ class ExitView(APIView):
                 request.user, entry_id, type, check_out=check_out
             )
         except Session.DoesNotExist as e:
-            raise NotFound(detail=e)
+            raise NotFound(detail=str(e))
         except Exception as e:
-            raise APIException(detail=e)
+            raise APIException(detail=str(e))
 
         return Response(status=status.HTTP_200_OK)
 
@@ -98,7 +101,7 @@ class CommentViewSet(viewsets.ViewSet):
         try:
             entry.set_comment(comment_data)
         except Exception as e:
-            raise APIException(detail=e)
+            raise APIException(detail=str(e))
 
         return Response(status=status.HTTP_200_OK)
 
@@ -122,6 +125,27 @@ class CommentViewSet(viewsets.ViewSet):
             comment.comment = comment_data
             comment.save()
         except Exception as e:
-            raise APIException(detail=e, code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise APIException(detail=str(e))
 
         return Response(status=status.HTTP_200_OK)
+
+
+class CurrentSessionView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request: Request):
+        today = timezone.localdate()
+
+        session = Session.objects.get_last_user_session(request.user)
+
+        if session is None:
+            raise NotFound(detail="Session not found")
+
+        last_entry = session.get_last_entry()
+
+        if session.date != today and last_entry and last_entry.check_out is not None:
+            raise NotFound(detail="Session not found")
+
+        serializer = serializers.SessionModelSerializer(session)
+        return Response(serializer.data)

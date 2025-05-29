@@ -1,3 +1,5 @@
+from datetime import timedelta
+from tabnanny import check
 from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework import status
@@ -31,7 +33,7 @@ class SessionTestCase(TestCase):
         session = Session.objects.filter(user=self.user, date=timezone.now()).first()
         self.assertIsNotNone(session)
 
-        entry = session.sessionentry_set.first() # type: ignore
+        entry = session.entries.first()  # type: ignore
         self.assertIsNotNone(entry)
         self.assertEqual(entry.check_in, assert_date)
         self.assertEqual(entry.type, SessionEntry.Type.SYSTEM)
@@ -74,3 +76,57 @@ class SessionTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         updated_entry = SessionEntry.objects.get(id=entry.id)
         self.assertEqual(updated_entry.check_out, assert_date)
+
+    def test_get_current_session(self):
+        today = timezone.now()
+        yesterday = today - timedelta(days=1)
+
+        session: Session = Session.objects.create(user=self.user, date=yesterday)
+        entry: SessionEntry = SessionEntry.objects.create(
+            session=session, check_in=yesterday
+        )
+
+        response = self.client.get(
+            "/api/v1/visits/current",
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {self.access_token}"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(session.id, response.data["id"])
+
+        entry.check_out = yesterday
+        entry.save()
+
+        response = self.client.get(
+            "/api/v1/visits/current",
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {self.access_token}"},
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+        session = Session.objects.create(user=self.user, date=today)
+
+        response = self.client.get(
+            "/api/v1/visits/current",
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {self.access_token}"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(session.id, response.data["id"])
+
+        entry.check_in = today
+        entry.check_out = today
+        entry.session = session
+        entry.save()
+
+        response = self.client.get(
+            "/api/v1/visits/current",
+            content_type="application/json",
+            headers={"Authorization": f"Bearer {self.access_token}"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(session.id, response.data["id"])
