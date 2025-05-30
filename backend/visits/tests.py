@@ -1,11 +1,9 @@
 from datetime import timedelta
-from tabnanny import check
 from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework import status
 from django.utils import timezone
 from .models import Session, SessionEntry
-from rest_framework.response import Response
 
 
 class SessionTestCase(TestCase):
