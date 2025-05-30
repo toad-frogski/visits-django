@@ -6,7 +6,9 @@ from rest_framework.exceptions import NotFound
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.models import User
 from visits.services.session_service import SessionService
+
 from .serializers import UserProfileModelSerializer, UserSessionSerializer
+from .models import UserProfile
 
 
 class UsersTodayView(APIView):
@@ -31,7 +33,7 @@ class UserProfileView(APIView):
     authentication_classes = [JWTAuthentication]
 
     def get(self, request: Request):
-        profile = User.objects.filter(user=request.user).first()
+        profile = UserProfile.objects.filter(user=request.user).first()
 
         if profile is None:
             raise NotFound(detail="Profile not found")
