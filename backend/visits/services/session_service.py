@@ -51,6 +51,9 @@ class SessionService:
         if session is None:
             return None
 
+        if session.date != today and session.entries.count() == 0:
+            return None
+
         last_entry = session.get_last_entry()
 
         if session.date != today and last_entry and last_entry.check_out is not None:

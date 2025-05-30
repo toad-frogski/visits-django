@@ -1,10 +1,10 @@
-ARG PYTHON_IMAGE_VERSION=3.12
+ARG PYTHON_IMAGE_VERSION=3.13
 
-FROM python:3.12-bookworm AS build
+FROM python:3.13-alpine AS build
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        gcc pkg-config python3-dev libldap2-dev libsasl2-dev && \
+RUN apk update && \
+    apk add --no-cache \
+        gcc musl-dev python3-dev openldap-dev cyrus-sasl-dev libffi-dev pkgconf mariadb-dev && \
         pip install --upgrade pip==25.0.1
 
 RUN pip install \
@@ -18,9 +18,9 @@ RUN pip install \
     Pillow \
     djangorestframework-simplejwt
 
-FROM python:3.12-bookworm as runtime
+FROM python:3.13-alpine AS runtime
 
-ARG PYTHON_IMAGE_VERSION
+ARG PYTHON_IMAGE_VERSION=3.13
 
 VOLUME [ "/var/run/python" ]
 
@@ -32,7 +32,7 @@ ENV PYTHON_IMAGE_VERSION=${PYTHON_IMAGE_VERSION} \
     WSGI_PROCESSES=4
 
 
-RUN apt-get update && apt-get -y install libldap-2.5-0
+RUN apk update && apk add --no-cache openldap mariadb-connector-c
 
 COPY --from=build /usr/local/lib/python${PYTHON_IMAGE_VERSION}/site-packages /usr/local/lib/python${PYTHON_IMAGE_VERSION}/site-packages
 COPY --from=build /usr/local/bin/uwsgi /usr/local/bin/

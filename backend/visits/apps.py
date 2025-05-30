@@ -6,4 +6,4 @@ class VisitsConfig(AppConfig):
     name = 'visits'
 
     def ready(self) -> None:
-        import visits.signals
+        from . import signals
