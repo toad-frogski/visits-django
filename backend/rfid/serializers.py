@@ -1,6 +1,9 @@
 from rest_framework import serializers
-from django.utils import timezone
+from .models import RFIDSettings
 
 
-class SessionEntryCommentSerializer(serializers.Serializer):
-    pass
+class RFIDSettingsModelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RFIDSettings
+        fields = ["rfid_token"]

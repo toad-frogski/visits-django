@@ -3,18 +3,18 @@ from rest_framework import serializers
 from rest_framework.request import Request
 from django.contrib.auth.models import User
 from visits.serializers import SessionModelSerializer
-from .models import UserProfile
+from .models import Avatar
 
 
-class UserProfileModelSerializer(serializers.ModelSerializer):
+class AvatarModelSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(write_only=True, required=False)
     avatar_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = UserProfile
+        model = Avatar
         fields = ["avatar_url", "avatar"]
 
-    def get_avatar_url(self, obj: UserProfile):
+    def get_avatar_url(self, obj: Avatar):
         request: Request = self.context.get("request")
         if obj.avatar:
             return request.build_absolute_uri(obj.avatar.url)
@@ -29,12 +29,12 @@ class UserProfileModelSerializer(serializers.ModelSerializer):
 
 
 class UserModelSerializer(serializers.ModelSerializer):
-    profile = UserProfileModelSerializer(allow_null=True)
+    avatar = AvatarModelSerializer(allow_null=True)
     full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["id", "full_name", "profile"]
+        fields = ["id", "full_name", "avatar"]
 
     def get_full_name(self, obj: User):
         return (

@@ -16,7 +16,8 @@ RUN pip install \
     uwsgi \
     django-auth-ldap \
     Pillow \
-    djangorestframework-simplejwt
+    djangorestframework-simplejwt \
+    drf-spectacular
 
 FROM python:3.13-alpine AS runtime
 

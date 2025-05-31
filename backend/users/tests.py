@@ -19,7 +19,7 @@ class UsersTestCase(TestCase):
 
         session = Session.objects.create(user=self.user, date=yesterday)
         users_count = User.objects.filter(is_active=True).count()
-        response = self.client.get("/api/v1/users/today")
+        response = self.client.get("/api/v1/user/today")
 
         self.assertEqual(users_count, len(response.data))
 
@@ -31,7 +31,7 @@ class UsersTestCase(TestCase):
         self.assertEqual(today_user["session"], None)
 
         session = Session.objects.create(user=self.user, date=today)
-        response = self.client.get("/api/v1/users/today")
+        response = self.client.get("/api/v1/user/today")
 
         today_user = next(
             (item for item in response.data if item["user"]["id"] == self.user.id), None

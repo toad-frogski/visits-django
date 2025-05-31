@@ -1,19 +1,22 @@
-from rest_framework.views import APIView
+from rest_framework import views
+from rest_framework import generics
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.exceptions import NotFound
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
+
 from visits.services.session_service import SessionService
 
-from .serializers import UserProfileModelSerializer, UserSessionSerializer
-from .models import UserProfile
+from .serializers import AvatarModelSerializer, UserSessionSerializer
+from .models import Avatar
 
-
-class UsersTodayView(APIView):
+class UsersTodayView(views.APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(tags=["users with sessions today"])
     def get(self, request: Request):
         users = User.objects.filter(is_active=True).select_related("profile")
         session_service = SessionService()
@@ -28,21 +31,11 @@ class UsersTodayView(APIView):
         return Response(serializer.data)
 
 
-class UserProfileView(APIView):
+@extend_schema(tags=["avatar"])
+class AvatarView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
+    serializer_class = AvatarModelSerializer
 
-    def get(self, request: Request):
-        profile = UserProfile.objects.filter(user=request.user).first()
-
-        if profile is None:
-            raise NotFound(detail="Profile not found")
-
-        serializer = UserProfileModelSerializer(profile)
-
-        return Response(serializer.data)
-
-    def post(self, request: Request):
-        serializer = UserProfileModelSerializer(request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+    def get_object(self):
+        return get_object_or_404(Avatar, user=self.request.user)

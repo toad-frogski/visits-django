@@ -11,28 +11,29 @@ class RFIDSessionTestCase(TestCase):
         self.user = User.objects.create_user(
             username="test_user", password="test_password"
         )
-        self.rfid = RFIDSettings.objects.create(rfid_token="1111", user=self.user)
+        rfid = RFIDSettings.objects.get(user=self.user)
+        rfid.rfid_token = "1111"
+        rfid.save()
+        self.rfid = rfid
 
     def test_enter(self):
         response = self.client.post(
             "/api/v1/rfid/enter",
             content_type="application/json",
-            headers={"X-RFID-Token": self.rfid.rfid_token}
+            headers={"X-RFID-Token": self.rfid.rfid_token},
         )
         self.assertEqual(response.status_code, 200)
 
         session = Session.objects.filter(user=self.user).first()
         self.assertIsNotNone(session)
-        self.assertEqual(session.entries.count(), 1) # type: ignore
+        self.assertEqual(session.entries.count(), 1)  # type: ignore
 
         response = self.client.post(
             "/api/v1/rfid/enter",
             content_type="application/json",
-            headers={"X-RFID-Token": self.rfid.rfid_token}
+            headers={"X-RFID-Token": self.rfid.rfid_token},
         )
         self.assertEqual(response.status_code, 400)
-
-
 
     def test_exit(self):
         session = Session.objects.create(user=self.user)
@@ -41,7 +42,7 @@ class RFIDSessionTestCase(TestCase):
         response = self.client.post(
             "/api/v1/rfid/exit",
             content_type="application/json",
-            headers={"X-RFID-Token": self.rfid.rfid_token}
+            headers={"X-RFID-Token": self.rfid.rfid_token},
         )
 
         self.assertEqual(response.status_code, 200)

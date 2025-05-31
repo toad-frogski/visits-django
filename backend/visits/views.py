@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import viewsets
 from rest_framework.request import Request
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from django.utils.translation import gettext as _
 from django.utils import timezone
@@ -19,6 +20,7 @@ from . import serializers
 from .models import Session, SessionEntry, SessionEntryComment
 
 
+@extend_schema(tags=["visits"])
 class EnterView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
@@ -63,6 +65,7 @@ class EnterView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["visits"])
 class ExitView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
@@ -89,6 +92,7 @@ class ExitView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["visits"])
 class CommentViewSet(viewsets.ViewSet):
 
     def create(self, request, entry_id=None):
@@ -130,6 +134,7 @@ class CommentViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["visits"], summary="Get current session info")
 class CurrentSessionView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]

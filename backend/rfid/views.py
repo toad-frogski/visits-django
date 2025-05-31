@@ -1,26 +1,35 @@
-from rest_framework.views import APIView
+from rest_framework import views
+from rest_framework import generics
+from rest_framework import viewsets
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.exceptions import APIException, ValidationError, NotFound
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from visits.models import SessionEntry
 from visits.services.session_service import SessionService
 
 from .authentication import RFIDAuthentication
+from .serializers import RFIDSettingsModelSerializer
+from .models import RFIDSettings
 
 
-class SettingsView(APIView):
+@extend_schema(tags=["rfid"])
+class SettingsView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
+    serializer_class = RFIDSettingsModelSerializer
 
-    def get(self, request):
-        return Response()
+    def get_object(self):
+        return get_object_or_404(RFIDSettings, user=self.request.user)
 
 
-class EnterView(APIView):
+@extend_schema(exclude=True)
+class EnterView(views.APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [RFIDAuthentication]
 
@@ -39,7 +48,8 @@ class EnterView(APIView):
         return Response({"message": "RFID entry processed"}, status=status.HTTP_200_OK)
 
 
-class ExitView(APIView):
+@extend_schema(exclude=True)
+class ExitView(views.APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [RFIDAuthentication]
 

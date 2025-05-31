@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import UsersTodayView, UserProfileView
+from .views import UsersTodayView, AvatarView
 
 urlpatterns = [
     path("today", UsersTodayView.as_view()),
-    path("profile", UserProfileView.as_view())
+    path("avatar", AvatarView.as_view()),
 ]
