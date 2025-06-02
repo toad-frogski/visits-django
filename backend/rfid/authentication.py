@@ -9,7 +9,7 @@ class RFIDAuthentication(BaseAuthentication):
         rfid_token = request.headers.get("X-RFID-Token")
 
         if not rfid_token:
-            return None
+            return AuthenticationFailed("Header X-RFID-Token is missing")
 
         try:
             rfid_settings = RFIDSettings.objects.get(rfid_token=rfid_token)
