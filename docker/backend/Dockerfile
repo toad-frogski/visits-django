@@ -17,7 +17,8 @@ RUN pip install \
     django-auth-ldap \
     Pillow \
     djangorestframework-simplejwt \
-    drf-spectacular
+    drf-spectacular \
+    django-cors-headers
 
 FROM python:3.13-alpine AS runtime
 
