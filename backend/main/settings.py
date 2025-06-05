@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     "visits",
     "rfid",
     "users",
-    "simplejwt_override",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -47,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "corsheaders"
     "drf_spectacular",
 ]
 
@@ -178,3 +178,6 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Visit time tracker",
     "VERSION": "1.0.0",
 }
+
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split()
+CORS_ALLOW_CREDENTIALS = True
