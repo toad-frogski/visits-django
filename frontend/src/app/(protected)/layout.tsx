@@ -1,4 +1,3 @@
-import { getServerSession } from "next-auth";
 import { FC, PropsWithChildren } from "react";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";

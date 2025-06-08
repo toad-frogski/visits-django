@@ -1,15 +1,27 @@
 "use client"
 
+import Button from "@/ui/components/button";
+import Input from "@/ui/components/input";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { FC, useState } from "react"
+import { FC, useEffect, useLayoutEffect, useRef, useState } from "react"
 
 const SignInForm: FC = () => {
+  const router = useRouter();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  // Browser password manager autocomplete support.
+  useLayoutEffect(() => {
+    setUsername(usernameRef.current?.value || "");
+    setPassword(passwordRef.current?.value || "");
+  }, [usernameRef, passwordRef])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,45 +50,39 @@ const SignInForm: FC = () => {
   return (
     <form onSubmit={handleSubmit}>
       {error && (
-        <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+        <div className="mb-4 bg-red-100 text-red-700 rounded-md p-3">
           {error}
         </div>
       )}
+      <Input
+        ref={usernameRef}
+        label="Username"
+        autoComplete="on"
+        type="text"
+        name="username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        required
+      />
+      <Input
+        ref={passwordRef}
+        className="mt-3"
+        label="Password"
+        type="password"
+        autoComplete="on"
+        name="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
 
-      <div className="flex flex-col p-3 rounded border">
-        <label htmlFor="username">Username</label>
-        <input
-          id="username"
-          name="username"
-          autoComplete="username"
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-      </div>
-
-      <div className="flex flex-col p-3 rounded mt-3 border">
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          placeholder="***"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-
-      <button
+      <Button
         type="submit"
-        disabled={loading}
-        className="rounded w-full p-3 mt-3 border hover:bg-teal-800 transition ease-in disabled:bg-gray-400"
+        disabled={loading || !username.length || !password.length}
+        className="mt-3"
       >
-        {loading ? "Выполняется вход..." : "Войти"}
-      </button>
+        {loading ? "Signing" : "Sign in"}
+      </Button>
     </form>
   )
 }
