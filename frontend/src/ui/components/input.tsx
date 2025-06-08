@@ -42,7 +42,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((
         className,
         isFocused
           ? "border-accent"
-          : "hover:border-soft-blue",
+          : "hover:border-blue-light",
       )}>
         {label && (
           <span
@@ -60,7 +60,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((
           {...props}
           ref={ref}
           className={clsx(
-            "border-none outline-none bg-transparent p-3",
+            "border-none outline-none bg-transparent p-3 w-full",
             { "pt-6": label }
           )}
           onBlur={handleBlur}

@@ -49,13 +49,10 @@ const SignInForm: FC = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      {error && (
-        <div className="mb-4 bg-red-100 text-red-700 rounded-md p-3">
-          {error}
-        </div>
-      )}
+      <h1 className="text-center w-full text-h2/h2 font-bold">Sign in</h1>
       <Input
         ref={usernameRef}
+        className="mt-[56px]"
         label="Username"
         autoComplete="on"
         type="text"
@@ -66,7 +63,7 @@ const SignInForm: FC = () => {
       />
       <Input
         ref={passwordRef}
-        className="mt-3"
+        className="mt-6"
         label="Password"
         type="password"
         autoComplete="on"
@@ -75,11 +72,15 @@ const SignInForm: FC = () => {
         onChange={(e) => setPassword(e.target.value)}
         required
       />
-
+      {error && (
+        <div className="mt-4 bg-red-light text-background rounded-md p-3">
+          {error}
+        </div>
+      )}
       <Button
         type="submit"
         disabled={loading || !username.length || !password.length}
-        className="mt-3"
+        className="mt-9"
       >
         {loading ? "Signing" : "Sign in"}
       </Button>
