@@ -1,13 +1,19 @@
 "use client"
 
 import Image from "next/image";
-import { FC } from "react";
-import { redirect, usePathname, useRouter } from 'next/navigation'
+import { ButtonHTMLAttributes, FC } from "react";
+import { usePathname, useRouter } from 'next/navigation'
 import { signOut } from "next-auth/react";
+import clsx from "clsx";
+import useDesktop from "@/lib/hooks/useDesktop";
 
 const Sidebar: FC = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const isDesktop = useDesktop();
+
+  if (!isDesktop) return null;
+
 
   const navItems = [
     { label: "General", href: "/", icon: "/icons/grid.svg" },
@@ -17,37 +23,65 @@ const Sidebar: FC = () => {
     { label: "Calendar", href: "/calendar", icon: "/icons/calendar.svg" },
   ];
 
-  return <div className="flex flex-col px-12 py-14 text-h3/h3 font-bold text-gray relative">
-    <div>
-      <Image src={"/logo.png"} alt="Logo" width={140} height={60} />
+  return (
+    <div className="flex flex-col py-14 text-h3/h3 font-bold text-gray relative">
+      <div className="mx-12">
+        <Image src={"/logo.png"} alt="Logo" width={200} height={60} />
+      </div>
+      <div className="flex-1 mt-24">
+        <nav>
+          <ul className="flex flex-col ml-12">
+            {navItems.map((item) => {
+              const active = pathname === item.href;
+
+              return (
+                <li key={item.href}>
+                  <SidebarBreadcrumb
+                    className="py-6 w-full"
+                    icon={item.icon}
+                    label={item.label}
+                    active={active}
+                    onClick={() => router.push(item.href)}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </div>
+      <SidebarBreadcrumb
+        className="ml-12"
+        icon="/icons/log-out.svg"
+        label="Sign out"
+        onClick={() => signOut()}
+      />
     </div>
-    <div className="flex-1 mt-24">
-      <nav>
-        <ul className="flex flex-col gap-10">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <li key={item.href}>
-                <div
-                  className="flex items-center cursor-pointer"
-                  onClick={() => router.push(item.href)}
-                >
-                  <span className="absolute -z-1 right-0 w-full max-w-[220px] h-full max-h-[64px] rounded-l-4xl bg-gray-light" />
-                  <Image src={item.icon} width={24} height={24} alt={item.label} />
-                  <span className="ml-3">{item.label}</span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-    </div>
-    <div className="flex" onClick={() => signOut()}>
-      <span className="absolute -z-1 right-0 w-full max-w-[220px] h-full max-h-[64px] rounded-l-4xl bg-gray-light" />
-      <Image src={"/icons/log-out.svg"} width={24} height={24} alt="grid" />
-      <span className="ml-3">Sign out</span>
-    </div>
-  </div>
+  )
+}
+
+type SidebarBreadcrumbProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  active?: boolean
+  icon: string,
+  label: string,
+};
+
+const SidebarBreadcrumb: FC<SidebarBreadcrumbProps> = ({ active, icon, label, className, ...props }) => {
+  return (
+    <button
+      className={clsx("flex items-center cursor-pointer group w-full", className)}
+      {...props}
+    >
+      <span
+        className={clsx(
+          "absolute -z-1 right-0 w-full max-w-[calc(100%-20px)] h-full max-h-[64px] rounded-l-4xl bg-gray-light transition-opacity",
+          "group-hover:opacity-60",
+          active ? "opacity-100 group-hover:opacity-100" : "opacity-0",
+        )}
+      />
+      <Image src={icon} width={24} height={24} alt={label} />
+      <span className="ml-3">{label}</span>
+    </button>
+  );
 }
 
 export default Sidebar;
