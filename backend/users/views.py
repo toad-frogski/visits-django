@@ -9,8 +9,13 @@ from drf_spectacular.utils import extend_schema
 
 from visits.services.session_service import SessionService
 
-from .serializers import AvatarModelSerializer, UserSessionSerializer
+from .serializers import (
+    AvatarModelSerializer,
+    UserSessionSerializer,
+    UserModelSerializer,
+)
 from .models import Avatar
+
 
 @extend_schema(tags=["users"])
 class UsersTodayView(views.APIView):
@@ -37,3 +42,12 @@ class AvatarView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return get_object_or_404(Avatar, user=self.request.user)
+
+
+@extend_schema(tags=["users"])
+class MeView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserModelSerializer
+
+    def get_object(self):
+        return self.request.user

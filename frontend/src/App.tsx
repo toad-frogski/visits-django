@@ -1,9 +1,14 @@
 import type { FC } from "react";
 import { RouterProvider } from "react-router";
 import router from "./routes";
+import SessionProvider from "./contexts/session";
 
 const App: FC = () => {
-  return <RouterProvider router={router} />
+  return (
+    <SessionProvider>
+      <RouterProvider router={router} />
+    </SessionProvider>
+  )
 };
 
 export default App;

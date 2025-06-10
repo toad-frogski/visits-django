@@ -44,8 +44,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # contrib
     "rest_framework",
-    'rest_framework.authtoken',
     "drf_spectacular",
+    "corsheaders",
     # app
     "visits",
     "rfid",
@@ -61,6 +61,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "main.urls"
@@ -177,3 +178,8 @@ SPECTACULAR_SETTINGS = {
 
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
+CORS_ALLOWED_ORIGINS = os.getenv("TRUSTED_ORIGINS", "").split()
+CSRF_TRUSTED_ORIGINS = os.getenv("TRUSTED_ORIGINS", "").split()

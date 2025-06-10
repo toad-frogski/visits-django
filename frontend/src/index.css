@@ -1,1 +1,39 @@
 @import "tailwindcss";
+
+:root {
+    --background: #ffffff;
+    --foreground: #171717;
+
+    --accent: hsla(222, 89%, 56%, 1);
+    --accent-light: hsla(203, 94%, 65%, 1);
+    --gray: hsla(0, 0%, 40%, 1);
+    --gray-light: hsla(0, 0%, 40%, 0.2);
+    --green: hsla(145, 83%, 59%, 1);
+    --orange: hsla(13, 91%, 71%, 1);
+    --red: hsla(0, 100%, 67%, 1);
+    --red-light: hsla(0, 98%, 77%, 1);
+    --yellow: hsla(39, 100%, 71%, 1);
+    --blue: hsla(203, 94%, 65%, 1);
+    --blue-light: hsla(203, 94%, 65%, 0.2);
+}
+
+@theme {
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --color-accent: var(--accent);
+    --color-accent-light: var(--accent-light);
+    --color-gray: var(--gray);
+    --color-gray-light: var(--gray-light);
+    --color-green: var(--green);
+    --color-orange: var(--orange);
+    --color-red: var(--red);
+    --color-red-light: var(--red-light);
+    --color-yellow: var(--yellow);
+    --color-blue: var(--blue);
+    --color-blue-light: var(--blue-light);
+
+    --text-h2: 32px;
+    --leading-h2: 40px;
+    --text-h3: 24px;
+    --leading-h3: 32px;
+}
