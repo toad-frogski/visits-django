@@ -1,11 +1,12 @@
 ARG PYTHON_IMAGE_VERSION=3.13
 
-FROM python:3.13-alpine AS build
+FROM python:${PYTHON_IMAGE_VERSION}-slim AS build
 
-RUN apk update && \
-    apk add --no-cache \
-        gcc musl-dev python3-dev openldap-dev cyrus-sasl-dev libffi-dev pkgconf mariadb-dev && \
-        pip install --upgrade pip==25.0.1
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential pkg-config python3-dev libldap2-dev libsasl2-dev libffi-dev libmariadb-dev
+
+RUN pip install --upgrade pip
 
 RUN pip install \
     Django \
@@ -16,12 +17,12 @@ RUN pip install \
     uwsgi \
     django-auth-ldap \
     Pillow \
-    djangorestframework-simplejwt \
-    drf-spectacular
+    drf-spectacular \
+    django-cors-headers
 
-FROM python:3.13-alpine AS runtime
+FROM python:${PYTHON_IMAGE_VERSION}-slim AS runtime
 
-ARG PYTHON_IMAGE_VERSION=3.13
+ARG PYTHON_IMAGE_VERSION
 
 VOLUME [ "/var/run/python" ]
 
@@ -33,7 +34,7 @@ ENV PYTHON_IMAGE_VERSION=${PYTHON_IMAGE_VERSION} \
     WSGI_PROCESSES=4
 
 
-RUN apk update && apk add --no-cache openldap mariadb-connector-c
+RUN apt-get update && apt-get install -y --no-install-recommends libldap-2.5-0 libmariadb3
 
 COPY --from=build /usr/local/lib/python${PYTHON_IMAGE_VERSION}/site-packages /usr/local/lib/python${PYTHON_IMAGE_VERSION}/site-packages
 COPY --from=build /usr/local/bin/uwsgi /usr/local/bin/
