@@ -35,18 +35,22 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(" ")
 # Application definition
 
 INSTALLED_APPS = [
-    "visits",
-    "rfid",
-    "users",
+    # core
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # contrib
     "rest_framework",
-    "rest_framework_simplejwt",
+    'rest_framework.authtoken',
     "drf_spectacular",
+    # app
+    "visits",
+    "rfid",
+    "users",
+    "session"
 ]
 
 MIDDLEWARE = [
@@ -161,18 +165,8 @@ AUTH_LDAP_USER_SEARCH = LDAPSearch(
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework.authentication.SessionAuthentication",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
-    "SLIDING_TOKEN_LIFETIME": timedelta(days=30),
-    "SLIDING_TOKEN_REFRESH_LIFETIME_LATE_USER": timedelta(days=1),
-    "SLIDING_TOKEN_LIFETIME_LATE_USER": timedelta(days=30),
 }
 
 SPECTACULAR_SETTINGS = {
@@ -180,3 +174,6 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Visit time tracker",
     "VERSION": "1.0.0",
 }
+
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
