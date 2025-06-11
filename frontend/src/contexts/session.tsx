@@ -1,48 +1,53 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type FC, type PropsWithChildren } from "react";
-import { AuthApi, UsersApi, type UserModel } from "../lib/api";
+import { SessionApi, type UserModel } from "../lib/api";
+import client from "../lib/api-client";
 
-const usersApi = new UsersApi();
-const authApi = new AuthApi();
+const api = new SessionApi(undefined, undefined, client);
 
 type SessionContextProps = {
   user: UserModel | null;
   login: (username: string, password: string) => void;
   logout: () => void;
-  loading: boolean;
 };
 
 const SessionContext = createContext<SessionContextProps>({
   user: null,
   login: () => { },
   logout: () => { },
-  loading: true,
 });
 
 const SessionProvider: FC<PropsWithChildren> = ({ children }) => {
-  const [user, setUser] = useState<UserModel | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<UserModel | null>(() => {
+    const rawUser = localStorage.getItem("user");
+    return rawUser ? JSON.parse(rawUser) : null;
+  });
 
   useEffect(() => {
-    usersApi.v1UserMeRetrieve({ withCredentials: true })
-      .then((response) => setUser(response.data))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+    api.me()
+      .then(({ data }) => {
+        setUser(data);
+        localStorage.setItem("user", JSON.stringify(data));
+      })
+      .catch(() => {
+        setUser(null);
+        localStorage.removeItem("user");
+      })
   }, [])
 
   const login = useCallback(async (username: string, password: string) => {
     try {
-      const response = await authApi.login({ username, password }, { withCredentials: true });
-      setUser(response.data);
-      return response.data;
+      const { data } = await api.login({ username, password });
+      setUser(data);
+      localStorage.setItem("user", JSON.stringify(data));
     } catch (error) {
       setUser(null);
       throw error;
     }
   }, []);
 
-  const logout = useCallback(() => authApi.logout({ withCredentials: true }).finally(() => setUser(null)), [])
+  const logout = useCallback(() => api.logout().finally(() => setUser(null)), [])
 
-  const value = useMemo(() => ({ user, login, logout, loading }), [user]);
+  const value = useMemo(() => ({ user, login, logout }), [user, login, logout]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 };
