@@ -42,6 +42,11 @@ class UserModelSerializer(serializers.ModelSerializer):
         return f"https://www.gravatar.com/avatar/{email_hash}"
 
 
+class SessionSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=Session.SessionStatus.choices)
+    comment = serializers.CharField(required=False, allow_blank=True)
+
+
 class UserSessionSerializer(serializers.Serializer):
     user = UserModelSerializer()
-    session_status = serializers.ChoiceField(choices=Session.SessionStatus.choices)
+    session = SessionSerializer()

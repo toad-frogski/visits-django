@@ -22,9 +22,9 @@ from .models import Avatar
 class UsersTodayView(views.APIView):
     permission_classes = [AllowAny]
 
-    @extend_schema("today", responses={
-        status.HTTP_200_OK: UserSessionSerializer(many=True)
-    })
+    @extend_schema(
+        "today", responses={status.HTTP_200_OK: UserSessionSerializer(many=True)}
+    )
     def get(self, request: Request):
         users = User.objects.filter(is_active=True).select_related("profile")
         session_service = SessionService()
@@ -33,7 +33,17 @@ class UsersTodayView(views.APIView):
         for user in users:
             session = session_service.get_current_session(user)
             session_status = session_service.get_session_status(user, session)
-            data.append({"user": user, "session_status": session_status})
+            session_comment = session_service.get_session_last_comment(session)
+            session_comment = None
+            data.append(
+                {
+                    "user": user,
+                    "session": {
+                        "status": session_status,
+                        "comment": session_comment
+                    },
+                }
+            )
 
         serializer = UserSessionSerializer(data, many=True)
 

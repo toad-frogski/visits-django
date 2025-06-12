@@ -38,6 +38,9 @@ class SessionEntry(models.Model):
         else:
             SessionEntryComment.objects.create(session_entry=self, comment=comment)
 
+    def get_last_comment(self) -> SessionEntryComment | None:
+        return self.comments.order_by("-id").first()
+
 
 class SessionManager(models.Manager):
     def get_last_user_session(self, user) -> Optional["Session"]:
@@ -59,11 +62,18 @@ class Session(models.Model):
     class SessionStatus(models.TextChoices):
         ACTIVE = "active", _("Active")
         INACTIVE = "inactive", _("Inactive")
+        CHEATER = "cheater", _("Cheater")
         HOLIDAY = "holiday", _("Holiday")
         VACATION = "vacation", _("Vacation")
 
-    def get_last_entry(self):
+    def get_last_entry(self) -> SessionEntry | None:
         return self.entries.order_by("-id").first()  # type: ignore
+
+    def get_open_entries(self):
+        return self.entries.filter(
+            models.Q(check_in__isnull=True, check_out__isnull=False)
+            | models.Q(check_in__isnull=False, check_out__isnull=True)
+        )
 
     def add_enter(
         self, check_in: datetime, type: SessionEntry.Type = SessionEntry.Type.SYSTEM

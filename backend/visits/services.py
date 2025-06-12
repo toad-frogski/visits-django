@@ -69,8 +69,29 @@ class SessionService:
         if session is None:
             return Session.SessionStatus.INACTIVE
 
+        # @todo: Handle other statuses
+
+        open_entries = session.get_open_entries()
+        if len(open_entries) > 1:
+            return Session.SessionStatus.CHEATER
+
+        last_entry = session.get_last_entry()
+        if last_entry is None:
+            return Session.SessionStatus.INACTIVE
+
+        if last_entry.check_in and last_entry.check_out is None:
+            return Session.SessionStatus.ACTIVE
+
         return Session.SessionStatus.INACTIVE
 
     @staticmethod
-    def get_session_last_comment(session: Session) -> str:
-        raise Exception("Not implemented yet")
+    def get_session_last_comment(session: Session | None) -> str | None:
+        if session is None:
+            return None
+
+        last_entry = session.get_last_entry()
+        if last_entry is None:
+            return None
+
+        last_comment = last_entry.get_last_comment()
+        return last_comment.comment if last_comment else None
