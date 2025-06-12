@@ -1,17 +1,16 @@
 import clsx from "clsx";
-import type { ButtonHTMLAttributes, FC } from "react";
+import type { FC } from "react";
+import { Link as RouterLink, type LinkProps as RouterLinkProps } from "react-router";
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+type LinkProps = RouterLinkProps & {
   variant?: "default" | "green" | "orange" | "red" | "yellow" | "blue";
 };
 
-const Button: FC<ButtonProps> = ({ variant, children, className, ...props }) => {
+const Link: FC<LinkProps> = ({ className, children, variant, ...props }) => {
   return (
-    <button
-      className={clsx(
-        className,
-        "p-3 rounded-md w-full text-background disabled:bg-gray-light disabled:text-gray cursor-pointer",
-        "transition-all duration-200 ease-in-out",
+    <RouterLink
+      className={clsx(className,
+        "p-3 rounded transition-colors duration-200 text-background",
         {
           "bg-accent hover:bg-accent-light": variant === "default" || !variant,
           "bg-green hover:bg-green-light": variant === "green",
@@ -24,8 +23,8 @@ const Button: FC<ButtonProps> = ({ variant, children, className, ...props }) => 
       {...props}
     >
       {children}
-    </button>
+    </RouterLink>
   )
 }
 
-export default Button;
+export default Link;

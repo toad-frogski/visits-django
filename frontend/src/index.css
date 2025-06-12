@@ -33,7 +33,9 @@
     --color-gray: var(--gray);
     --color-gray-light: var(--gray-light);
     --color-green: var(--green);
+    --color-green-light: var(--green-light);
     --color-orange: var(--orange);
+    --color-orange-light: var(--orange-light);
     --color-red: var(--red);
     --color-red-light: var(--red-light);
     --color-yellow: var(--yellow);

@@ -71,8 +71,7 @@ class Session(models.Model):
 
     def get_open_entries(self):
         return self.entries.filter(
-            models.Q(check_in__isnull=True, check_out__isnull=False)
-            | models.Q(check_in__isnull=False, check_out__isnull=True)
+            models.Q(check_in__isnull=True) | models.Q(check_out__isnull=True)
         )
 
     def add_enter(

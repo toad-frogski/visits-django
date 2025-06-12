@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from visits.models import Session, SessionEntry
 
@@ -20,16 +21,22 @@ class SessionService:
 
     @staticmethod
     def update_entry(
-        user: User,
         entry_id: int,
         type: SessionEntry.Type,
         check_in: datetime | None = None,
         check_out: datetime | None = None,
     ):
-        session = Session.objects.get(user=user, date=timezone.now())
-        return session.update_entry(
-            entry_id, type, check_in=check_in, check_out=check_out
-        )
+        entry = get_object_or_404(SessionEntry, id=entry_id)
+
+        if check_in is not None:
+            entry.check_in = check_in
+
+        if check_out is not None:
+            entry.check_out = check_out
+
+        entry.type = type
+        entry.save()
+
 
     @staticmethod
     def exit(user: User, type: SessionEntry.Type, check_out: datetime):
@@ -46,21 +53,15 @@ class SessionService:
 
     @staticmethod
     def get_current_session(user: User) -> Session | None:
-        today = timezone.localdate()
         session = Session.objects.get_last_user_session(user)
 
-        if session is None:
+        if not session:
             return None
 
-        if session.date != today and session.entries.count() == 0:
-            return None
+        if session.date == timezone.localdate() or session.get_open_entries().exists():
+            return session
 
-        last_entry = session.get_last_entry()
-
-        if session.date != today and last_entry and last_entry.check_out is not None:
-            return None
-
-        return session
+        return None
 
     @staticmethod
     def get_session_status(

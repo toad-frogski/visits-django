@@ -11,7 +11,6 @@ from drf_spectacular.utils import extend_schema
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from django.db.models import Q
 
 from visits.services import SessionService
 
@@ -23,6 +22,15 @@ from .models import Session, SessionEntry, SessionEntryComment
 class EnterView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        "enter",
+        request=serializers.SessionEnterPostRequestSerializer,
+        responses={
+            status.HTTP_200_OK,
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        },
+    )
     def post(self, request: Request):
         serializer = serializers.SessionEnterPostRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -41,6 +49,15 @@ class EnterView(APIView):
 
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        "update_enter",
+        request=serializers.SessionEnterPutRequestSerializer,
+        responses={
+            status.HTTP_200_OK,
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        },
+    )
     def put(self, request: Request):
         serializer = serializers.SessionEnterPutRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -52,9 +69,7 @@ class EnterView(APIView):
         session_service = SessionService()
 
         try:
-            session_service.update_entry(
-                user=request.user, entry_id=entry_id, type=type, check_in=check_in
-            )
+            session_service.update_entry(entry_id, type, check_in)
         except Session.DoesNotExist as e:
             raise NotFound(detail=str(e))
         except Exception as e:
@@ -67,6 +82,15 @@ class EnterView(APIView):
 class ExitView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        "update_exit",
+        request=serializers.SessionExitPostRequestSerializer,
+        responses={
+            status.HTTP_200_OK,
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        },
+    )
     def put(self, request: Request):
         serializer = serializers.SessionExitPostRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -78,9 +102,7 @@ class ExitView(APIView):
         session_service = SessionService()
 
         try:
-            session_service.update_entry(
-                request.user, entry_id, type, check_out=check_out
-            )
+            session_service.update_entry(entry_id, type, check_out=check_out)
         except Session.DoesNotExist as e:
             raise NotFound(detail=str(e))
         except Exception as e:
@@ -92,6 +114,14 @@ class ExitView(APIView):
 @extend_schema(tags=["visits"])
 class CommentViewSet(viewsets.ViewSet):
 
+    @extend_schema(
+        "set_comment",
+        request=serializers.CommentRequestSerializer,
+        responses={
+            status.HTTP_200_OK,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        },
+    )
     def create(self, request, entry_id=None):
         entry = get_object_or_404(SessionEntry, id=entry_id)
         serializer = serializers.CommentRequestSerializer(data=request.data)
@@ -106,6 +136,14 @@ class CommentViewSet(viewsets.ViewSet):
 
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        "list_comment",
+        request=serializers.CommentRequestSerializer,
+        responses={
+            status.HTTP_200_OK,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        },
+    )
     def list(self, request, entry_id=None):
         entry = get_object_or_404(SessionEntry, id=entry_id)
         comments = SessionEntryComment.objects.filter(session_entry=entry)
@@ -113,6 +151,14 @@ class CommentViewSet(viewsets.ViewSet):
 
         return Response(serializer.data)
 
+    @extend_schema(
+        "update_comment",
+        request=serializers.CommentRequestSerializer,
+        responses={
+            status.HTTP_200_OK,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        },
+    )
     def update(self, request, entry_id=None, comment_id=None):
         get_object_or_404(SessionEntry, id=entry_id)
         comment = get_object_or_404(SessionEntryComment, id=comment_id)
@@ -131,10 +177,15 @@ class CommentViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-@extend_schema(tags=["visits"], summary="Get current session info")
+@extend_schema(tags=["visits"])
 class CurrentSessionView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        "get_current_session",
+        summary="Get current session info",
+        responses={status.HTTP_200_OK: serializers.SessionModelSerializer},
+    )
     def get(self, request: Request):
         session_service = SessionService()
         session = session_service.get_current_session(request.user)

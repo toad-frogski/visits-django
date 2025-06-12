@@ -5,23 +5,20 @@ import UserCard from "../ui/user-card";
 
 const api = new UsersApi(undefined, undefined, client);
 
-const Home: FC = () => {
+const List: FC = () => {
   const [sessions, setSessions] = useState<UserSession[]>([]);
 
   useEffect(() => {
     api.today().then(({ data }) => setSessions(data));
   }, []);
 
-  // @todo user card + session status + avatar loader
   return (
-    <div className="p-3 md:p-6">
-      <section className="flex flex-col gap-3 md:flex-row flex-wrap">
-        {sessions.map((session) => (
-          <UserCard {...session} className="md:max-w-[360px]" />
-        ))}
-      </section>
-    </div>
+    <section className="flex flex-col gap-3 md:flex-row flex-wrap">
+      {sessions.map(({user, session}) => (
+        <UserCard key={user.id} user={user} session={session} className="md:max-w-[360px]" />
+      ))}
+    </section>
   );
 };
 
-export default Home;
+export default List;
