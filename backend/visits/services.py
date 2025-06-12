@@ -63,5 +63,14 @@ class SessionService:
         return session
 
     @staticmethod
-    def get_session_status(user: User, session: Session | None):
-        return ""
+    def get_session_status(
+        user: User, session: Session | None
+    ) -> Session.SessionStatus:
+        if session is None:
+            return Session.SessionStatus.INACTIVE
+
+        return Session.SessionStatus.INACTIVE
+
+    @staticmethod
+    def get_session_last_comment(session: Session) -> str:
+        raise Exception("Not implemented yet")
