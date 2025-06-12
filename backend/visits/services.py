@@ -1,12 +1,13 @@
 from datetime import datetime
-from visits.models import Session, SessionEntry
 from django.utils import timezone
+from django.contrib.auth.models import User
+from visits.models import Session, SessionEntry
 
 
 class SessionService:
 
     @staticmethod
-    def enter(user, type: SessionEntry.Type, check_in: datetime):
+    def enter(user: User, type: SessionEntry.Type, check_in: datetime):
         session, _ = Session.objects.get_or_create(
             user=user, date=timezone.now().date()
         )
@@ -19,7 +20,7 @@ class SessionService:
 
     @staticmethod
     def update_entry(
-        user,
+        user: User,
         entry_id: int,
         type: SessionEntry.Type,
         check_in: datetime | None = None,
@@ -31,7 +32,7 @@ class SessionService:
         )
 
     @staticmethod
-    def exit(user, type: SessionEntry.Type, check_out: datetime):
+    def exit(user: User, type: SessionEntry.Type, check_out: datetime):
         session = Session.objects.get(user=user, date=timezone.now())
         last_entry = session.get_last_entry()
 
@@ -44,7 +45,7 @@ class SessionService:
         session.update_entry(last_entry.id, type, check_out=check_out)
 
     @staticmethod
-    def get_current_session(user) -> Session | None:
+    def get_current_session(user: User) -> Session | None:
         today = timezone.localdate()
         session = Session.objects.get_last_user_session(user)
 
@@ -60,3 +61,7 @@ class SessionService:
             return None
 
         return session
+
+    @staticmethod
+    def get_session_status(user: User, session: Session | None):
+        return ""

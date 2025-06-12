@@ -2,6 +2,7 @@ import hashlib
 from rest_framework import serializers
 from rest_framework.request import Request
 from django.contrib.auth.models import User
+from visits.models import Session
 from visits.serializers import SessionModelSerializer
 from .models import Avatar
 
@@ -43,4 +44,4 @@ class UserModelSerializer(serializers.ModelSerializer):
 
 class UserSessionSerializer(serializers.Serializer):
     user = UserModelSerializer()
-    session = SessionModelSerializer(allow_null=True)
+    session_status = serializers.ChoiceField(choices=Session.SessionStatus.choices)

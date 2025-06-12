@@ -3,11 +3,13 @@ from rest_framework import generics
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import status
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 
-from visits.services.session_service import SessionService
+from visits.models import Session
+from visits.services import SessionService
 
 from .serializers import (
     AvatarModelSerializer,
@@ -20,6 +22,9 @@ from .models import Avatar
 class UsersTodayView(views.APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema("today", responses={
+        status.HTTP_200_OK: UserSessionSerializer(many=True)
+    })
     def get(self, request: Request):
         users = User.objects.filter(is_active=True).select_related("profile")
         session_service = SessionService()
@@ -27,7 +32,8 @@ class UsersTodayView(views.APIView):
         data = []
         for user in users:
             session = session_service.get_current_session(user)
-            data.append({"user": user, "session": session})
+            session_status = session_service.get_session_status(user, session)
+            data.append({"user": user, "session_status": session_status})
 
         serializer = UserSessionSerializer(data, many=True)
 

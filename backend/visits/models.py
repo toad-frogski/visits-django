@@ -7,7 +7,9 @@ from datetime import datetime
 
 
 class SessionEntryComment(models.Model):
-    session_entry = models.ForeignKey("SessionEntry", on_delete=models.CASCADE, related_name="comments")
+    session_entry = models.ForeignKey(
+        "SessionEntry", on_delete=models.CASCADE, related_name="comments"
+    )
     comment = models.CharField(max_length=255)
 
 
@@ -18,7 +20,9 @@ class SessionEntry(models.Model):
         PERSONAL = "PERSONAL", _("Personal reasons")
         WORK = "WORK", _("Work reasons")
 
-    session = models.ForeignKey("Session", on_delete=models.CASCADE, related_name="entries")
+    session = models.ForeignKey(
+        "Session", on_delete=models.CASCADE, related_name="entries"
+    )
     check_in = models.DateTimeField(default=timezone.now, null=False)
     check_out = models.DateTimeField(null=True, blank=True)
     type = models.CharField(max_length=10, choices=Type.choices, default=Type.SYSTEM)
@@ -46,15 +50,24 @@ class SessionManager(models.Manager):
             .first()
         )
 
+
 class Session(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date = models.DateField(_("Date"), default=timezone.now)
     objects: SessionManager = SessionManager()
 
+    class SessionStatus(models.TextChoices):
+        ACTIVE = "active", _("Active")
+        INACTIVE = "inactive", _("Inactive")
+        HOLIDAY = "holiday", _("Holiday")
+        VACATION = "vacation", _("Vacation")
+
     def get_last_entry(self):
         return self.entries.order_by("-id").first()  # type: ignore
 
-    def add_enter(self, check_in: datetime, type: SessionEntry.Type = SessionEntry.Type.SYSTEM):
+    def add_enter(
+        self, check_in: datetime, type: SessionEntry.Type = SessionEntry.Type.SYSTEM
+    ):
         entry = SessionEntry(session=self, check_in=check_in, type=type)
         entry.save()
 

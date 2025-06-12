@@ -10,7 +10,7 @@ from rest_framework.exceptions import APIException, ValidationError, NotFound
 from drf_spectacular.utils import extend_schema
 
 from visits.models import SessionEntry
-from visits.services.session_service import SessionService
+from visits.services import SessionService
 
 from .authentication import RFIDAuthentication
 from .serializers import RFIDSettingsModelSerializer

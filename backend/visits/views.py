@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
-from visits.services.session_service import SessionService
+from visits.services import SessionService
 
 from . import serializers
 from .models import Session, SessionEntry, SessionEntryComment
