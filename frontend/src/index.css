@@ -1,27 +1,35 @@
 @import "tailwindcss";
 
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
+    --white: #ffffff;
+    --black: #171717;
 
-    --accent: hsla(222, 89%, 56%, 1);
-    --accent-light: hsla(203, 94%, 65%, 1);
-    --gray: hsla(0, 0%, 40%, 1);
-    --gray-light: hsla(0, 0%, 40%, 0.2);
-    --green: hsla(145, 83%, 59%, 1);
-    --orange: hsla(13, 91%, 71%, 1);
-    --red: hsla(0, 100%, 67%, 1);
-    --red-light: hsla(0, 98%, 77%, 1);
-    --yellow: hsla(39, 100%, 71%, 1);
-    --blue: hsla(203, 94%, 65%, 1);
-    --blue-light: hsla(203, 94%, 65%, 0.2);
+    --soft-white: #F8F8FA;
+
+    --accent: #2964F3;
+    --sky-blue: #50B9FA;
+    --gray: #666666;
+    --gray-light: #CACACA;
+
+    --green:#3FED89;
+    --green-light: #46FF94;
+    --orange: #F99073;
+    --orange-light: #FEA288;
+    --red: #FF5757;
+    --red-light: #FE8C8C;
+    --yellow: #FFCC6A;
+    --yellow-light: #FFD788;
+    --blue: #50B9FA;
+    --blue-light: #8BD3FF;
 }
 
 @theme {
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
+    --color-foreground: var(--black);
+    --color-background: var(--soft-white);
     --color-accent: var(--accent);
-    --color-accent-light: var(--accent-light);
+    --color-accent-light: var(--sky-blue);
+    --color-surface: var(--white);
+
     --color-gray: var(--gray);
     --color-gray-light: var(--gray-light);
     --color-green: var(--green);
@@ -36,4 +44,8 @@
     --leading-h2: 40px;
     --text-h3: 24px;
     --leading-h3: 32px;
+}
+
+body {
+  @apply bg-background;
 }

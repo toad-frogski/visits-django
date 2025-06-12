@@ -1,5 +1,4 @@
-import { createBrowserRouter} from "react-router";
-import NotFoundPage from "./pages/not-found";
+import { createBrowserRouter, Navigate} from "react-router";
 import Home from "./pages/home";
 import ProtectedLayout from "./layouts/protected-layout";
 import SignIn from "./pages/sign-in";
@@ -18,7 +17,7 @@ const router = createBrowserRouter([
   },
   {
     path: "*",
-    Component: NotFoundPage
+    element: <Navigate to="/" replace />
   }
 ]);
 
