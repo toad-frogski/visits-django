@@ -7,29 +7,13 @@ from .models import Avatar
 
 
 class AvatarModelSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(write_only=True, required=False)
-    avatar_url = serializers.SerializerMethodField(read_only=True)
-
     class Meta:
         model = Avatar
-        fields = ["avatar_url", "avatar"]
-
-    def get_avatar_url(self, obj: Avatar):
-        request: Request = self.context.get("request")
-        if obj.avatar:
-            return request.build_absolute_uri(obj.avatar.url)
-
-        email = (obj.user.email or "").strip().lower()
-        if not email:
-            return None
-
-        email_hash = hashlib.md5(email.encode("utf-8")).hexdigest()
-
-        return f"https://www.gravatar.com/avatar/{email_hash}"
+        fields = ["avatar"]
 
 
 class UserModelSerializer(serializers.ModelSerializer):
-    avatar = AvatarModelSerializer(allow_null=True)
+    avatar = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -42,6 +26,19 @@ class UserModelSerializer(serializers.ModelSerializer):
             if obj.first_name and obj.last_name
             else f"{obj.username.capitalize()}"
         )
+
+    def get_avatar(self, obj: User):
+        request: Request = self.context.get("request")
+
+        if hasattr(obj, "avatar") and obj.avatar and obj.avatar.avatar:
+            return request.build_absolute_uri(obj.avatar.avatar.url)
+
+        email = (obj.email or "").strip().lower()
+        if not email:
+            return None
+
+        email_hash = hashlib.md5(email.encode("utf-8")).hexdigest()
+        return f"https://www.gravatar.com/avatar/{email_hash}"
 
 
 class UserSessionSerializer(serializers.Serializer):

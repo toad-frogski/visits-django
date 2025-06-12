@@ -12,7 +12,6 @@ from visits.services.session_service import SessionService
 from .serializers import (
     AvatarModelSerializer,
     UserSessionSerializer,
-    UserModelSerializer,
 )
 from .models import Avatar
 
