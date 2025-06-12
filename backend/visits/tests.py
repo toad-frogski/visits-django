@@ -11,11 +11,7 @@ class SessionTestCase(TestCase):
         self.user = User.objects.create_user(
             username="test_user", password="test_user_secret_password"
         )
-        response = self.client.post(
-            "/api/token/",
-            {"username": "test_user", "password": "test_user_secret_password"},
-        )
-        self.access_token = response.data.get("access")
+        self.client.login(username="test_user", password="test_user_secret_password")
 
     def test_create_session_enter(self):
         assert_date = timezone.now()
@@ -24,7 +20,6 @@ class SessionTestCase(TestCase):
             "/api/v1/visits/enter",
             {"check_in": assert_date.isoformat()},
             content_type="application/json",
-            headers={"Authorization": f"Bearer {self.access_token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -49,7 +44,6 @@ class SessionTestCase(TestCase):
             "/api/v1/visits/enter",
             {"id": entry.id, "check_in": assert_date.isoformat()},
             content_type="application/json",
-            headers={"Authorization": f"Bearer {self.access_token}"},
         )
 
         updated_entry = SessionEntry.objects.get(id=entry.id)
@@ -69,7 +63,6 @@ class SessionTestCase(TestCase):
             "/api/v1/visits/exit",
             {"id": entry.id, "check_out": assert_date.isoformat()},
             content_type="application/json",
-            headers={"Authorization": f"Bearer {self.access_token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         updated_entry = SessionEntry.objects.get(id=entry.id)
@@ -87,7 +80,6 @@ class SessionTestCase(TestCase):
         response = self.client.get(
             "/api/v1/visits/current",
             content_type="application/json",
-            headers={"Authorization": f"Bearer {self.access_token}"},
         )
 
         self.assertEqual(response.status_code, 200)
@@ -99,7 +91,6 @@ class SessionTestCase(TestCase):
         response = self.client.get(
             "/api/v1/visits/current",
             content_type="application/json",
-            headers={"Authorization": f"Bearer {self.access_token}"},
         )
 
         self.assertEqual(response.status_code, 404)
@@ -109,7 +100,6 @@ class SessionTestCase(TestCase):
         response = self.client.get(
             "/api/v1/visits/current",
             content_type="application/json",
-            headers={"Authorization": f"Bearer {self.access_token}"},
         )
 
         self.assertEqual(response.status_code, 200)
@@ -123,7 +113,6 @@ class SessionTestCase(TestCase):
         response = self.client.get(
             "/api/v1/visits/current",
             content_type="application/json",
-            headers={"Authorization": f"Bearer {self.access_token}"},
         )
 
         self.assertEqual(response.status_code, 200)
