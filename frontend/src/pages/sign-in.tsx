@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FC } from "react";
 import { useNavigate } from "react-router";
 import Button from "../ui/components/button";
-import Input from "../ui/components/input";
 import { useSession } from "../contexts/session";
 import { isAxiosError } from "axios";
+import { PasswordInput, TextInput } from "../ui/components/input";
 
 const SignIn: FC = () => {
   return (
@@ -57,7 +57,7 @@ const SignInForm: FC = () => {
   return (
     <form onSubmit={handleSubmit}>
       <h1 className="text-center w-full text-h2/h2 font-bold">Sign in</h1>
-      <Input
+      <TextInput
         ref={usernameRef}
         className="mt-[56px]"
         label="Username"
@@ -68,7 +68,7 @@ const SignInForm: FC = () => {
         onChange={(e) => setUsername(e.target.value)}
         required
       />
-      <Input
+      <PasswordInput
         ref={passwordRef}
         className="mt-6"
         label="Password"
