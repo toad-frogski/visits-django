@@ -1,0 +1,114 @@
+from datetime import datetime
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
+from visits.models import Session, SessionEntry
+
+
+class SessionService:
+
+    @staticmethod
+    def enter(user: User, type: SessionEntry.Type, time: datetime):
+        session, _ = Session.objects.get_or_create(
+            user=user, date=timezone.now().date()
+        )
+
+        last_entry = session.get_last_entry()
+        if last_entry and last_entry.end is None:
+            raise ValueError("Previous entry has not been checked out.")
+
+        session.add_enter(start=time, type=type)
+
+    @staticmethod
+    def update_entry(
+        entry_id: int,
+        type: SessionEntry.Type,
+        start: datetime | None = None,
+        end: datetime | None = None,
+        comment: str | None = None,
+    ):
+        entry = get_object_or_404(SessionEntry, id=entry_id)
+
+        for attr, value in {"start": start, "end": end, "comment": comment}.items():
+            if value is not None:
+                setattr(entry, attr, value)
+
+        entry.type = type
+        entry.save()
+
+    @staticmethod
+    def exit(user: User, time: datetime, comment: str | None = None):
+        session = Session.objects.get(user=user, date=timezone.now())
+        last_entry = session.get_last_entry()
+
+        if last_entry is None:
+            raise SessionEntry.DoesNotExist("No entry found to exit.")
+
+        if last_entry.end is not None:
+            raise ValueError("Entry already checked out.")
+
+        last_entry.end = time
+        last_entry.comment = comment
+        last_entry.save()
+
+    @staticmethod
+    def handle_leave(
+        user: User, type: SessionEntry.Type, time: datetime, comment: str | None = None
+    ):
+        session = Session.objects.get_last_user_session(user)
+        if session is None:
+            raise Session.DoesNotExist()
+
+        last_entry = session.get_last_entry()
+        if last_entry is None or last_entry.end is not None:
+            raise ValueError("No open work entry to leave from.")
+
+        last_entry.close(time)
+
+        session.add_enter(start=time, type=type, comment=comment)
+
+    @staticmethod
+    def leave(
+        user: User,
+        type: SessionEntry.Type = SessionEntry.Type.BREAK,
+        time: datetime = timezone.now(),
+        comment: str | None = None,
+    ):
+        SessionService.handle_leave(user, type, time, comment)
+
+    @staticmethod
+    def comeback(
+        user: User,
+        type: SessionEntry.Type = SessionEntry.Type.WORK,
+        time: datetime = timezone.now(),
+        comment: str | None = None,
+    ):
+        SessionService.handle_leave(user, type, time, comment)
+
+    @staticmethod
+    def get_current_session(user: User) -> Session | None:
+        session = Session.objects.get_last_user_session(user)
+
+        if not session:
+            return None
+
+        if session.date == timezone.localdate() or session.get_open_entries().exists():
+            return session
+
+        return None
+
+    @staticmethod
+    def get_session_last_comment(session: Session | None) -> str | None:
+        if session is None:
+            return None
+
+        return (
+            session.entries.filter(comment__isnull=False)  # type: ignore
+            .order_by("-start")
+            .values_list("comment", flat=True)
+            .first()
+        )
+
+    @staticmethod
+    def get_session_status(session: Session | None) -> Session.Status:
+        return session.status if session else Session.Status.INACTIVE
