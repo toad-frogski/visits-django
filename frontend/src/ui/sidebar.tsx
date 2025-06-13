@@ -11,30 +11,35 @@ type SidebarItem = {
   label: string;
   to: string;
   icon?: FC<SVGProps<SVGSVGElement>>;
+  long?: boolean;
 };
 
 type SidebarProps = {
   items: SidebarItem[];
+  long?: boolean;
 };
 
-const Sidebar: FC<SidebarProps> = ({ items }) => {
+const Sidebar: FC<SidebarProps> = ({ items, long }) => {
   const isDesktop = useDesktop();
   const { logout } = useAuth();
 
   if (!isDesktop) return null;
 
   return (
-    <aside className="flex flex-col h-screen py-14 pl-8 font-bold text-gray bg-surface">
-      <header className="flex gap-3 mb-12 mr-12 items-center justify-center">
+    <aside className="flex flex-col h-screen py-6 pl-4 font-bold text-gray bg-surface">
+      <header className={clsx(
+        "flex gap-3 mb-12 pl-4 items-center justify-center",
+        long ? "pr-10" : "pr-8",
+        )}>
         <Logo width={24} height={24} />
-        <span className="text-accent text-h3">Visits</span>
+        {long && <span className="text-h3 font-bold text-gray">Visits</span>}
       </header>
 
       <nav className="flex-1">
         <ul className="flex flex-col gap-4">
           {items.map((item) => (
             <li key={item.to}>
-              <SidebarBreadcrumb {...item} />
+              <SidebarBreadcrumb {...item} long={long} />
             </li>
           ))}
         </ul>
@@ -44,6 +49,7 @@ const Sidebar: FC<SidebarProps> = ({ items }) => {
         <SidebarBreadcrumb
           label="Sign out"
           icon={LogoutIcon}
+          long={long}
           to={""}
           onClick={() => logout()}
           className={"bg-surface"}
@@ -55,14 +61,15 @@ const Sidebar: FC<SidebarProps> = ({ items }) => {
 
 type SidebarBreadcrumbProps = Omit<NavLinkProps, "to"> & SidebarItem;
 
-const SidebarBreadcrumb: FC<SidebarBreadcrumbProps> = ({ icon: Icon, label, className, ...props }) => {
+const SidebarBreadcrumb: FC<SidebarBreadcrumbProps> = ({ icon: Icon, label, long, className, ...props }) => {
   return (
     <NavLink
       {...props}
       className={({ isActive }) =>
         clsx(
           className,
-          "flex items-center gap-3 py-3 pl-4 pr-12 rounded-l-full hover:bg-background transition-colors",
+          "flex items-center gap-3 py-3 pl-4 pr-2 rounded-l-full hover:bg-background transition-colors",
+          long ? "pr-10" : "pr-2",
           {
             "bg-background": isActive,
           }
@@ -70,7 +77,7 @@ const SidebarBreadcrumb: FC<SidebarBreadcrumbProps> = ({ icon: Icon, label, clas
       }
     >
       {Icon && <Icon width={24} height={24} />}
-      <span>{label}</span>
+      {long && <span>{label}</span>}
     </NavLink>
   );
 };

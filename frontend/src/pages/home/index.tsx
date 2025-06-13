@@ -20,6 +20,7 @@ const Home: FC = () => {
 
   return (
     <div className="flex gap-12">
+      <section></section>
       <Card className="flex-2 rounded">
         <Outlet />
       </Card>
