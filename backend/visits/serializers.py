@@ -1,23 +1,31 @@
+from email.policy import default
 import hashlib
 from rest_framework import serializers
+from django.utils import timezone
 
 from session.serializers import UserModelSerializer
 from .models import Session, SessionEntry
 
 
 class SessionEnterSerializer(serializers.ModelSerializer):
+    type = serializers.ChoiceField(choices=SessionEntry.Type.choices, default=SessionEntry.Type.WORK)
+
     class Meta:
         model = SessionEntry
         fields = ["start", "type", "comment"]
 
 
 class SessionExitSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
+    class Meta:
+        model = SessionEntry
+        fields = ["end", "comment"]
+
+class SessionEntryLeaveSerializer(serializers.ModelSerializer):
+    time = serializers.DateTimeField(default=lambda: timezone.now())
 
     class Meta:
         model = SessionEntry
-        fields = ["id", "end", "type", "comment"]
-
+        fields = ["time", "type", "comment"]
 
 class SessionEntryModelSerializer(serializers.ModelSerializer):
     class Meta:

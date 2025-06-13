@@ -37,7 +37,7 @@ class SessionService:
         entry.save()
 
     @staticmethod
-    def exit(user: User, time: datetime):
+    def exit(user: User, time: datetime, comment: str | None = None):
         session = Session.objects.get(user=user, date=timezone.now())
         last_entry = session.get_last_entry()
 
@@ -47,10 +47,14 @@ class SessionService:
         if last_entry.end is not None:
             raise ValueError("Entry already checked out.")
 
-        last_entry.close(time)
+        last_entry.end = time
+        last_entry.comment = comment
+        last_entry.save()
 
     @staticmethod
-    def _handle_leave(user: User, type: SessionEntry.Type, time: datetime):
+    def handle_leave(
+        user: User, type: SessionEntry.Type, time: datetime, comment: str | None = None
+    ):
         session = Session.objects.get_last_user_session(user)
         if session is None:
             raise Session.DoesNotExist()
@@ -61,23 +65,25 @@ class SessionService:
 
         last_entry.close(time)
 
-        session.add_enter(start=time, type=type)
+        session.add_enter(start=time, type=type, comment=comment)
 
     @staticmethod
     def leave(
         user: User,
         type: SessionEntry.Type = SessionEntry.Type.BREAK,
         time: datetime = timezone.now(),
+        comment: str | None = None,
     ):
-        SessionService._handle_leave(user, type, time)
+        SessionService.handle_leave(user, type, time, comment)
 
     @staticmethod
     def comeback(
         user: User,
         type: SessionEntry.Type = SessionEntry.Type.WORK,
         time: datetime = timezone.now(),
+        comment: str | None = None,
     ):
-        SessionService._handle_leave(user, type, time)
+        SessionService.handle_leave(user, type, time, comment)
 
     @staticmethod
     def get_current_session(user: User) -> Session | None:

@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.test import tag
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException, ValidationError, NotFound
@@ -54,30 +55,67 @@ class ExitView(APIView):
         "update_exit",
         request=serializers.SessionExitSerializer,
         responses={
-            status.HTTP_200_OK,
-            status.HTTP_404_NOT_FOUND,
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status.HTTP_200_OK: None,
+            status.HTTP_400_BAD_REQUEST: None,
+            status.HTTP_404_NOT_FOUND: None,
+            status.HTTP_500_INTERNAL_SERVER_ERROR: None,
         },
     )
     def put(self, request: Request):
         serializer = serializers.SessionExitSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        entry_id: int = serializer.validated_data.get("id")
         time: datetime = serializer.validated_data.get("end")
-        type: SessionEntry.Type = serializer.validated_data.get("type")
         comment: SessionEntry.Type = serializer.validated_data.get("comment")
 
         session_service = SessionService()
 
         try:
-            session_service.update_entry(entry_id, type, end=time, comment=comment)
+            session_service.exit(request.user, time, comment)
         except Session.DoesNotExist as e:
             raise NotFound(detail=str(e))
+        except ValueError as e:
+            raise ValidationError(detail=str(e))
         except Exception as e:
             raise APIException(detail=str(e))
 
         return Response(status=status.HTTP_200_OK)
+
+
+@extend_schema(tags=["visits"])
+class LeaveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        "leave",
+        request=serializers.SessionEntryLeaveSerializer,
+        responses={
+            status.HTTP_200_OK: None,
+            status.HTTP_404_NOT_FOUND: None,
+            status.HTTP_400_BAD_REQUEST: None,
+            status.HTTP_500_INTERNAL_SERVER_ERROR: None,
+        }
+    )
+    def post(self, request: Request):
+        serializer = serializers.SessionEntryLeaveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        type: SessionEntry.Type = serializer.validated_data.get("type")
+        time: datetime = serializer.validated_data.get("time")
+        comment: str | None = serializer.validated_data.get("comment")
+
+        session_service = SessionService()
+
+        try:
+            session_service.handle_leave(request.user, type, time, comment)
+        except Session.DoesNotExist as e:
+            raise NotFound(detail=str(e))
+        except ValueError as e:
+            raise ValidationError(detail=str(e))
+        except Exception as e:
+            raise APIException(detail=str(e))
+
+        return Response()
 
 
 @extend_schema(tags=["visits"])
@@ -87,7 +125,10 @@ class CurrentSessionView(APIView):
     @extend_schema(
         "get_current_session",
         summary="Get current session info",
-        responses={status.HTTP_200_OK: serializers.SessionModelSerializer},
+        responses={
+            status.HTTP_200_OK: serializers.SessionModelSerializer,
+            status.HTTP_404_NOT_FOUND: None,
+        },
     )
     def get(self, request: Request):
         session_service = SessionService()
@@ -106,7 +147,8 @@ class UsersTodayView(APIView):
     permission_classes = [AllowAny]
 
     @extend_schema(
-        "today", responses={status.HTTP_200_OK: serializers.UserSessionSerializer(many=True)}
+        "today",
+        responses={status.HTTP_200_OK: serializers.UserSessionSerializer(many=True)},
     )
     def get(self, request: Request):
         users = User.objects.filter(is_active=True)

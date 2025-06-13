@@ -28,8 +28,8 @@ class SessionEntry(models.Model):
     def is_open(self) -> bool:
         return self.end is None
 
-    def close(self, end_time: datetime | None = None):
-        self.end = end_time or timezone.now()
+    def close(self, time: datetime | None = None):
+        self.end = time or timezone.now()
         self.save()
 
 
@@ -40,7 +40,6 @@ class SessionManager(models.Manager["Session"]):
             self.filter(user=user)
             .filter(models.Q(date=today) | models.Q(date__lt=today))
             .order_by("-date")
-            .prefetch_related("entries__comments")
             .first()
         )
 
@@ -64,9 +63,12 @@ class Session(models.Model):
         return self.entries.filter(end__isnull=True)  # type: ignore
 
     def add_enter(
-        self, start: datetime, type: SessionEntry.Type = SessionEntry.Type.SYSTEM
+        self,
+        start: datetime,
+        type: SessionEntry.Type = SessionEntry.Type.SYSTEM,
+        comment: str | None = None,
     ):
-        entry = SessionEntry(session=self, start=start, type=type)
+        entry = SessionEntry(session=self, start=start, type=type, comment=comment)
         entry.save()
 
     def update_entry(

@@ -37,7 +37,7 @@ class RFIDSessionTestCase(TestCase):
 
     def test_exit(self):
         session = Session.objects.create(user=self.user)
-        session.add_enter(check_in=timezone.now(), type=SessionEntry.Type.SYSTEM)
+        session.add_enter(start=timezone.now(), type=SessionEntry.Type.SYSTEM)
 
         response = self.client.post(
             "/api/v1/rfid/exit",
@@ -50,4 +50,4 @@ class RFIDSessionTestCase(TestCase):
         session.refresh_from_db()
         last_entry = session.get_last_entry()
         self.assertIsNotNone(last_entry)
-        self.assertIsNotNone(last_entry.check_out)
+        self.assertIsNotNone(last_entry.end)
