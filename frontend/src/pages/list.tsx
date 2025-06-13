@@ -1,9 +1,9 @@
 import { useEffect, useState, type FC } from "react";
-import { UsersApi, type UserSession } from "../lib/api";
+import { VisitsApi, type UserSession } from "../lib/api";
 import client from "../lib/api-client";
 import UserCard from "../ui/user-card";
 
-const api = new UsersApi(undefined, undefined, client);
+const api = new VisitsApi(undefined, undefined, client);
 
 const List: FC = () => {
   const [sessions, setSessions] = useState<UserSession[]>([]);

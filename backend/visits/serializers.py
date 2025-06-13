@@ -9,6 +9,7 @@ from .models import Session, SessionEntry
 
 class SessionEnterSerializer(serializers.ModelSerializer):
     type = serializers.ChoiceField(choices=SessionEntry.Type.choices, default=SessionEntry.Type.WORK)
+    start = serializers.DateTimeField(default=lambda: timezone.now())
 
     class Meta:
         model = SessionEntry
@@ -16,6 +17,7 @@ class SessionEnterSerializer(serializers.ModelSerializer):
 
 
 class SessionExitSerializer(serializers.ModelSerializer):
+    end = serializers.DateTimeField(default=lambda: timezone.now())
     class Meta:
         model = SessionEntry
         fields = ["end", "comment"]
@@ -35,10 +37,11 @@ class SessionEntryModelSerializer(serializers.ModelSerializer):
 
 class SessionModelSerializer(serializers.ModelSerializer):
     entries = SessionEntryModelSerializer(many=True)
+    status = serializers.ChoiceField(choices=Session.Status.choices)
 
     class Meta:
         model = Session
-        fields = ["id", "user", "date", "entries"]
+        fields = ["id", "user", "date", "entries", "status"]
 
 
 class SessionSerializer(serializers.Serializer):

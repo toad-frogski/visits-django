@@ -1,7 +1,7 @@
-import { type ButtonHTMLAttributes, type FC, type ReactElement, type SVGProps } from "react";
+import { type FC, type SVGProps } from "react";
 import clsx from "clsx";
-import { NavLink, useLocation, useNavigate, type NavLinkProps } from "react-router";
-import { useSession } from "../contexts/session";
+import { NavLink, type NavLinkProps } from "react-router";
+import { useAuth } from "../contexts/auth";
 import useDesktop from "../lib/hooks/useDesktop";
 
 import Logo from "../assets/deeplace.svg?react";
@@ -19,7 +19,7 @@ type SidebarProps = {
 
 const Sidebar: FC<SidebarProps> = ({ items }) => {
   const isDesktop = useDesktop();
-  const { logout } = useSession();
+  const { logout } = useAuth();
 
   if (!isDesktop) return null;
 

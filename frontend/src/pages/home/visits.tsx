@@ -1,68 +1,59 @@
-import { lazy, useEffect, useState, type FC } from "react";
+import { useEffect, useState, type FC } from "react";
 import { StatusEnum, VisitsApi, type SessionModel } from "../../lib/api";
 import client from "../../lib/api-client";
 import Button from "../../ui/components/button";
+import { useSessionStore } from "../../stores/session";
 
 const api = new VisitsApi(undefined, undefined, client);
 
 const Visits: FC = () => {
-  const [session, setSession] = useState<SessionModel | null>(null)
-  const [sessionStatus, setSessionStatus] = useState<StatusEnum>("inactive");
-  const [loading, setLoading] = useState(true);
+  const session = useSessionStore((state) => state.session);
+  const setSession = useSessionStore((state) => state.setSession);
 
   useEffect(() => {
-    api.getCurrentSession()
-      .then(({ data }) => setSession(data)).finally(() => setLoading(false));
+    if (session) return;
+
+    api
+      .getCurrentSession()
+      .then(({ data }) => setSession(data))
   }, []);
 
-  useEffect(() => {
-    if (session === null) {
-      setSessionStatus("inactive")
-      return;
-    }
+  return (
+    <div>
+      <VisitMenu status={session?.status} setSession={setSession} />
+    </div>
+  );
+};
 
-    const entries = session.entries;
-    const openEntries = entries.filter((entry) => (!entry.check_in || !entry.check_out));
-    if (openEntries.length > 1) {
-      setSessionStatus("cheater");
-      return;
-    } else if (openEntries.length === 0) {
-      setSessionStatus("inactive");
-      return;
-    }
-
-    setSessionStatus("active");
-  }, [session]);
-
-  if (loading) return null;
-
-  switch (sessionStatus) {
+const VisitMenu: FC<{ status?: StatusEnum; setSession: (session: SessionModel) => void }> = ({ status, setSession }) => {
+  switch (status) {
     case "inactive":
-      return <Button
-        onClick={async () => {
-          try {
-            await api.enter();
-            const { data } = await api.getCurrentSession();
-
-            setSession(data);
-          } catch {
-          }
-        }}
-      >Отметить вход</Button>
+      return (
+        <div>
+          <Button
+            onClick={() => {
+              api.enter({ type: "WORK" }).finally(() => api.getCurrentSession().then(({ data }) => setSession(data)));
+            }}
+          >
+            Войти
+          </Button>
+        </div>
+      );
 
     case "active":
-      return <Button onClick={async () => {
-        const [entry] = session!.entries.filter((entry) => (!entry.check_in || !entry.check_out));
-        try {
-          await api.updateExit({ id: entry.id });
-          const { data } = await api.getCurrentSession();
-
-          setSession(data);
-        } catch {
-        }
-      }}>Отметить выход</Button>
-
+      return (
+        <div className="flex gap-12">
+          <Button disabled>Отлучиться</Button>
+          <Button
+            onClick={() => {
+              api.exit().finally(() => api.getCurrentSession().then(({ data }) => setSession(data)));
+            }}
+          >
+            Выйти
+          </Button>
+        </div>
+      );
   }
-}
+};
 
 export default Visits;

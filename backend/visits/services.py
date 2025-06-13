@@ -102,12 +102,8 @@ class SessionService:
         if session is None:
             return None
 
-        return (
-            session.entries.filter(comment__isnull=False)  # type: ignore
-            .order_by("-start")
-            .values_list("comment", flat=True)
-            .first()
-        )
+        last_entry = session.get_last_entry()
+        return last_entry.comment if last_entry else None
 
     @staticmethod
     def get_session_status(session: Session | None) -> Session.Status:

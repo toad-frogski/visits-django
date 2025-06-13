@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import { RouterProvider } from "react-router";
 import router from "./routes";
-import SessionProvider from "./contexts/session";
+import SessionProvider from "./contexts/auth";
 
 const App: FC = () => {
   return (

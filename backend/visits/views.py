@@ -23,9 +23,9 @@ class EnterView(APIView):
         "enter",
         request=serializers.SessionEnterSerializer,
         responses={
-            status.HTTP_200_OK,
-            status.HTTP_404_NOT_FOUND,
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status.HTTP_200_OK: None,
+            status.HTTP_404_NOT_FOUND: None,
+            status.HTTP_500_INTERNAL_SERVER_ERROR: None,
         },
     )
     def post(self, request: Request):
@@ -52,7 +52,7 @@ class ExitView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        "update_exit",
+        "exit",
         request=serializers.SessionExitSerializer,
         responses={
             status.HTTP_200_OK: None,

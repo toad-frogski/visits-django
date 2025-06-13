@@ -3,7 +3,7 @@ import ProtectedLayout from "./layouts/protected-layout";
 import SignIn from "./pages/sign-in";
 import Home from "./pages/home";
 import List from "./pages/list";
-import HomeMain from "./pages/home/home-main";
+import SelectMenu from "./pages/home/select-menu";
 import Visits from "./pages/home/visits";
 
 const router = createBrowserRouter([
@@ -14,7 +14,7 @@ const router = createBrowserRouter([
       {
         path: "home", element: <Home />,
         children: [
-          { index: true, element: <HomeMain />},
+          { index: true, element: <SelectMenu />},
           { path: "visits", element: <Visits />}
         ]
        },
