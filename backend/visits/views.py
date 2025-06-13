@@ -123,7 +123,7 @@ class CurrentSessionView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        "get_current_session",
+        "current",
         summary="Get current session info",
         responses={
             status.HTTP_200_OK: serializers.SessionModelSerializer,

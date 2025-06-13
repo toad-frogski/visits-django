@@ -1,8 +1,8 @@
 import { type FC, type SVGProps } from "react";
 import clsx from "clsx";
 import { NavLink, type NavLinkProps } from "react-router";
-import { useAuth } from "../contexts/auth";
 import useDesktop from "../lib/hooks/useDesktop";
+import useAuthStore from "../stores/auth";
 
 import Logo from "../assets/deeplace.svg?react";
 import LogoutIcon from "../assets/log-out.svg?react";
@@ -21,16 +21,16 @@ type SidebarProps = {
 
 const Sidebar: FC<SidebarProps> = ({ items, long }) => {
   const isDesktop = useDesktop();
-  const { logout } = useAuth();
+  const logout = useAuthStore((state) => state.logout);
 
   if (!isDesktop) return null;
 
   return (
-    <aside className="flex flex-col h-screen py-6 pl-4 font-bold text-gray bg-surface">
+    <aside className="flex flex-col h-screen py-6 pl-4 font-bold text-gray bg-surface shadow-[2px_0px_20px_-10px] z-1">
       <header className={clsx(
         "flex gap-3 mb-12 pl-4 items-center justify-center",
         long ? "pr-10" : "pr-8",
-        )}>
+      )}>
         <Logo width={24} height={24} />
         {long && <span className="text-h3 font-bold text-gray">Visits</span>}
       </header>

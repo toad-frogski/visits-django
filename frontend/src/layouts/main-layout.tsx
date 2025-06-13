@@ -14,7 +14,7 @@ const MainLayout: FC = () => {
   return (
     <div className="min-h-screen flex">
       <Sidebar items={navItems} />
-      <main className="flex-1 p-3 md:p-6">
+      <main className="flex-1">
         <Outlet />
       </main>
     </div>

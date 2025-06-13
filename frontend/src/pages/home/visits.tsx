@@ -1,55 +1,42 @@
-import { useEffect, useState, type FC } from "react";
-import { StatusEnum, VisitsApi, type SessionModel } from "../../lib/api";
-import client from "../../lib/api-client";
+import { type FC } from "react";
 import Button from "../../ui/components/button";
-import { useSessionStore } from "../../stores/session";
+import useAuthStore from "../../stores/auth";
+import { VisitsApi } from "../../lib/api";
+import client from "../../lib/api-client";
 
 const api = new VisitsApi(undefined, undefined, client);
 
 const Visits: FC = () => {
-  const session = useSessionStore((state) => state.session);
-  const setSession = useSessionStore((state) => state.setSession);
+  const session = useAuthStore((state) => state.session);
+  const fetchSession = useAuthStore((state) => state.fetchSession);
 
-  useEffect(() => {
-    if (session) return;
 
-    api
-      .getCurrentSession()
-      .then(({ data }) => setSession(data))
-  }, []);
+  switch (session?.status) {
 
-  return (
-    <div>
-      <VisitMenu status={session?.status} setSession={setSession} />
-    </div>
-  );
-};
-
-const VisitMenu: FC<{ status?: StatusEnum; setSession: (session: SessionModel) => void }> = ({ status, setSession }) => {
-  switch (status) {
-    case "inactive":
+    case "active":
       return (
-        <div>
+        <div className="flex gap-12 ">
+          <Button disabled>Отлучиться</Button>
           <Button
             onClick={() => {
-              api.enter({ type: "WORK" }).finally(() => api.getCurrentSession().then(({ data }) => setSession(data)));
+              api.exit().finally(() => fetchSession());
             }}
           >
-            Войти
+            Выйти
           </Button>
         </div>
       );
 
-    case "active":
+    case "inactive":
+    default:
       return (
-        <div className="flex gap-12">
-          <Button disabled>Отлучиться</Button>
+        <div>
           <Button
             onClick={() => {
-              api.exit().finally(() => api.getCurrentSession().then(({ data }) => setSession(data)));
+              api.enter({ type: "WORK" }).finally(() => fetchSession());
             }}
           >
-            Выйти
+            Войти
           </Button>
         </div>
       );

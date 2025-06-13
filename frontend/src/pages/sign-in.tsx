@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FC } from "react";
 import { useNavigate } from "react-router";
 import Button from "../ui/components/button";
-import { useAuth } from "../contexts/auth";
 import { isAxiosError } from "axios";
 import { PasswordInput, TextInput } from "../ui/components/input";
+import useAuthStore from "../stores/auth";
 
 const SignIn: FC = () => {
   return (
@@ -19,7 +19,7 @@ const SignIn: FC = () => {
 
 const SignInForm: FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const login = useAuthStore((state) => state.login);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

@@ -24,7 +24,7 @@ const Avatar: FC<AvatarProps> = ({ className, src, alt, ...props }) => {
     <span
       className={clsx(
         className,
-        "min-w-12 min-h-12 rounded-full inline-flex items-center justify-center text-center",
+        "w-12 h-12 rounded-full inline-flex items-center justify-center text-center",
         `text-h2 text-white font-bold`,
       )}
       style={{ backgroundColor: colorFromStr(alt) }}

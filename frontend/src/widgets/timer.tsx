@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FC, type HTMLAttributes } from "react
 import { type SessionModel } from "../lib/api";
 import clsx from "clsx";
 import CircleProgress from "../ui/components/circle-progress";
+import useDesktop from "../lib/hooks/useDesktop";
 
 type TimerProps = HTMLAttributes<HTMLDivElement> & {
   session: SessionModel | null;
@@ -10,6 +11,7 @@ type TimerProps = HTMLAttributes<HTMLDivElement> & {
 const Timer: FC<TimerProps> = ({ session, className, ...props }) => {
   const [storedTime, setStoredTime] = useState<{ work: number; break: number }>({ work: 0, break: 0 });
   const [passed, setPassed] = useState(0);
+  const desktop = useDesktop();
   const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -59,27 +61,25 @@ const Timer: FC<TimerProps> = ({ session, className, ...props }) => {
 
   const format = (ms: number) => {
     return {
-      hours: Math.ceil(ms / (60 * 60 * 1000)) % 24,
-      minutes: Math.ceil(ms / (60 * 1000)) % 60,
-      seconds: Math.ceil(ms / 1000) % 60,
+      hours: Math.floor(ms / (60 * 60 * 1000)) % 24,
+      minutes: Math.floor(ms / (60 * 1000)) % 60,
+      seconds: Math.floor(ms / 1000) % 60,
     };
   };
 
   const workMs = session?.status === "active" ? storedTime.work + passed * 1000 : storedTime.work;
   const work = format(workMs);
 
-  if (!session) return;
-
   return (
-    <div className={clsx(className, "w-fit")} {...props}>
-      <div className="flex items-center justify-center h-32 w-32 relative">
+    <div className={clsx(className, "w-fit bg-surface p-3 md:p-6 shadow rounded-3xl")} {...props}>
+      <div className="flex items-center justify-center size-24 md:size-32 relative">
         <CircleProgress
-          size={128}
-          strokeWidth={10}
-          progress={(workMs / (60 * 60 * 8 * 1000)) * 100}
+          size={desktop ? 128 : 96}
+          strokeWidth={desktop ? 10 : 7}
+          progress={Math.floor(workMs / (60 * 60 * 8 * 1000)* 100)}
           className="absolute left-0 top-0"
         />
-        <p className="text-h3 font-bold text-gray">
+        <p className="md:text-h3 text-2xl font-bold text-gray">
           <span>{String(work.hours).padStart(2, "0")}</span>:<span>{String(work.minutes).padStart(2, "0")}</span>
         </p>
       </div>

@@ -13,9 +13,9 @@ const UserCard: FC<UserCardProps> = ({ user, session, className, ...props }) => 
       className={clsx(
         className,
         "flex items-center gap-6 bg-gradient-to-l via-surface via-[16px] from-[16px] rounded-l-full",
-        session.status === "inactive" && "from-red-light",
-        session.status === "active" && "from-green",
-        session.status === "cheater" && "from-orange",
+        session.status === "inactive" && "from-background",
+        session.status === "active" && "from-accent",
+        session.status === "cheater" && "from-red",
       )}
       {...props}
     >
