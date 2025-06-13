@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type FC, type HTMLAttributes } from "react";
-import { type SessionModel } from "../lib/api";
+import { type SessionModel } from "../../lib/api";
 import clsx from "clsx";
-import CircleProgress from "../ui/components/circle-progress";
-import useDesktop from "../lib/hooks/useDesktop";
+import CircleProgress from "../components/circle-progress";
+import useDesktop from "../../lib/hooks/useDesktop";
 
 type TimerProps = HTMLAttributes<HTMLDivElement> & {
   session: SessionModel | null;
@@ -11,7 +11,6 @@ type TimerProps = HTMLAttributes<HTMLDivElement> & {
 const Timer: FC<TimerProps> = ({ session, className, ...props }) => {
   const [storedTime, setStoredTime] = useState<{ work: number; break: number }>({ work: 0, break: 0 });
   const [passed, setPassed] = useState(0);
-  const desktop = useDesktop();
   const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -59,6 +58,30 @@ const Timer: FC<TimerProps> = ({ session, className, ...props }) => {
     setStoredTime(sessionTime);
   }, [session]);
 
+
+
+  const workMs = session?.status === "active" ? storedTime.work + passed * 1000 : storedTime.work;
+  const breakMs = session?.status !== "active" ? storedTime.break + passed * 1000 : storedTime.break;
+
+  return (
+    <TimerBlock
+      current={workMs}
+      total={(1000 * 60 * 60 * 8)}
+      extra={breakMs !== 0 ? breakMs : undefined}
+      className={className} {...props}
+    />
+  );
+};
+
+type TimerBlockProps = HTMLAttributes<HTMLDivElement> & {
+  current: number;
+  total: number;
+  extra?: number;
+}
+
+export const TimerBlock: FC<TimerBlockProps> = ({ current, total, extra, className, ...props }) => {
+  const desktop = useDesktop();
+
   const format = (ms: number) => {
     return {
       hours: Math.floor(ms / (60 * 60 * 1000)) % 24,
@@ -67,8 +90,9 @@ const Timer: FC<TimerProps> = ({ session, className, ...props }) => {
     };
   };
 
-  const workMs = session?.status === "active" ? storedTime.work + passed * 1000 : storedTime.work;
-  const work = format(workMs);
+  const currentTime = format(current);
+  const extraTime = format(extra ?? 0);
+
 
   return (
     <div className={clsx(className, "w-fit bg-surface p-3 md:p-6 shadow rounded-3xl")} {...props}>
@@ -76,16 +100,26 @@ const Timer: FC<TimerProps> = ({ session, className, ...props }) => {
         <CircleProgress
           size={desktop ? 128 : 96}
           strokeWidth={desktop ? 10 : 7}
-          progress={Math.floor(workMs / (60 * 60 * 8 * 1000)* 100)}
+          progress={Math.floor(current / total * 100)}
           className="absolute left-0 top-0"
         />
-        <p className="md:text-h3 text-2xl font-bold text-gray">
-          <span>{String(work.hours).padStart(2, "0")}</span>:<span>{String(work.minutes).padStart(2, "0")}</span>
-        </p>
+        <TimeLabel hours={currentTime.hours} minutes={currentTime.minutes} />
       </div>
-      <div>{}</div>
+      {extraTime.minutes !== 0 && <TimeLabel hours={extraTime.hours} minutes={extraTime.minutes} className="mt-3 text-center !text-lg" />}
     </div>
   );
-};
+}
+
+type TimeLabelProps = HTMLAttributes<HTMLDivElement> & { hours: number; minutes: number; seconds?: number }
+
+const TimeLabel: FC<TimeLabelProps> = ({ hours, minutes, seconds, className, ...props }) => {
+  return (
+    <p className={clsx("md:text-h3 text-2xl font-bold text-gray", className)} {...props}>
+      <span>{String(hours).padStart(2, "0")}</span>:
+      <span>{String(minutes).padStart(2, "0")}</span>
+      {seconds && <span>:{String(seconds).padStart(2, "0")}</span>}
+    </p>
+  )
+}
 
 export default Timer;

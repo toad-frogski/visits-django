@@ -61,7 +61,7 @@ const Sidebar: FC<SidebarProps> = ({ items, long }) => {
 
 type SidebarBreadcrumbProps = Omit<NavLinkProps, "to"> & SidebarItem;
 
-const SidebarBreadcrumb: FC<SidebarBreadcrumbProps> = ({ icon: Icon, label, long, className, ...props }) => {
+export const SidebarBreadcrumb: FC<SidebarBreadcrumbProps> = ({ icon: Icon, label, long, className, ...props }) => {
   return (
     <NavLink
       {...props}
@@ -77,7 +77,7 @@ const SidebarBreadcrumb: FC<SidebarBreadcrumbProps> = ({ icon: Icon, label, long
       }
     >
       {Icon && <Icon width={24} height={24} />}
-      {long && <span>{label}</span>}
+      {long && <span className="text-gray">{label}</span>}
     </NavLink>
   );
 };

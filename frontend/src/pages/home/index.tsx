@@ -1,10 +1,10 @@
 import { useEffect, type FC } from "react";
-import { NavLink, Outlet } from "react-router";
+import { Outlet } from "react-router";
 import Card from "../../ui/components/card";
-import Timer from "../../widgets/timer";
+import Timer from "../../ui/widgets/timer";
 import useAuthStore from "../../stores/auth";
-import clsx from "clsx";
 import useDesktop from "../../lib/hooks/useDesktop";
+import { SidebarBreadcrumb } from "../../ui/sidebar";
 
 const Home: FC = () => {
   const session = useAuthStore((state) => state.session);
@@ -17,20 +17,15 @@ const Home: FC = () => {
   }, []);
 
   return (
-    <div className="flex h-full">
-      {desktop && <section className="bg-surface h-full p-6 shadow">
+    <div className="flex h-full max-h-screen">
+      {desktop && <section className="bg-surface h-full pl-6 py-6 shadow">
         <nav>
           <ul className="flex flex-col gap-3">
-            <NavLink className={({ isActive }) => isActive ? "text-accent" : "text-gray"} to={""}>
-              Главная
-            </NavLink>
-            <NavLink className={({ isActive }) => isActive ? "text-accent" : "text-gray"} to={"report"}>
-              Посмотреть отчет
-            </NavLink>
+            <SidebarBreadcrumb label={"Главная"} to={""} long />
           </ul>
         </nav>
       </section>}
-      <div className="p-3 md:p-6 flex gap-3 md:gap-6 flex-1 flex-col md:flex-row-reverse">
+      <div className="p-3 md:p-6 overflow-y-auto flex flex-1 gap-3 md:gap-6 flex-col md:flex-row-reverse">
         <section className="md:flex-1">
           <Timer session={session} />
         </section>
