@@ -6,43 +6,34 @@ from django.utils import timezone
 from datetime import datetime
 
 
-class SessionEntryComment(models.Model):
-    session_entry = models.ForeignKey(
-        "SessionEntry", on_delete=models.CASCADE, related_name="comments"
-    )
-    comment = models.CharField(max_length=255)
-
-
 class SessionEntry(models.Model):
     class Type(models.TextChoices):
         SYSTEM = "SYSTEM", _("System")
         LUNCH = "LUNCH", _("Lunch")
-        PERSONAL = "PERSONAL", _("Personal reasons")
-        WORK = "WORK", _("Work reasons")
+        BREAK = "BREAK", _("Break")
+        WORK = "WORK", _("Work")
 
     session = models.ForeignKey(
         "Session", on_delete=models.CASCADE, related_name="entries"
     )
-    check_in = models.DateTimeField(default=timezone.now, null=False)
-    check_out = models.DateTimeField(null=True, blank=True)
+    start = models.DateTimeField(default=timezone.now, null=False)
+    end = models.DateTimeField(null=True, blank=True)
     type = models.CharField(max_length=10, choices=Type.choices, default=Type.SYSTEM)
+    comment = models.CharField(max_length=255, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def set_comment(self, comment: str, comment_id: int | None = None):
-        if comment_id:
-            SessionEntryComment.objects.update_or_create(
-                id=comment_id, defaults={"session_entry": self, "comment": comment}
-            )
-        else:
-            SessionEntryComment.objects.create(session_entry=self, comment=comment)
+    @property
+    def is_open(self) -> bool:
+        return self.end is None
 
-    def get_last_comment(self) -> SessionEntryComment | None:
-        return self.comments.order_by("-id").first()
+    def close(self, end_time: datetime | None = None):
+        self.end = end_time or timezone.now()
+        self.save()
 
 
-class SessionManager(models.Manager):
+class SessionManager(models.Manager["Session"]):
     def get_last_user_session(self, user) -> Optional["Session"]:
         today = timezone.localdate()
         return (
@@ -59,7 +50,7 @@ class Session(models.Model):
     date = models.DateField(_("Date"), default=timezone.now)
     objects: SessionManager = SessionManager()
 
-    class SessionStatus(models.TextChoices):
+    class Status(models.TextChoices):
         ACTIVE = "active", _("Active")
         INACTIVE = "inactive", _("Inactive")
         CHEATER = "cheater", _("Cheater")
@@ -70,30 +61,41 @@ class Session(models.Model):
         return self.entries.order_by("-id").first()  # type: ignore
 
     def get_open_entries(self):
-        return self.entries.filter(
-            models.Q(check_in__isnull=True) | models.Q(check_out__isnull=True)
-        )
+        return self.entries.filter(end__isnull=True)  # type: ignore
 
     def add_enter(
-        self, check_in: datetime, type: SessionEntry.Type = SessionEntry.Type.SYSTEM
+        self, start: datetime, type: SessionEntry.Type = SessionEntry.Type.SYSTEM
     ):
-        entry = SessionEntry(session=self, check_in=check_in, type=type)
+        entry = SessionEntry(session=self, start=start, type=type)
         entry.save()
 
     def update_entry(
         self,
         entry_id: int,
         type: SessionEntry.Type = SessionEntry.Type.SYSTEM,
-        check_in: datetime | None = None,
-        check_out: datetime | None = None,
+        start: datetime | None = None,
+        end: datetime | None = None,
     ):
         entry = self.entries.get(id=entry_id)  # type: ignore
 
-        if check_in is not None:
-            entry.check_in = check_in
+        if start is not None:
+            entry.start = start
 
-        if check_out is not None:
-            entry.check_out = check_out
+        if end is not None:
+            entry.end = end
 
         entry.type = type
         entry.save()
+
+    @property
+    def status(self):
+        entries = list(self.entries.order_by("start"))  # type: ignore
+
+        for i in range(1, len(entries)):
+            if entries[i - 1].end is None or entries[i].start < entries[i - 1].end:
+                return Session.Status.CHEATER
+
+        if entries[-1].end is None:
+            return Session.Status.ACTIVE
+
+        return Session.Status.INACTIVE

@@ -3,19 +3,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException, ValidationError, NotFound
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
 from drf_spectacular.utils import extend_schema
-
 from django.utils.translation import gettext as _
-from django.utils import timezone
-from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
 
-from visits.services import SessionService
-
+from .models import Session, SessionEntry
+from .services import SessionService
 from . import serializers
-from .models import Session, SessionEntry, SessionEntryComment
 
 
 @extend_schema(tags=["visits"])
@@ -24,7 +20,7 @@ class EnterView(APIView):
 
     @extend_schema(
         "enter",
-        request=serializers.SessionEnterPostRequestSerializer,
+        request=serializers.SessionEnterSerializer,
         responses={
             status.HTTP_200_OK,
             status.HTTP_404_NOT_FOUND,
@@ -32,46 +28,18 @@ class EnterView(APIView):
         },
     )
     def post(self, request: Request):
-        serializer = serializers.SessionEnterPostRequestSerializer(data=request.data)
+        serializer = serializers.SessionEnterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        check_in: datetime = serializer.validated_data.get("check_in")
+        start: datetime = serializer.validated_data.get("start")
         type: SessionEntry.Type = serializer.validated_data.get("type")
 
         session_service = SessionService()
 
         try:
-            session_service.enter(user=request.user, check_in=check_in, type=type)
+            session_service.enter(request.user, type, start)
         except ValueError as e:
             raise ValidationError(detail=str(e))
-        except Exception as e:
-            raise APIException(detail=str(e))
-
-        return Response(status=status.HTTP_200_OK)
-
-    @extend_schema(
-        "update_enter",
-        request=serializers.SessionEnterPutRequestSerializer,
-        responses={
-            status.HTTP_200_OK,
-            status.HTTP_404_NOT_FOUND,
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-        },
-    )
-    def put(self, request: Request):
-        serializer = serializers.SessionEnterPutRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        entry_id: int = serializer.validated_data.get("id")
-        check_in: datetime = serializer.validated_data.get("check_in")
-        type: SessionEntry.Type = serializer.validated_data.get("type")
-
-        session_service = SessionService()
-
-        try:
-            session_service.update_entry(entry_id, type, check_in)
-        except Session.DoesNotExist as e:
-            raise NotFound(detail=str(e))
         except Exception as e:
             raise APIException(detail=str(e))
 
@@ -84,7 +52,7 @@ class ExitView(APIView):
 
     @extend_schema(
         "update_exit",
-        request=serializers.SessionExitPostRequestSerializer,
+        request=serializers.SessionExitSerializer,
         responses={
             status.HTTP_200_OK,
             status.HTTP_404_NOT_FOUND,
@@ -92,85 +60,20 @@ class ExitView(APIView):
         },
     )
     def put(self, request: Request):
-        serializer = serializers.SessionExitPostRequestSerializer(data=request.data)
+        serializer = serializers.SessionExitSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         entry_id: int = serializer.validated_data.get("id")
-        check_out: datetime = serializer.validated_data.get("check_out")
+        time: datetime = serializer.validated_data.get("end")
         type: SessionEntry.Type = serializer.validated_data.get("type")
+        comment: SessionEntry.Type = serializer.validated_data.get("comment")
 
         session_service = SessionService()
 
         try:
-            session_service.update_entry(entry_id, type, check_out=check_out)
+            session_service.update_entry(entry_id, type, end=time, comment=comment)
         except Session.DoesNotExist as e:
             raise NotFound(detail=str(e))
-        except Exception as e:
-            raise APIException(detail=str(e))
-
-        return Response(status=status.HTTP_200_OK)
-
-
-@extend_schema(tags=["visits"])
-class CommentViewSet(viewsets.ViewSet):
-
-    @extend_schema(
-        "set_comment",
-        request=serializers.CommentRequestSerializer,
-        responses={
-            status.HTTP_200_OK,
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-        },
-    )
-    def create(self, request, entry_id=None):
-        entry = get_object_or_404(SessionEntry, id=entry_id)
-        serializer = serializers.CommentRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        comment_data: str = serializer.validated_data.get("comment")
-
-        try:
-            entry.set_comment(comment_data)
-        except Exception as e:
-            raise APIException(detail=str(e))
-
-        return Response(status=status.HTTP_200_OK)
-
-    @extend_schema(
-        "list_comment",
-        request=serializers.CommentRequestSerializer,
-        responses={
-            status.HTTP_200_OK,
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-        },
-    )
-    def list(self, request, entry_id=None):
-        entry = get_object_or_404(SessionEntry, id=entry_id)
-        comments = SessionEntryComment.objects.filter(session_entry=entry)
-        serializer = serializers.CommentRequestSerializer(comments, many=True)
-
-        return Response(serializer.data)
-
-    @extend_schema(
-        "update_comment",
-        request=serializers.CommentRequestSerializer,
-        responses={
-            status.HTTP_200_OK,
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-        },
-    )
-    def update(self, request, entry_id=None, comment_id=None):
-        get_object_or_404(SessionEntry, id=entry_id)
-        comment = get_object_or_404(SessionEntryComment, id=comment_id)
-
-        serializer = serializers.CommentRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        comment_data: str = serializer.validated_data.get("comment")
-
-        try:
-            comment.comment = comment_data
-            comment.save()
         except Exception as e:
             raise APIException(detail=str(e))
 
@@ -195,4 +98,32 @@ class CurrentSessionView(APIView):
 
         serializer = serializers.SessionModelSerializer(session)
 
+        return Response(serializer.data)
+
+
+@extend_schema(tags=["visits"])
+class UsersTodayView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        "today", responses={status.HTTP_200_OK: serializers.UserSessionSerializer(many=True)}
+    )
+    def get(self, request: Request):
+        users = User.objects.filter(is_active=True)
+        session_service = SessionService()
+
+        data = []
+        for user in users:
+            session = session_service.get_current_session(user)
+            data.append(
+                {
+                    "user": user,
+                    "session": {
+                        "status": session_service.get_session_status(session),
+                        "comment": session_service.get_session_last_comment(session),
+                    },
+                }
+            )
+
+        serializer = serializers.UserSessionSerializer(data, many=True)
         return Response(serializer.data)

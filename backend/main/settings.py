@@ -47,10 +47,9 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "corsheaders",
     # app
+    "session",
     "visits",
     "rfid",
-    "users",
-    "session"
 ]
 
 MIDDLEWARE = [

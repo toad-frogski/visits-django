@@ -8,48 +8,76 @@ from visits.models import Session, SessionEntry
 class SessionService:
 
     @staticmethod
-    def enter(user: User, type: SessionEntry.Type, check_in: datetime):
+    def enter(user: User, type: SessionEntry.Type, time: datetime):
         session, _ = Session.objects.get_or_create(
             user=user, date=timezone.now().date()
         )
 
         last_entry = session.get_last_entry()
-        if last_entry and last_entry.check_out is None:
+        if last_entry and last_entry.end is None:
             raise ValueError("Previous entry has not been checked out.")
 
-        session.add_enter(check_in=check_in, type=type)
+        session.add_enter(start=time, type=type)
 
     @staticmethod
     def update_entry(
         entry_id: int,
         type: SessionEntry.Type,
-        check_in: datetime | None = None,
-        check_out: datetime | None = None,
+        start: datetime | None = None,
+        end: datetime | None = None,
+        comment: str | None = None,
     ):
         entry = get_object_or_404(SessionEntry, id=entry_id)
 
-        if check_in is not None:
-            entry.check_in = check_in
-
-        if check_out is not None:
-            entry.check_out = check_out
+        for attr, value in {"start": start, "end": end, "comment": comment}.items():
+            if value is not None:
+                setattr(entry, attr, value)
 
         entry.type = type
         entry.save()
 
-
     @staticmethod
-    def exit(user: User, type: SessionEntry.Type, check_out: datetime):
+    def exit(user: User, time: datetime):
         session = Session.objects.get(user=user, date=timezone.now())
         last_entry = session.get_last_entry()
 
         if last_entry is None:
             raise SessionEntry.DoesNotExist("No entry found to exit.")
 
-        if last_entry.check_out is not None:
+        if last_entry.end is not None:
             raise ValueError("Entry already checked out.")
 
-        session.update_entry(last_entry.id, type, check_out=check_out)
+        last_entry.close(time)
+
+    @staticmethod
+    def _handle_leave(user: User, type: SessionEntry.Type, time: datetime):
+        session = Session.objects.get_last_user_session(user)
+        if session is None:
+            raise Session.DoesNotExist()
+
+        last_entry = session.get_last_entry()
+        if last_entry is None or last_entry.end is not None:
+            raise ValueError("No open work entry to leave from.")
+
+        last_entry.close(time)
+
+        session.add_enter(start=time, type=type)
+
+    @staticmethod
+    def leave(
+        user: User,
+        type: SessionEntry.Type = SessionEntry.Type.BREAK,
+        time: datetime = timezone.now(),
+    ):
+        SessionService._handle_leave(user, type, time)
+
+    @staticmethod
+    def comeback(
+        user: User,
+        type: SessionEntry.Type = SessionEntry.Type.WORK,
+        time: datetime = timezone.now(),
+    ):
+        SessionService._handle_leave(user, type, time)
 
     @staticmethod
     def get_current_session(user: User) -> Session | None:
@@ -64,35 +92,17 @@ class SessionService:
         return None
 
     @staticmethod
-    def get_session_status(
-        user: User, session: Session | None
-    ) -> Session.SessionStatus:
-        if session is None:
-            return Session.SessionStatus.INACTIVE
-
-        # @todo: Handle other statuses
-
-        open_entries = session.get_open_entries()
-        if len(open_entries) > 1:
-            return Session.SessionStatus.CHEATER
-
-        last_entry = session.get_last_entry()
-        if last_entry is None:
-            return Session.SessionStatus.INACTIVE
-
-        if last_entry.check_in and last_entry.check_out is None:
-            return Session.SessionStatus.ACTIVE
-
-        return Session.SessionStatus.INACTIVE
-
-    @staticmethod
     def get_session_last_comment(session: Session | None) -> str | None:
         if session is None:
             return None
 
-        last_entry = session.get_last_entry()
-        if last_entry is None:
-            return None
+        return (
+            session.entries.filter(comment__isnull=False)  # type: ignore
+            .order_by("-start")
+            .values_list("comment", flat=True)
+            .first()
+        )
 
-        last_comment = last_entry.get_last_comment()
-        return last_comment.comment if last_comment else None
+    @staticmethod
+    def get_session_status(session: Session | None) -> Session.Status:
+        return session.status if session else Session.Status.INACTIVE

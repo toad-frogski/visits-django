@@ -7,9 +7,10 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.contrib.auth import login, logout
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
+from django.shortcuts import get_object_or_404
 
-from .serializers import LoginSerializer
-from users.serializers import UserModelSerializer
+from .models import Avatar
+from .serializers import LoginSerializer, UserModelSerializer, AvatarModelSerializer
 
 
 @extend_schema(tags=["session"])
@@ -44,10 +45,19 @@ class LogoutView(views.APIView):
 
 
 @extend_schema_view(get=extend_schema("me", tags=["session"]))
-@method_decorator(ensure_csrf_cookie, name='dispatch')
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class MeView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserModelSerializer
 
     def get_object(self):
         return self.request.user
+
+
+@extend_schema(tags=["avatar"])
+class AvatarView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AvatarModelSerializer
+
+    def get_object(self):
+        return get_object_or_404(Avatar, user=self.request.user)
