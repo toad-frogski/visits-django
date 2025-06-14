@@ -18,18 +18,16 @@ const Timer: FC<TimerProps> = ({ className, ...props }) => {
     { work: 0, break: 0 }
   );
   const [passed, setPassed] = useState(0);
-  const intervalRef = useRef<number | null>(null);
+  const timer = useRef<number | null>(null);
 
   useEffect(() => {
-    if (session?.status === "active") {
-      setPassed(0);
-      intervalRef.current = setInterval(() => {
-        setPassed((prev) => prev + 1);
-      }, 1000) as unknown as number;
-    }
+    setPassed(0);
+    timer.current = setInterval(() => {
+      setPassed((prev) => prev + 1);
+    }, 1000) as unknown as number;
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timer.current) clearInterval(timer.current);
     };
   }, [session]);
 
@@ -38,10 +36,6 @@ const Timer: FC<TimerProps> = ({ className, ...props }) => {
 
     const sessionTime = session.entries.reduce(
       (acc, entry) => {
-        if ((!entry.end || !entry.start) && session.status !== "active") {
-          return acc;
-        }
-
         const a = new Date(entry.start!).getTime();
         const b = new Date(entry.end ?? new Date()).getTime();
 
@@ -126,7 +120,7 @@ export const TimerBlock: FC<TimerBlockProps> = ({
           progress={(current / total) * 100}
           className="absolute left-0 top-0"
         />
-        <TimeLabel hours={currentTime.hours} minutes={currentTime.minutes} />
+        <TimeLabel hours={currentTime.hours} minutes={currentTime.minutes} className="z-10" />
       </div>
       {extraTime.minutes !== 0 && (
         <TimeLabel

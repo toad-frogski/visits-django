@@ -132,7 +132,7 @@ const SessionControl: FC = () => {
     case "inactive":
     default:
       // Handle enter
-      if (session === null) {
+      if (!session || !session.entries.length) {
         return (
           <Button
             icon={Play}

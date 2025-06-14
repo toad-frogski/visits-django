@@ -8,7 +8,7 @@ import { SidebarBreadcrumb, type NavItem } from "@/ui/sidebar";
 import { cn } from "@/lib/cn";
 
 const breadcrumbs = [
-  { to: "", label: "Главная" },
+  { to: "general", label: "Главная" },
   { to: "report", label: "Отчет" },
 ] satisfies NavItem[];
 

@@ -1,10 +1,11 @@
 import { createBrowserRouter, Navigate } from "react-router";
-import ProtectedLayout from "./layouts/protected-layout";
-import SignIn from "./pages/sign-in";
-import Dashboard from "./pages/dashboard";
-import List from "./pages/list";
-import Visits from "./ui/widgets/session-control";
-import Profile from "./pages/profile";
+import ProtectedLayout from "@/layouts/protected-layout";
+import SignIn from "@/pages/sign-in";
+import Dashboard from "@/pages/dashboard";
+import List from "@/pages/list";
+import DashboardGeneral from "@/pages/dashboard/general";
+import Profile from "@/pages/profile";
+import DashboardReport from "@/pages/dashboard/report";
 
 const router = createBrowserRouter([
   {
@@ -15,7 +16,11 @@ const router = createBrowserRouter([
       {
         path: "dashboard",
         element: <Dashboard />,
-        children: [{ index: true, element: <Visits /> }],
+        children: [
+          { index: true, element: <Navigate to={"general"} replace /> },
+          { path: "general", element: <DashboardGeneral /> },
+          { path: "report", element: <DashboardReport /> },
+        ],
       },
       { path: "users", element: <List /> },
       { path: "profile", element: <Profile /> },
