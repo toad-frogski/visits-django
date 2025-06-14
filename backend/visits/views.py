@@ -94,7 +94,7 @@ class LeaveView(APIView):
             status.HTTP_404_NOT_FOUND: None,
             status.HTTP_400_BAD_REQUEST: None,
             status.HTTP_500_INTERNAL_SERVER_ERROR: None,
-        }
+        },
     )
     def post(self, request: Request):
         serializer = serializers.SessionEntryLeaveSerializer(data=request.data)
@@ -163,5 +163,7 @@ class UsersTodayView(APIView):
                 }
             )
 
-        serializer = serializers.UserSessionSerializer(data, many=True)
+        serializer = serializers.UserSessionSerializer(
+            data, many=True, context={"request": request}
+        )
         return Response(serializer.data)

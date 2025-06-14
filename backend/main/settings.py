@@ -172,6 +172,7 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Visits",
     "DESCRIPTION": "Visit time tracker",
     "VERSION": "1.0.0",
+    'COMPONENT_SPLIT_REQUEST': True
 }
 
 SESSION_COOKIE_HTTPONLY = True

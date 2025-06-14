@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { forwardRef, useEffect, useState, type ChangeEvent, type InputHTMLAttributes } from "react";
+import { forwardRef, useEffect, useState, type ChangeEvent, type FC, type InputHTMLAttributes } from "react";
 import Eye from "../../assets/eye.svg?react";
 import EyeOff from "../../assets/eye-off.svg?react";
 
@@ -71,15 +71,19 @@ const BaseInput = forwardRef<HTMLInputElement, BaseInputProps>((
         />
         {children}
       </label>
-      {error && (<p className={clsx(
-        "ml-3 text-red transition-all duration-200 ease-in-out transform",
-        error
-          ? "visible opacity-100 -translate-y-0"
-          : "invisible opacity-0 translate-y-1"
-      )}>{error}</p>)}
+      <ErrorMessage error={error} />
     </div>
   )
 })
+
+const ErrorMessage: FC<{ error?: string }> = ({ error }) => {
+  return (
+    error && <p className={clsx(
+      "ml-3 text-red transition-all duration-200 ease-in-out transform",
+      error ? "visible opacity-100 -translate-y-0" : "invisible opacity-0 translate-y-1"
+    )}>{error}</p>
+  );
+}
 
 const TextInput = forwardRef<HTMLInputElement, BaseInputProps>((props, ref) => (
   <BaseInput {...props} ref={ref} type={props.type || "text"} />
@@ -104,4 +108,4 @@ const PasswordInput = forwardRef<HTMLInputElement, BaseInputProps>((props, ref) 
   );
 });
 
-export { TextInput, PasswordInput }
+export { TextInput, PasswordInput, ErrorMessage }

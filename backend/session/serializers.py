@@ -55,10 +55,11 @@ class UserModelSerializer(serializers.ModelSerializer):
         )
 
     def get_avatar(self, obj: User):
-        request: Request = self.context.get("request")
 
         if hasattr(obj, "avatar") and obj.avatar and obj.avatar.avatar:
-            return request.build_absolute_uri(obj.avatar.avatar.url)
+            request: Request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(obj.avatar.avatar.url)
 
         email = (obj.email or "").strip().lower()
         if not email:

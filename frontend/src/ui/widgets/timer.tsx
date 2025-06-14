@@ -100,7 +100,7 @@ export const TimerBlock: FC<TimerBlockProps> = ({ current, total, extra, classNa
         <CircleProgress
           size={desktop ? 128 : 96}
           strokeWidth={desktop ? 10 : 7}
-          progress={Math.floor(current / total * 100)}
+          progress={current / total * 100}
           className="absolute left-0 top-0"
         />
         <TimeLabel hours={currentTime.hours} minutes={currentTime.minutes} />

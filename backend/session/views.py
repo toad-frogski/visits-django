@@ -3,6 +3,7 @@ from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import parsers
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.contrib.auth import login, logout
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -29,7 +30,7 @@ class LoginView(views.APIView):
         user = serializer.validated_data.get("user")
         login(request, user)
 
-        serializer = UserModelSerializer(user)
+        serializer = UserModelSerializer(user, context={"request": request})
         return Response(serializer.data)
 
 
@@ -58,6 +59,8 @@ class MeView(generics.RetrieveAPIView):
 class AvatarView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AvatarModelSerializer
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
     def get_object(self):
-        return get_object_or_404(Avatar, user=self.request.user)
+        avatar, _ = Avatar.objects.get_or_create(user=self.request.user)
+        return avatar

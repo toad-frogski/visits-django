@@ -2,10 +2,8 @@ import { type FC, type SVGProps } from "react";
 import clsx from "clsx";
 import { NavLink, type NavLinkProps } from "react-router";
 import useDesktop from "../lib/hooks/useDesktop";
-import useAuthStore from "../stores/auth";
 
 import Logo from "../assets/deeplace.svg?react";
-import LogoutIcon from "../assets/log-out.svg?react";
 import ProfileMenu from "./profile-menu";
 
 type SidebarItem = {
@@ -22,7 +20,6 @@ type SidebarProps = {
 
 const Sidebar: FC<SidebarProps> = ({ items, long }) => {
   const isDesktop = useDesktop();
-  const logout = useAuthStore((state) => state.logout);
 
   if (!isDesktop) return null;
 
@@ -48,14 +45,6 @@ const Sidebar: FC<SidebarProps> = ({ items, long }) => {
 
       <footer className="mt-12">
         <ProfileMenu />
-        {/* <SidebarBreadcrumb
-          label="Sign out"
-          icon={LogoutIcon}
-          long={long}
-          to={""}
-          onClick={() => logout()}
-          className={"bg-surface"}
-        /> */}
       </footer>
     </aside>
   );

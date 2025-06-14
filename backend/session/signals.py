@@ -10,4 +10,4 @@ def user_created_or_updated(sender, instance, created, **kwargs):
     Create user profile for new registered user
     """
     if created:
-        Avatar.objects.create(user=instance)
+        Avatar.objects.get_or_create(user=instance)

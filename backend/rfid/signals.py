@@ -6,4 +6,4 @@ from .models import RFIDSettings
 @receiver(post_save, sender=User)
 def user_created_or_updated(sender, instance: User, created: bool, **kwargs):
     if created:
-        RFIDSettings.objects.create(user=instance)
+        RFIDSettings.objects.get_or_create(user=instance)
