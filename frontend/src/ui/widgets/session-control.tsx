@@ -36,7 +36,7 @@ const SessionControl: FC = () => {
       return (
         <div
           className={cn(
-            "md:min-h-36 flex flex-col lg:flex-row items-center justify-center gap-x-3",
+            "flex flex-col lg:flex-row items-center justify-center gap-x-3",
             isLeave && "gap-y-3"
           )}
         >
@@ -103,6 +103,7 @@ const SessionControl: FC = () => {
             {session?.status === "active" && isBreak && (
               <>
                 <TextInput
+                  className="max-h-12"
                   placeholder="Укажите причину"
                   value={breakMessage}
                   onChange={(e) => setBreakMessage(e.target.value)}
