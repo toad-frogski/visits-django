@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState, type FC, type HTMLAttributes } from "react";
-import { type SessionModel } from "@/lib/api";
 import CircleProgress from "@/ui/components/circle-progress";
 import useDesktop from "@/lib/hooks/useDesktop";
 import { cn } from "@/lib/cn";
+import useAuthStore from "@/stores/auth";
 
-type TimerProps = HTMLAttributes<HTMLDivElement> & {
-  session: SessionModel | null;
-};
+type TimerProps = HTMLAttributes<HTMLDivElement>;
 
-const Timer: FC<TimerProps> = ({ session, className, ...props }) => {
+const Timer: FC<TimerProps> = ({ className, ...props }) => {
+  const session = useAuthStore((state) => state.session);
   const [storedTime, setStoredTime] = useState<{ work: number; break: number }>({ work: 0, break: 0 });
   const [passed, setPassed] = useState(0);
   const intervalRef = useRef<number | null>(null);

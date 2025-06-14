@@ -27,7 +27,7 @@ const Home: FC = () => {
       </section>}
       <div className="p-3 md:p-6 overflow-y-auto flex flex-1 gap-3 md:gap-6 flex-col md:flex-row-reverse">
         <section>
-          <Timer session={session} />
+          <Timer />
         </section>
         <Card className="rounded h-fit md:flex-1">
           <Outlet />

@@ -13,6 +13,17 @@ services:
     ports:
       - 5678:5678
 
+  frontend:
+    image: node:20-slim
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    command: >
+      sh -c "yarn install &&
+             yarn dev --host"
+    environment:
+      - NODE_ENV=development
+
   db:
     image: mariadb
     environment:

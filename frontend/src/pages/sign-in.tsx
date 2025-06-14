@@ -8,8 +8,8 @@ import useAuthStore from "@/stores/auth";
 const SignIn: FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
-      <main className="flex-1 justify-center items-center flex sm:bg-gradient-to-r from-blue-700 via-blue-500 to-blue-300">
-        <section className="w-full px-6 sm:max-w-[450px] sm:p-[56px] sm:rounded-4xl bg-white">
+      <main className="flex-1 md:justify-center md:items-center flex sm:bg-gradient-to-r from-blue-700 via-blue-500 to-blue-300">
+        <section className="w-full px-6 sm:max-w-[450px] sm:p-[56px] sm:rounded-4xl bg-background md:mt-0 mt-24">
           <SignInForm />
         </section>
       </main>
