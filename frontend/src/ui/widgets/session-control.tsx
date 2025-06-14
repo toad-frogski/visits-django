@@ -9,6 +9,8 @@ import Play from "@/assets/play.svg?react";
 import Stop from "@/assets/square.svg?react";
 import Leaf from "@/assets/leaf.svg?react";
 import Soup from "@/assets/soup.svg?react";
+import Reset from "@/assets/timer-reset.svg?react";
+
 import { TextInput } from "@/ui/components/input";
 import { cn } from "@/lib/cn";
 
@@ -22,6 +24,12 @@ const SessionControl: FC = () => {
   const [isBreak, setIsBreak] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [breakMessage, setBreakMessage] = useState("");
+
+  const clear = () => {
+    setIsLeave(false);
+    setIsBreak(false);
+    setBreakMessage("");
+  };
 
   switch (session?.status) {
     case "active":
@@ -48,7 +56,12 @@ const SessionControl: FC = () => {
                   icon={Stop}
                   disabled={loading || isLeave}
                   onClick={() => {
-                    api.exit().finally(() => fetchSession());
+                    setLoading(true);
+                    api.exit().finally(() => {
+                      setLoading(false);
+                      fetchSession();
+                      clear();
+                    });
                   }}
                 >
                   Завершить
@@ -71,6 +84,14 @@ const SessionControl: FC = () => {
                   variant="blue"
                   icon={Soup}
                   disabled={loading || isBreak}
+                  onClick={() => {
+                    setLoading(true);
+                    api.leave({ type: "LUNCH" }).finally(() => {
+                      setLoading(false);
+                      fetchSession();
+                      clear();
+                    });
+                  }}
                 >
                   Обед
                 </Button>
@@ -86,7 +107,21 @@ const SessionControl: FC = () => {
                   value={breakMessage}
                   onChange={(e) => setBreakMessage(e.target.value)}
                 />
-                <Button disabled={loading}>Подтвердить</Button>
+                <Button
+                  disabled={loading || !breakMessage}
+                  onClick={() => {
+                    setLoading(false);
+                    api
+                      .leave({ type: "BREAK", comment: breakMessage })
+                      .finally(() => {
+                        setLoading(false);
+                        fetchSession();
+                        clear();
+                      });
+                  }}
+                >
+                  Подтвердить
+                </Button>
               </>
             )}
           </div>
@@ -95,15 +130,47 @@ const SessionControl: FC = () => {
 
     case "inactive":
     default:
+      // Handle enter
+      if (session === null) {
+        return (
+          <Button
+            icon={Play}
+            disabled={loading}
+            onClick={() => {
+              api.enter({ type: "WORK" }).finally(() => fetchSession());
+            }}
+          >
+            Начать
+          </Button>
+        );
+      }
+
+      const last = session.entries[session.entries.length - 1];
+
+      // Handle break comeback.
+      if (last.type !== "WORK") {
+        return (
+          <Button
+            icon={Reset}
+            disabled={loading}
+            onClick={() => {
+              api.leave({ type: "WORK" }).finally(() => fetchSession());
+            }}
+          >
+            Возобновить
+          </Button>
+        );
+      }
+
       return (
         <Button
-          icon={Play}
+          icon={Reset}
           disabled={loading}
           onClick={() => {
             api.enter({ type: "WORK" }).finally(() => fetchSession());
           }}
         >
-          Начать
+          Возобновить
         </Button>
       );
   }

@@ -92,13 +92,17 @@ class Session(models.Model):
 
     @property
     def status(self):
-        entries = list(self.entries.order_by("start"))  # type: ignore
+        entries: list[SessionEntry] = list(self.entries.order_by("start"))  # type: ignore
 
         for i in range(1, len(entries)):
             if entries[i - 1].end is None or entries[i].start < entries[i - 1].end:
                 return Session.Status.CHEATER
 
-        if entries[-1].end is None:
+        last = entries[-1]
+        if last.end is None:
+            if last.type != SessionEntry.Type.WORK:
+                return Session.Status.INACTIVE
+
             return Session.Status.ACTIVE
 
         return Session.Status.INACTIVE
