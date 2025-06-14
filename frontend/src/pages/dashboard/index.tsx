@@ -6,7 +6,7 @@ import useAuthStore from "@/stores/auth";
 import useDesktop from "@/lib/hooks/useDesktop";
 import { SidebarBreadcrumb } from "@/ui/sidebar";
 
-const Home: FC = () => {
+const Dashboard: FC = () => {
   const session = useAuthStore((state) => state.session);
   const fetchSession = useAuthStore((state) => state.fetchSession);
 
@@ -27,7 +27,7 @@ const Home: FC = () => {
           </nav>
         </section>
       )}
-      <div className="p-3 md:p-6 md:overflow-y-auto flex flex-1 gap-3 md:gap-6 flex-col md:flex-row-reverse">
+      <div className="p-3 md:p-6 flex flex-1 gap-3 md:gap-6 flex-col md:flex-row-reverse">
         <section>
           <Timer />
         </section>
@@ -39,4 +39,4 @@ const Home: FC = () => {
   );
 };
 
-export default Home;
+export default Dashboard;

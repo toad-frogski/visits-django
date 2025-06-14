@@ -6,15 +6,14 @@ import useDesktop from "@/lib/hooks/useDesktop";
 import Logo from "@/assets/deeplace.svg?react";
 import ProfileMenu from "./profile-menu";
 
-type SidebarItem = {
+export type NavItem = {
   label: string;
   to: string;
   icon?: FC<SVGProps<SVGSVGElement>>;
-  long?: boolean;
 };
 
 type SidebarProps = {
-  items: SidebarItem[];
+  items: NavItem[];
   long?: boolean;
 };
 
@@ -24,7 +23,7 @@ const Sidebar: FC<SidebarProps> = ({ items, long }) => {
   if (!isDesktop) return null;
 
   return (
-    <aside className="flex flex-col h-screen py-6 pl-4 font-bold text-gray bg-surface shadow-[2px_0px_20px_-10px] z-10">
+    <aside className="flex flex-col h-screen py-6 pl-4 font-bold text-gray bg-surface shadow z-10">
       <header
         className={clsx(
           "flex gap-3 mb-12 pl-4 items-center justify-center",
@@ -52,7 +51,8 @@ const Sidebar: FC<SidebarProps> = ({ items, long }) => {
   );
 };
 
-type SidebarBreadcrumbProps = Omit<NavLinkProps, "to"> & SidebarItem;
+type SidebarBreadcrumbProps = Omit<NavLinkProps, "to"> &
+  NavItem & { long?: boolean };
 
 export const SidebarBreadcrumb: FC<SidebarBreadcrumbProps> = ({
   icon: Icon,

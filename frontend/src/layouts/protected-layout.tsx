@@ -1,7 +1,7 @@
 import { useEffect, type FC } from "react";
 import MainLayout from "./main-layout";
 import { Navigate } from "react-router";
-import useAuthStore from "../stores/auth";
+import useAuthStore from "@/stores/auth";
 
 const ProtectedLayout: FC = () => {
   const user = useAuthStore((state) => state.user);

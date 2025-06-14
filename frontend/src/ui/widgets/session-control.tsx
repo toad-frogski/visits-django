@@ -28,8 +28,8 @@ const SessionControl: FC = () => {
       return (
         <div
           className={cn(
-            "md:min-h-36 flex flex-col lg:flex-row items-center md:gap-3",
-            isLeave && "gap-3"
+            "md:min-h-36 flex flex-col lg:flex-row items-center justify-center gap-x-3",
+            isLeave && "gap-y-3"
           )}
         >
           <div className="flex md:flex-col gap-3 w-full">
