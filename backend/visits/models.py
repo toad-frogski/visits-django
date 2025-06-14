@@ -16,7 +16,7 @@ class SessionEntry(models.Model):
     session = models.ForeignKey(
         "Session", on_delete=models.CASCADE, related_name="entries"
     )
-    start = models.DateTimeField(default=timezone.now, null=False)
+    start = models.DateTimeField(default=timezone.localtime, null=False)
     end = models.DateTimeField(null=True, blank=True)
     type = models.CharField(max_length=10, choices=Type.choices, default=Type.SYSTEM)
     comment = models.CharField(max_length=255, blank=True, null=True)
@@ -29,7 +29,7 @@ class SessionEntry(models.Model):
         return self.end is None
 
     def close(self, time: datetime | None = None):
-        self.end = time or timezone.now()
+        self.end = time or timezone.localtime()
         self.save()
 
 
@@ -46,7 +46,7 @@ class SessionManager(models.Manager["Session"]):
 
 class Session(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    date = models.DateField(_("Date"), default=timezone.now)
+    date = models.DateField(_("Date"), default=timezone.localtime)
     objects: SessionManager = SessionManager()
 
     class Status(models.TextChoices):

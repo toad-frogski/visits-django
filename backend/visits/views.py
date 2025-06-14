@@ -133,10 +133,6 @@ class CurrentSessionView(APIView):
     def get(self, request: Request):
         session_service = SessionService()
         session = session_service.get_current_session(request.user)
-
-        if session is None:
-            raise NotFound(detail="Session not found")
-
         serializer = serializers.SessionModelSerializer(session)
 
         return Response(serializer.data)

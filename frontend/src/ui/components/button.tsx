@@ -10,7 +10,7 @@ const Button: FC<ButtonProps> = ({ variant, children, className, ...props }) => 
     <button
       className={clsx(
         className,
-        "p-3 rounded-md w-full text-background disabled:bg-gray-light disabled:text-gray cursor-pointer",
+        "p-3 rounded-md w-full text-background disabled:bg-gray-light disabled:text-surface cursor-pointer",
         "transition-all duration-200 ease-in-out",
         {
           "bg-accent hover:bg-accent-light": variant === "default" || !variant,

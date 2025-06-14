@@ -10,7 +10,7 @@ class SessionService:
     @staticmethod
     def enter(user: User, type: SessionEntry.Type, time: datetime):
         session, _ = Session.objects.get_or_create(
-            user=user, date=timezone.now().date()
+            user=user, date=timezone.localdate()
         )
 
         last_entry = session.get_last_entry()
@@ -38,7 +38,10 @@ class SessionService:
 
     @staticmethod
     def exit(user: User, time: datetime, comment: str | None = None):
-        session = Session.objects.get(user=user, date=timezone.now())
+        session = Session.objects.get_last_user_session(user)
+        if session is None:
+            raise Session.DoesNotExist()
+
         last_entry = session.get_last_entry()
 
         if last_entry is None:
@@ -71,7 +74,7 @@ class SessionService:
     def leave(
         user: User,
         type: SessionEntry.Type = SessionEntry.Type.BREAK,
-        time: datetime = timezone.now(),
+        time: datetime = timezone.localtime(),
         comment: str | None = None,
     ):
         SessionService.handle_leave(user, type, time, comment)
@@ -80,7 +83,7 @@ class SessionService:
     def comeback(
         user: User,
         type: SessionEntry.Type = SessionEntry.Type.WORK,
-        time: datetime = timezone.now(),
+        time: datetime = timezone.localtime(),
         comment: str | None = None,
     ):
         SessionService.handle_leave(user, type, time, comment)

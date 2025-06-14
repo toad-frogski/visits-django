@@ -9,7 +9,7 @@ from .models import Session, SessionEntry
 
 class SessionEnterSerializer(serializers.ModelSerializer):
     type = serializers.ChoiceField(choices=SessionEntry.Type.choices, default=SessionEntry.Type.WORK)
-    start = serializers.DateTimeField(default=lambda: timezone.now())
+    start = serializers.DateTimeField(default=lambda: timezone.localtime())
 
     class Meta:
         model = SessionEntry
@@ -17,13 +17,13 @@ class SessionEnterSerializer(serializers.ModelSerializer):
 
 
 class SessionExitSerializer(serializers.ModelSerializer):
-    end = serializers.DateTimeField(default=lambda: timezone.now())
+    end = serializers.DateTimeField(default=lambda: timezone.localtime())
     class Meta:
         model = SessionEntry
         fields = ["end", "comment"]
 
 class SessionEntryLeaveSerializer(serializers.ModelSerializer):
-    time = serializers.DateTimeField(default=lambda: timezone.now())
+    time = serializers.DateTimeField(default=lambda: timezone.localtime())
 
     class Meta:
         model = SessionEntry

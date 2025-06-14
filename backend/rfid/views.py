@@ -36,7 +36,7 @@ class EnterView(views.APIView):
 
         try:
             session_service.enter(
-                request.user, type=SessionEntry.Type.SYSTEM, time=timezone.now()
+                request.user, type=SessionEntry.Type.SYSTEM, time=timezone.localtime()
             )
         except ValueError as e:
             raise ValidationError(detail=e)
@@ -55,7 +55,7 @@ class ExitView(views.APIView):
         session_service = SessionService()
 
         try:
-            session_service.exit(request.user, timezone.now())
+            session_service.exit(request.user, timezone.localtime())
         except SessionEntry.DoesNotExist as e:
             raise NotFound(detail=e)
         except ValueError as e:

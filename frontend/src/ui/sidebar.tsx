@@ -6,6 +6,7 @@ import useAuthStore from "../stores/auth";
 
 import Logo from "../assets/deeplace.svg?react";
 import LogoutIcon from "../assets/log-out.svg?react";
+import ProfileMenu from "./profile-menu";
 
 type SidebarItem = {
   label: string;
@@ -46,14 +47,15 @@ const Sidebar: FC<SidebarProps> = ({ items, long }) => {
       </nav>
 
       <footer className="mt-12">
-        <SidebarBreadcrumb
+        <ProfileMenu />
+        {/* <SidebarBreadcrumb
           label="Sign out"
           icon={LogoutIcon}
           long={long}
           to={""}
           onClick={() => logout()}
           className={"bg-surface"}
-        />
+        /> */}
       </footer>
     </aside>
   );

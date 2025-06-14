@@ -16,7 +16,7 @@ class SessionServiceTestCase(TestCase):
         self.client.login(username="test_user", password="test_user_secret_password")
 
     def test_create_session_enter(self):
-        assert_date = timezone.now()
+        assert_date = timezone.localtime()
         assert_date.replace(hour=9, minute=0, second=0)
         response = self.client.post(
             "/api/v1/visits/enter",
@@ -33,7 +33,7 @@ class SessionServiceTestCase(TestCase):
         self.assertEqual(entry.type, SessionEntry.Type.SYSTEM)
 
     def test_handle_leave(self):
-        assert_date = timezone.now()
+        assert_date = timezone.localtime()
         assert_date.replace(hour=9, minute=0, second=0)
         session = Session.objects.create(user=self.user, date=assert_date)
         session.add_enter(start=assert_date, type=SessionEntry.Type.WORK)
@@ -53,7 +53,7 @@ class SessionServiceTestCase(TestCase):
         self.assertEqual(leave.start, leave_time)
 
     def test_handle_exit(self):
-        assert_date = timezone.now().replace(microsecond=0)
+        assert_date = timezone.localtime().replace(microsecond=0)
         assert_date.replace(hour=9, minute=0, second=0)
         session = Session.objects.create(user=self.user, date=assert_date)
         session.add_enter(start=assert_date, type=SessionEntry.Type.WORK)
@@ -69,7 +69,7 @@ class SessionServiceTestCase(TestCase):
         self.assertEqual(entry.end, end_date)
 
     def test_get_current_session(self):
-        today = timezone.now()
+        today = timezone.localtime()
         yesterday = today - timedelta(days=1)
 
         session: Session = Session.objects.create(user=self.user, date=yesterday)
