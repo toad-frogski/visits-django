@@ -15,7 +15,7 @@ const Visits: FC = () => {
 
     case "active":
       return (
-        <div className="flex gap-12 ">
+        <div className="flex gap-12">
           <Button disabled>Отлучиться</Button>
           <Button
             onClick={() => {

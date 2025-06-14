@@ -3,7 +3,6 @@ import Avatar from "./components/avatar";
 import useAuthStore from "../stores/auth";
 import clsx from "clsx";
 import Dropdown, { DropdownButton, DropdownItem } from "./components/dropdown";
-import { NavLink } from "react-router";
 
 import LogoutIcon from "../assets/log-out.svg?react";
 import Settings from "../assets/settings.svg?react";
@@ -17,9 +16,9 @@ const ProfileMenu: FC<ProfileMenuProps> = ({ className, ...props }) => {
   if (!user) return;
 
   return (
-    <div className={clsx(className, "cursor-pointer select-none")} {...props}>
+    <div className={clsx(className, "select-none")} {...props}>
       <Dropdown
-        button={<Avatar src={user.avatar} alt={user.full_name} />}
+        button={<Avatar className="cursor-pointer" src={user.avatar} alt={user.full_name} />}
         className="bottom-[calc(100%+10px)] rounded-lg bg-surface border border-gray-light"
       >
         <DropdownItem to={"/profile"}>

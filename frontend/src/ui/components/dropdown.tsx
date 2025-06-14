@@ -14,14 +14,11 @@ const Dropdown: FC<DropdownProps> = ({ children, className, button, ...props }) 
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (!ref?.current?.contains(e.target as Node)) setOpen(false)
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, [])
 
   return (
