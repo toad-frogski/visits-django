@@ -1,6 +1,9 @@
 import { cn } from "@/lib/cn";
 import type { FC } from "react";
-import { Link as RouterLink, type LinkProps as RouterLinkProps } from "react-router";
+import {
+  Link as RouterLink,
+  type LinkProps as RouterLinkProps,
+} from "react-router";
 
 type LinkProps = RouterLinkProps & {
   variant?: "default" | "green" | "orange" | "red" | "yellow" | "blue";
@@ -9,7 +12,8 @@ type LinkProps = RouterLinkProps & {
 const Link: FC<LinkProps> = ({ className, children, variant, ...props }) => {
   return (
     <RouterLink
-      className={cn(className,
+      className={cn(
+        className,
         "p-3 rounded transition-colors duration-200 text-background",
         {
           "bg-accent hover:bg-accent-light": variant === "default" || !variant,
@@ -24,7 +28,7 @@ const Link: FC<LinkProps> = ({ className, children, variant, ...props }) => {
     >
       {children}
     </RouterLink>
-  )
-}
+  );
+};
 
 export default Link;

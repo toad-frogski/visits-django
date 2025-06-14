@@ -20,10 +20,10 @@ const button = tv({
       blue: "bg-blue hover:bg-blue-light",
     },
     disabled: {
-      true: "text-surface bg-gray-light pointer-events-none"
+      true: "text-surface bg-gray-light pointer-events-none",
     },
     icon: {
-      true: "flex gap-3"
+      true: "flex gap-3",
     },
     iconPosition: {
       left: "justify-center",
@@ -33,11 +33,19 @@ const button = tv({
     },
   },
   defaultVariants: {
-    color: "accent"
-  }
-})
+    color: "accent",
+  },
+});
 
-const Button: FC<ButtonProps> = ({ variant = "accent", children, className, icon: Icon, iconPosition = "right-edge", disabled, ...props }) => {
+const Button: FC<ButtonProps> = ({
+  variant = "accent",
+  children,
+  className,
+  icon: Icon,
+  iconPosition = "right-edge",
+  disabled,
+  ...props
+}) => {
   return (
     <button
       className={cn(
@@ -55,7 +63,7 @@ const Button: FC<ButtonProps> = ({ variant = "accent", children, className, icon
       {Icon && <Icon className="*:stroke-background" />}
       {children}
     </button>
-  )
-}
+  );
+};
 
 export default Button;

@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { SessionApi, VisitsApi, type SessionModel, type UserModel } from "@/lib/api";
+import {
+  SessionApi,
+  VisitsApi,
+  type SessionModel,
+  type UserModel,
+} from "@/lib/api";
 import client from "@/lib/api-client";
 
 const sessionApi = new SessionApi(undefined, undefined, client);
@@ -30,7 +35,7 @@ const useAuthStore = create<AuthState>()(
       logout: async () => {
         await sessionApi.logout();
         set({ user: null });
-        set({ session: null })
+        set({ session: null });
       },
 
       fetchUser: async () => {
@@ -46,14 +51,14 @@ const useAuthStore = create<AuthState>()(
         try {
           const { data } = await visitsApi.current();
           set({ session: data });
-        } catch { }
+        } catch {}
       },
 
       setSession: (session) => set({ session }),
     }),
     {
       name: "auth-storage",
-      partialize: (state) => ({ user: state.user })
+      partialize: (state) => ({ user: state.user }),
     }
   )
 );

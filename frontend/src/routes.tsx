@@ -3,26 +3,26 @@ import ProtectedLayout from "./layouts/protected-layout";
 import SignIn from "./pages/sign-in";
 import Home from "./pages/home";
 import List from "./pages/list";
-import Visits from "./pages/home/visits";
+import Visits from "./ui/widgets/session-control";
 import Profile from "./pages/profile";
 
 const router = createBrowserRouter([
   {
-    path: "/", element: <ProtectedLayout />,
+    path: "/",
+    element: <ProtectedLayout />,
     children: [
       { index: true, element: <Navigate to={"/home"} replace /> },
       {
-        path: "home", element: <Home />,
-        children: [
-          { index: true, element: <Visits /> },
-        ]
+        path: "home",
+        element: <Home />,
+        children: [{ index: true, element: <Visits /> }],
       },
       { path: "list", element: <List /> },
-      { path: "profile", element: <Profile /> }
+      { path: "profile", element: <Profile /> },
     ],
   },
   { path: "/sign-in", element: <SignIn /> },
   { path: "*", element: <Navigate to="/home" replace /> },
 ]);
 
-export default router
+export default router;

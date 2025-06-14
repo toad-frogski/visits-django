@@ -13,26 +13,28 @@ const Home: FC = () => {
   const desktop = useDesktop();
 
   useEffect(() => {
-    if (!session) fetchSession()
+    if (!session) fetchSession();
   }, []);
 
   return (
     <div className="flex h-full max-h-screen">
-      {desktop && <section className="bg-surface h-full pl-6 py-6 shadow">
-        <nav>
-          <ul className="flex flex-col gap-3">
-            <SidebarBreadcrumb label={"Главная"} to={""} long />
-          </ul>
-        </nav>
-      </section>}
-      <div className="p-3 md:p-6 overflow-y-auto flex flex-1 gap-3 md:gap-6 flex-col md:flex-row-reverse">
+      {desktop && (
+        <section className="bg-surface h-full pl-6 py-6 shadow">
+          <nav>
+            <ul className="flex flex-col gap-3">
+              <SidebarBreadcrumb label={"Главная"} to={""} long />
+            </ul>
+          </nav>
+        </section>
+      )}
+      <div className="p-3 md:p-6 md:overflow-y-auto flex flex-1 gap-3 md:gap-6 flex-col md:flex-row-reverse">
         <section>
           <Timer />
         </section>
         <Card className="rounded h-fit md:flex-1">
           <Outlet />
         </Card>
-      </div >
+      </div>
     </div>
   );
 };

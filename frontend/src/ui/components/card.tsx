@@ -1,4 +1,3 @@
-import { cn } from "@/lib/cn";
 import clsx from "clsx";
 import type { FC, HTMLAttributes } from "react";
 

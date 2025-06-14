@@ -1,52 +1,52 @@
 @import "tailwindcss";
 
 :root {
-    --white: #ffffff;
-    --black: #171717;
+  --white: #ffffff;
+  --black: #171717;
 
-    --soft-white: #F8F8FA;
+  --soft-white: #f8f8fa;
 
-    --accent: #2964F3;
-    --sky-blue: #50B9FA;
-    --gray: #666666;
-    --gray-light: #CACACA;
+  --accent: #2964f3;
+  --sky-blue: #50b9fa;
+  --gray: #666666;
+  --gray-light: #cacaca;
 
-    --green:#3FED89;
-    --green-light: #46FF94;
-    --orange: #F99073;
-    --orange-light: #FEA288;
-    --red: #FF5757;
-    --red-light: #FE8C8C;
-    --yellow: #FFCC6A;
-    --yellow-light: #FFD788;
-    --blue: #50B9FA;
-    --blue-light: #8BD3FF;
+  --green: #3fed89;
+  --green-light: #46ff94;
+  --orange: #f99073;
+  --orange-light: #fea288;
+  --red: #ff5757;
+  --red-light: #fe8c8c;
+  --yellow: #ffcc6a;
+  --yellow-light: #ffd788;
+  --blue: #50b9fa;
+  --blue-light: #8bd3ff;
 }
 
 @theme {
-    --color-foreground: var(--black);
-    --color-background: var(--soft-white);
-    --color-accent: var(--accent);
-    --color-accent-light: var(--sky-blue);
-    --color-surface: var(--white);
+  --color-foreground: var(--black);
+  --color-background: var(--soft-white);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--sky-blue);
+  --color-surface: var(--white);
 
-    --color-gray: var(--gray);
-    --color-gray-light: var(--gray-light);
-    --color-green: var(--green);
-    --color-green-light: var(--green-light);
-    --color-orange: var(--orange);
-    --color-orange-light: var(--orange-light);
-    --color-red: var(--red);
-    --color-red-light: var(--red-light);
-    --color-yellow: var(--yellow);
-    --color-yellow-light: var(--yellow-light);
-    --color-blue: var(--blue);
-    --color-blue-light: var(--blue-light);
+  --color-gray: var(--gray);
+  --color-gray-light: var(--gray-light);
+  --color-green: var(--green);
+  --color-green-light: var(--green-light);
+  --color-orange: var(--orange);
+  --color-orange-light: var(--orange-light);
+  --color-red: var(--red);
+  --color-red-light: var(--red-light);
+  --color-yellow: var(--yellow);
+  --color-yellow-light: var(--yellow-light);
+  --color-blue: var(--blue);
+  --color-blue-light: var(--blue-light);
 
-    --text-h2: 32px;
-    --leading-h2: 40px;
-    --text-h3: 24px;
-    --leading-h3: 32px;
+  --text-h2: 32px;
+  --leading-h2: 40px;
+  --text-h3: 24px;
+  --leading-h3: 32px;
 }
 
 body {

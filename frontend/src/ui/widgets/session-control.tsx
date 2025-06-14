@@ -23,11 +23,15 @@ const SessionControl: FC = () => {
   const [loading, setLoading] = useState(false);
   const [breakMessage, setBreakMessage] = useState("");
 
-
   switch (session?.status) {
     case "active":
       return (
-        <div className={cn("md:min-h-36 flex flex-col lg:flex-row items-center md:gap-3", isLeave && "gap-3")}>
+        <div
+          className={cn(
+            "md:min-h-36 flex flex-col lg:flex-row items-center md:gap-3",
+            isLeave && "gap-3"
+          )}
+        >
           <div className="flex md:flex-col gap-3 w-full">
             {session?.status === "active" && (
               <>
@@ -63,7 +67,11 @@ const SessionControl: FC = () => {
                 >
                   Перерыв
                 </Button>
-                <Button variant="blue" icon={Soup} disabled={loading || isBreak}>
+                <Button
+                  variant="blue"
+                  icon={Soup}
+                  disabled={loading || isBreak}
+                >
                   Обед
                 </Button>
               </>
@@ -99,6 +107,6 @@ const SessionControl: FC = () => {
         </Button>
       );
   }
-}
+};
 
 export default SessionControl;

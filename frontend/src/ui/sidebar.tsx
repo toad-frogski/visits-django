@@ -24,11 +24,13 @@ const Sidebar: FC<SidebarProps> = ({ items, long }) => {
   if (!isDesktop) return null;
 
   return (
-    <aside className="flex flex-col h-screen py-6 pl-4 font-bold text-gray bg-surface shadow-[2px_0px_20px_-10px] z-1">
-      <header className={clsx(
-        "flex gap-3 mb-12 pl-4 items-center justify-center",
-        long ? "pr-10" : "pr-8",
-      )}>
+    <aside className="flex flex-col h-screen py-6 pl-4 font-bold text-gray bg-surface shadow-[2px_0px_20px_-10px] z-10">
+      <header
+        className={clsx(
+          "flex gap-3 mb-12 pl-4 items-center justify-center",
+          long ? "pr-10" : "pr-8"
+        )}
+      >
         <Logo width={24} height={24} />
         {long && <span className="text-h3 font-bold text-gray">Visits</span>}
       </header>
@@ -52,7 +54,13 @@ const Sidebar: FC<SidebarProps> = ({ items, long }) => {
 
 type SidebarBreadcrumbProps = Omit<NavLinkProps, "to"> & SidebarItem;
 
-export const SidebarBreadcrumb: FC<SidebarBreadcrumbProps> = ({ icon: Icon, label, long, className, ...props }) => {
+export const SidebarBreadcrumb: FC<SidebarBreadcrumbProps> = ({
+  icon: Icon,
+  label,
+  long,
+  className,
+  ...props
+}) => {
   return (
     <NavLink
       {...props}

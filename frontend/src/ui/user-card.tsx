@@ -1,11 +1,11 @@
-import type { FC } from "react"
-import Avatar from "@/ui/components/avatar"
-import Card, { type CardProps } from "@/ui/components/card"
-import type { UserSession } from "@/lib/api"
-import { cn } from "@/lib/cn"
-import { tv } from "tailwind-variants"
+import type { FC } from "react";
+import Avatar from "@/ui/components/avatar";
+import Card, { type CardProps } from "@/ui/components/card";
+import type { UserSession } from "@/lib/api";
+import { cn } from "@/lib/cn";
+import { tv } from "tailwind-variants";
 
-type UserCardProps = CardProps & UserSession
+type UserCardProps = CardProps & UserSession;
 
 const userCard = tv({
   base: "flex items-center gap-6 rounded-l-full bg-gradient-to-l from-[16px] via-surface via-[16px]",
@@ -17,14 +17,19 @@ const userCard = tv({
       holiday: "from-gray",
       vacation: "from-yellow",
       sick: "from-yellow",
-    }
+    },
   },
   defaultVariants: {
-    status: "inactive"
-  }
-})
+    status: "inactive",
+  },
+});
 
-const UserCard: FC<UserCardProps> = ({ user, session, className, ...props }) => {
+const UserCard: FC<UserCardProps> = ({
+  user,
+  session,
+  className,
+  ...props
+}) => {
   return (
     <Card
       className={cn(className, userCard({ status: session.status }))}
@@ -43,7 +48,7 @@ const UserCard: FC<UserCardProps> = ({ user, session, className, ...props }) => 
         )}
       </div>
     </Card>
-  )
-}
+  );
+};
 
 export default UserCard;

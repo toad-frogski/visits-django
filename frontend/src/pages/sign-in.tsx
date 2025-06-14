@@ -15,7 +15,7 @@ const SignIn: FC = () => {
       </main>
     </div>
   );
-}
+};
 
 const SignInForm: FC = () => {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ const SignInForm: FC = () => {
   useEffect(() => {
     setUsername(usernameRef.current?.value || "");
     setPassword(passwordRef.current?.value || "");
-  }, [usernameRef, passwordRef])
+  }, [usernameRef, passwordRef]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +45,7 @@ const SignInForm: FC = () => {
       navigate("/");
     } catch (err) {
       if (isAxiosError(err) && err.status === 400) {
-        setError("Invalid username or password")
+        setError("Invalid username or password");
         return;
       }
       setError("Internal server error");
@@ -92,6 +92,6 @@ const SignInForm: FC = () => {
         {loading ? "Signing" : "Sign in"}
       </Button>
     </form>
-  )
-}
+  );
+};
 export default SignIn;

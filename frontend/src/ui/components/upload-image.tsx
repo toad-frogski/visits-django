@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useState, type ChangeEvent, type DragEvent, type FC, type InputHTMLAttributes } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+  type FC,
+  type InputHTMLAttributes,
+} from "react";
 import { ErrorMessage } from "./input";
 import ImageLogo from "@/assets/image.svg?react";
 import { cn } from "@/lib/cn";
@@ -8,7 +16,13 @@ type UploadImageProps = InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
 };
 
-const UploadImage: FC<UploadImageProps> = ({ onFileSelect, className, accept, error, ...props }) => {
+const UploadImage: FC<UploadImageProps> = ({
+  onFileSelect,
+  className,
+  accept,
+  error,
+  ...props
+}) => {
   const [dragged, setDragged] = useState(false);
   const [file, setFile] = useState<File>();
   const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -25,21 +39,24 @@ const UploadImage: FC<UploadImageProps> = ({ onFileSelect, className, accept, er
     return () => URL.revokeObjectURL(objectUrl);
   }, [file]);
 
-  const handleDrop = useCallback((e: DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    setDragged(false);
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      onFileSelect?.(file);
-      setFile(file)
-    }
-  }, [onFileSelect]);
+  const handleDrop = useCallback(
+    (e: DragEvent<HTMLLabelElement>) => {
+      e.preventDefault();
+      setDragged(false);
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        onFileSelect?.(file);
+        setFile(file);
+      }
+    },
+    [onFileSelect]
+  );
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       onFileSelect?.(file);
-      setFile(file)
+      setFile(file);
     }
   };
 
@@ -47,7 +64,8 @@ const UploadImage: FC<UploadImageProps> = ({ onFileSelect, className, accept, er
     <div>
       <label
         className={cn(
-          className, "p-3 border-2 border-gray border-dashed rounded-xl min-h-[320px] flex flex-col justify-center items-center relative overflow-hidden",
+          className,
+          "p-3 border-2 border-gray border-dashed rounded-xl min-h-[320px] flex flex-col justify-center items-center relative overflow-hidden",
           dragged && "!border-accent border-solid",
           error && "!border-red"
         )}
@@ -60,12 +78,16 @@ const UploadImage: FC<UploadImageProps> = ({ onFileSelect, className, accept, er
       >
         <div>
           <ImageLogo className="mx-auto" />
-          <p className="text-gray font-bold text-center">Загрузите изображение</p>
-          {file && <img
-            className="absolute inset-0 w-full h-full object-cover p-3 rounded-xl"
-            src={previewUrl}
-            alt="image-preview"
-          />}
+          <p className="text-gray font-bold text-center">
+            Загрузите изображение
+          </p>
+          {file && (
+            <img
+              className="absolute inset-0 w-full h-full object-cover p-3 rounded-xl"
+              src={previewUrl}
+              alt="image-preview"
+            />
+          )}
         </div>
         <input
           {...props}

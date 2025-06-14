@@ -10,33 +10,37 @@ const Avatar: FC<AvatarProps> = ({ className, src, alt, ...props }) => {
   const [avatar, setAvatar] = useState(src || "");
 
   if (!!avatar) {
-    return <img
-      {...props}
-      src={avatar}
-      alt={alt}
-      className={cn(className, "size-12 rounded-full object-center")}
-      onError={() => setAvatar("")}
-    />
+    return (
+      <img
+        {...props}
+        src={avatar}
+        alt={alt}
+        className={cn(className, "size-12 rounded-full object-center")}
+        onError={() => setAvatar("")}
+      />
+    );
   }
-
 
   return (
     <span
       className={cn(
         className,
         "size-12 rounded-full inline-flex items-center justify-center text-center",
-        `text-h2 text-white font-bold`,
+        `text-h2 text-white font-bold`
       )}
       style={{ backgroundColor: colorFromStr(alt) }}
     >
       {alt.charAt(0)}
     </span>
   );
-}
+};
 
 const colorFromStr = (str: string): string => {
-  const hash = [...str].reduce((acc, char) => (char.charCodeAt(0) + ((acc << 5) - acc)) | 0, 0);
+  const hash = [...str].reduce(
+    (acc, char) => (char.charCodeAt(0) + ((acc << 5) - acc)) | 0,
+    0
+  );
   return `hsl(${hash % 360}, 60%, 75%)`;
-}
+};
 
 export default Avatar;

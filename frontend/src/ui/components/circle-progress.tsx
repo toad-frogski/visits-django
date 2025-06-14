@@ -6,14 +6,21 @@ type CircleProgressProps = {
   strokeWidth?: number;
   progress: number;
   variant?: "accent" | "green";
-  className?: string
+  className?: string;
 };
 
-const CircleProgress: FC<CircleProgressProps> = ({ size = 24, strokeWidth = 3, progress, variant, className }) => {
+const CircleProgress: FC<CircleProgressProps> = ({
+  size = 24,
+  strokeWidth = 3,
+  progress,
+  variant,
+  className,
+}) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const validProgress = Math.min(Math.max(progress, 0), 100);
-  const strokeDashoffset = circumference - (validProgress / 100) * circumference;
+  const strokeDashoffset =
+    circumference - (validProgress / 100) * circumference;
 
   return (
     <svg width={size} height={size} className={className}>
