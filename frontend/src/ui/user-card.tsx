@@ -7,15 +7,16 @@ import { tv } from "tailwind-variants"
 
 type UserCardProps = CardProps & UserSession
 
-const usercard = tv({
-  base: "flex items-center gap-6 rounded-l-full",
+const userCard = tv({
+  base: "flex items-center gap-6 rounded-l-full bg-gradient-to-l from-[16px] via-surface via-[16px]",
   variants: {
     status: {
-      inactive: "bg-gradient-to-l from-background from-[16px] via-surface via-[16px]",
-      active: "bg-gradient-to-l from-accent from-[16px] via-surface via-[16px]",
-      cheater: "bg-gradient-to-l from-red from-[16px] via-surface via-[16px]",
-      holiday: "bg-gradient-to-l from-gray from-[16px] via-surface via-[16px]",
-      vacation: "bg-gradient-to-l from-yellow from-[16px] via-surface via-[16px]"
+      inactive: "from-background",
+      active: "from-accent",
+      cheater: "from-red",
+      holiday: "from-gray",
+      vacation: "from-yellow",
+      sick: "from-yellow",
     }
   },
   defaultVariants: {
@@ -26,7 +27,7 @@ const usercard = tv({
 const UserCard: FC<UserCardProps> = ({ user, session, className, ...props }) => {
   return (
     <Card
-      className={cn(className, usercard({ status: session.status }))}
+      className={cn(className, userCard({ status: session.status }))}
       {...props}
     >
       <Avatar src={user.avatar} alt={user.full_name} />

@@ -55,6 +55,7 @@ class Session(models.Model):
         CHEATER = "cheater", _("Cheater")
         HOLIDAY = "holiday", _("Holiday")
         VACATION = "vacation", _("Vacation")
+        SICK = "sick", _("Sick")
 
     def get_last_entry(self) -> SessionEntry | None:
         return self.entries.order_by("-id").first()  # type: ignore
