@@ -13,13 +13,12 @@ const List: FC = () => {
   }, []);
 
   return (
-    <section className="flex flex-col gap-3 md:flex-row flex-wrap p-3 md:p-6">
+    <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 p-3 md:p-6">
       {sessions.map(({ user, session }) => (
         <UserCard
           key={user.id}
           user={user}
           session={session}
-          className="md:max-w-[360px]"
         />
       ))}
     </section>
