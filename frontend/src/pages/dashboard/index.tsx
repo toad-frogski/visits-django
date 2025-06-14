@@ -17,7 +17,7 @@ const Dashboard: FC = () => {
   }, []);
 
   return (
-    <div className="flex h-full max-h-screen">
+    <div className="flex h-full flex-col md:flex-row max-h-screen">
       {desktop && (
         <section className="bg-surface h-full pl-6 py-6 shadow">
           <nav>

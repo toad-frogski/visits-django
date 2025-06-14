@@ -4,6 +4,7 @@ import Button from "@/ui/components/button";
 import { AvatarApi, RfidApi } from "@/lib/api";
 import client from "@/lib/api-client";
 import UploadImage from "@/ui/components/upload-image";
+import useAuthStore from "@/stores/auth";
 
 const rfidApi = new RfidApi(undefined, undefined, client);
 const avatarApi = new AvatarApi(undefined, undefined, client);
@@ -18,6 +19,7 @@ const Profile: FC = () => {
 };
 
 const AvatarForm: FC = () => {
+  const fetchUser = useAuthStore((state) => state.fetchUser);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [file, setFile] = useState<File>();
@@ -27,7 +29,10 @@ const AvatarForm: FC = () => {
       setLoading(true);
       avatarApi
         .v1SessionAvatarUpdate(file)
-        .then(() => setError(""))
+        .then(() => {
+          setError("");
+          fetchUser();
+        })
         .catch(() => setError("Не удалось сохранить"))
         .finally(() => setLoading(false));
     }

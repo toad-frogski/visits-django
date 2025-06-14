@@ -23,7 +23,7 @@ const ProfileMenu: FC<ProfileMenuProps> = ({ className, ...props }) => {
       <Dropdown
         button={
           <Avatar
-            className="cursor-pointer"
+            className="cursor-pointer relative"
             src={user.avatar}
             alt={user.full_name}
           />

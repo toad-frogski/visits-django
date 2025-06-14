@@ -4,11 +4,11 @@ import Sidebar from "@/ui/sidebar";
 import MobileNav from "@/ui/mobile-nav";
 
 import Grid from "@/assets/grid.svg?react";
-import Clock from "@/assets/clock.svg?react";
+import Users from "@/assets/users.svg?react";
 
 const navItems = [
-  { label: "Dashboard", to: "/dashboard", icon: Clock },
-  { label: "Users", to: "/list", icon: Grid },
+  { label: "Dashboard", to: "dashboard", icon: Grid },
+  { label: "Users", to: "users", icon: Users },
 ];
 
 const MainLayout: FC = () => {
@@ -18,7 +18,7 @@ const MainLayout: FC = () => {
       <main className="flex-1 pb-20 md:pb-0 overflow-y-auto">
         <Outlet />
       </main>
-      <MobileNav />
+      <MobileNav items={navItems} />
     </div>
   );
 };

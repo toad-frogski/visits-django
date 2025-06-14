@@ -1,10 +1,10 @@
 import { type FC, type SVGProps } from "react";
-import clsx from "clsx";
 import { NavLink, type NavLinkProps } from "react-router";
 import useDesktop from "@/lib/hooks/useDesktop";
 
 import Logo from "@/assets/deeplace.svg?react";
 import ProfileMenu from "./profile-menu";
+import { cn } from "@/lib/cn";
 
 export type NavItem = {
   label: string;
@@ -25,7 +25,7 @@ const Sidebar: FC<SidebarProps> = ({ items, long }) => {
   return (
     <aside className="flex flex-col h-screen py-6 pl-4 font-bold text-gray bg-surface shadow z-10">
       <header
-        className={clsx(
+        className={cn(
           "flex gap-3 mb-12 pl-4 items-center justify-center",
           long ? "pr-10" : "pr-8"
         )}
@@ -65,7 +65,7 @@ export const SidebarBreadcrumb: FC<SidebarBreadcrumbProps> = ({
     <NavLink
       {...props}
       className={({ isActive }) =>
-        clsx(
+        cn(
           className,
           "flex items-center gap-3 py-3 pl-4 pr-2 rounded-l-full hover:bg-background transition-colors",
           long ? "pr-10" : "pr-2",

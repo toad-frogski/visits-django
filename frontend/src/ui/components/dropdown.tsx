@@ -1,4 +1,4 @@
-import { cn } from "@/lib/cn";
+import clsx from "clsx";
 import {
   useEffect,
   useRef,
@@ -38,7 +38,7 @@ const Dropdown: FC<DropdownProps> = ({
     <div {...props} ref={ref} className="relative inline-block text-left">
       <button onClick={toggleMenu}>{button}</button>
       {open && (
-        <div className={cn(className, "absolute z-10")}>
+        <div className={clsx(className, "absolute z-10")}>
           <ul>{children}</ul>
         </div>
       )}
@@ -55,7 +55,7 @@ export const DropdownItem: FC<NavLinkProps> = ({
     <li>
       <NavLink
         {...props}
-        className={cn(
+        className={clsx(
           className,
           "flex gap-3 cursor-pointer hover:bg-background p-3 w-full"
         )}
@@ -75,7 +75,7 @@ export const DropdownButton: FC<ButtonHTMLAttributes<HTMLButtonElement>> = ({
     <li>
       <button
         {...props}
-        className={cn(
+        className={clsx(
           className,
           "flex gap-3 cursor-pointer hover:bg-background p-3 w-full"
         )}
