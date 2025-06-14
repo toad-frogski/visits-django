@@ -1,7 +1,7 @@
-import clsx from "clsx";
 import { useCallback, useEffect, useState, type ChangeEvent, type DragEvent, type FC, type InputHTMLAttributes } from "react";
-import ImageLogo from "../../assets/image.svg?react";
 import { ErrorMessage } from "./input";
+import ImageLogo from "@/assets/image.svg?react";
+import { cn } from "@/lib/cn";
 
 type UploadImageProps = InputHTMLAttributes<HTMLInputElement> & {
   onFileSelect?: (file: File) => void;
@@ -46,7 +46,7 @@ const UploadImage: FC<UploadImageProps> = ({ onFileSelect, className, accept, er
   return (
     <div>
       <label
-        className={clsx(
+        className={cn(
           className, "p-3 border-2 border-gray border-dashed rounded-xl min-h-[320px] flex flex-col justify-center items-center relative overflow-hidden",
           dragged && "!border-accent border-solid",
           error && "!border-red"

@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { cn } from "@/lib/cn";
 import type { FC } from "react";
 import { Link as RouterLink, type LinkProps as RouterLinkProps } from "react-router";
 
@@ -9,7 +9,7 @@ type LinkProps = RouterLinkProps & {
 const Link: FC<LinkProps> = ({ className, children, variant, ...props }) => {
   return (
     <RouterLink
-      className={clsx(className,
+      className={cn(className,
         "p-3 rounded transition-colors duration-200 text-background",
         {
           "bg-accent hover:bg-accent-light": variant === "default" || !variant,

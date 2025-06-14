@@ -1,5 +1,5 @@
-import clsx from "clsx";
-import { useEffect, useRef, useState, type ButtonHTMLAttributes, type FC, type HTMLAttributes, type ReactElement, type SVGProps } from "react";
+import { cn } from "@/lib/cn";
+import { useEffect, useRef, useState, type ButtonHTMLAttributes, type FC, type HTMLAttributes, type ReactElement } from "react";
 import { NavLink, type NavLinkProps } from "react-router";
 
 type DropdownProps = HTMLAttributes<HTMLDivElement> & {
@@ -25,7 +25,7 @@ const Dropdown: FC<DropdownProps> = ({ children, className, button, ...props }) 
     <div {...props} ref={ref} className="relative inline-block text-left">
       <button onClick={toggleMenu}>{button}</button>
       {open && (
-        <div className={clsx(className, "absolute z-10")}>
+        <div className={cn(className, "absolute z-10")}>
           <ul>
             {children}
           </ul>
@@ -39,7 +39,7 @@ export const DropdownItem: FC<NavLinkProps> = ({ children, className, ...props }
     <li>
       <NavLink
         {...props}
-        className={clsx(className, "flex gap-3 cursor-pointer hover:bg-background p-3 w-full")}
+        className={cn(className, "flex gap-3 cursor-pointer hover:bg-background p-3 w-full")}
       >
         {children}
       </NavLink>
@@ -52,7 +52,7 @@ export const DropdownButton: FC<ButtonHTMLAttributes<HTMLButtonElement>> = ({ ch
     <li>
       <button
         {...props}
-        className={clsx(className, "flex gap-3 cursor-pointer hover:bg-background p-3 w-full")}
+        className={cn(className, "flex gap-3 cursor-pointer hover:bg-background p-3 w-full")}
       >
         {children}
       </button>

@@ -1,7 +1,7 @@
-import { clsx } from "clsx";
 import { forwardRef, useEffect, useState, type ChangeEvent, type FC, type InputHTMLAttributes } from "react";
-import Eye from "../../assets/eye.svg?react";
-import EyeOff from "../../assets/eye-off.svg?react";
+import Eye from "@/assets/eye.svg?react";
+import EyeOff from "@/assets/eye-off.svg?react";
+import { cn } from "@/lib/cn";
 
 export type BaseInputProps = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
@@ -35,7 +35,7 @@ const BaseInput = forwardRef<HTMLInputElement, BaseInputProps>((
 
   return (
     <div className="w-full">
-      <label className={clsx(
+      <label className={cn(
         "relative border rounded-md overflow-hidden transition-all duration-200 flex",
         { "!border-gray !text-gray": !!props.disabled },
         { "border-red text-red": error },
@@ -46,7 +46,7 @@ const BaseInput = forwardRef<HTMLInputElement, BaseInputProps>((
       )}>
         {label && (
           <span
-            className={clsx(
+            className={cn(
               "absolute left-3 transition-all duration-200 pointer-events-none",
               shouldFloatLabel
                 ? "top-2 text-xs"
@@ -59,7 +59,7 @@ const BaseInput = forwardRef<HTMLInputElement, BaseInputProps>((
         <input
           {...props}
           ref={ref}
-          className={clsx(
+          className={cn(
             "border-none outline-none bg-transparent p-3 pr-12 w-full",
             label && "pt-6",
           )}
@@ -78,7 +78,7 @@ const BaseInput = forwardRef<HTMLInputElement, BaseInputProps>((
 
 const ErrorMessage: FC<{ error?: string }> = ({ error }) => {
   return (
-    error && <p className={clsx(
+    error && <p className={cn(
       "ml-3 text-red transition-all duration-200 ease-in-out transform",
       error ? "visible opacity-100 -translate-y-0" : "invisible opacity-0 translate-y-1"
     )}>{error}</p>

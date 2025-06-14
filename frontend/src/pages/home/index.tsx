@@ -1,10 +1,10 @@
 import { useEffect, type FC } from "react";
 import { Outlet } from "react-router";
-import Card from "../../ui/components/card";
-import Timer from "../../ui/widgets/timer";
-import useAuthStore from "../../stores/auth";
-import useDesktop from "../../lib/hooks/useDesktop";
-import { SidebarBreadcrumb } from "../../ui/sidebar";
+import Card from "@/ui/components/card";
+import Timer from "@/ui/widgets/timer";
+import useAuthStore from "@/stores/auth";
+import useDesktop from "@/lib/hooks/useDesktop";
+import { SidebarBreadcrumb } from "@/ui/sidebar";
 
 const Home: FC = () => {
   const session = useAuthStore((state) => state.session);

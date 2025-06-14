@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { cn } from "@/lib/cn";
 import { type FC } from "react";
 
 type CircleProgressProps = {
@@ -26,7 +26,7 @@ const CircleProgress: FC<CircleProgressProps> = ({ size = 24, strokeWidth = 3, p
         cy={size / 2}
       />
       <circle
-        className={clsx({
+        className={cn({
           "stroke-accent": !variant || variant === "accent",
           "stroke-green": variant === "green",
         })}

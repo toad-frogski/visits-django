@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import { SessionApi, VisitsApi, type SessionModel, type UserModel } from "../lib/api";
-import client from "../lib/api-client";
 import { persist } from "zustand/middleware";
+import { SessionApi, VisitsApi, type SessionModel, type UserModel } from "@/lib/api";
+import client from "@/lib/api-client";
 
 const sessionApi = new SessionApi(undefined, undefined, client);
 const visitsApi = new VisitsApi(undefined, undefined, client);

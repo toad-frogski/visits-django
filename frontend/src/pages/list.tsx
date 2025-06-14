@@ -1,7 +1,7 @@
 import { useEffect, useState, type FC } from "react";
-import { VisitsApi, type UserSession } from "../lib/api";
-import client from "../lib/api-client";
-import UserCard from "../ui/user-card";
+import { VisitsApi, type UserSession } from "@/lib/api";
+import client from "@/lib/api-client";
+import UserCard from "@/ui/user-card";
 
 const api = new VisitsApi(undefined, undefined, client);
 

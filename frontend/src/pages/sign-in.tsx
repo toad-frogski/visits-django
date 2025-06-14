@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FC } from "react";
 import { useNavigate } from "react-router";
-import Button from "../ui/components/button";
+import Button from "@/ui/components/button";
 import { isAxiosError } from "axios";
-import { PasswordInput, TextInput } from "../ui/components/input";
-import useAuthStore from "../stores/auth";
+import { PasswordInput, TextInput } from "@/ui/components/input";
+import useAuthStore from "@/stores/auth";
 
 const SignIn: FC = () => {
   return (

@@ -1,9 +1,9 @@
 import { type FC, type SVGProps } from "react";
 import clsx from "clsx";
 import { NavLink, type NavLinkProps } from "react-router";
-import useDesktop from "../lib/hooks/useDesktop";
+import useDesktop from "@/lib/hooks/useDesktop";
 
-import Logo from "../assets/deeplace.svg?react";
+import Logo from "@/assets/deeplace.svg?react";
 import ProfileMenu from "./profile-menu";
 
 type SidebarItem = {

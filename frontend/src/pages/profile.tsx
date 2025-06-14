@@ -1,9 +1,9 @@
 import { useEffect, useState, type FC } from "react";
-import { TextInput } from "../ui/components/input";
-import Button from "../ui/components/button";
-import { AvatarApi, RfidApi } from "../lib/api";
-import client from "../lib/api-client";
-import UploadImage from "../ui/components/upload-image";
+import { TextInput } from "@/ui/components/input";
+import Button from "@/ui/components/button";
+import { AvatarApi, RfidApi } from "@/lib/api";
+import client from "@/lib/api-client";
+import UploadImage from "@/ui/components/upload-image";
 
 const rfidApi = new RfidApi(undefined, undefined, client);
 const avatarApi = new AvatarApi(undefined, undefined, client);

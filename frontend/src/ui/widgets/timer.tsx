@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type FC, type HTMLAttributes } from "react";
-import { type SessionModel } from "../../lib/api";
-import clsx from "clsx";
-import CircleProgress from "../components/circle-progress";
-import useDesktop from "../../lib/hooks/useDesktop";
+import { type SessionModel } from "@/lib/api";
+import CircleProgress from "@/ui/components/circle-progress";
+import useDesktop from "@/lib/hooks/useDesktop";
+import { cn } from "@/lib/cn";
 
 type TimerProps = HTMLAttributes<HTMLDivElement> & {
   session: SessionModel | null;
@@ -18,7 +18,7 @@ const Timer: FC<TimerProps> = ({ session, className, ...props }) => {
       setPassed(0);
       intervalRef.current = setInterval(() => {
         setPassed((prev) => prev + 1);
-      }, 1000);
+      }, 1000) as unknown as number;
     }
 
     return () => {
@@ -95,7 +95,7 @@ export const TimerBlock: FC<TimerBlockProps> = ({ current, total, extra, classNa
 
 
   return (
-    <div className={clsx(className, "w-fit bg-surface p-3 md:p-6 shadow rounded-3xl")} {...props}>
+    <div className={cn(className, "w-fit bg-surface p-3 md:p-6 shadow rounded-3xl")} {...props}>
       <div className="flex items-center justify-center size-24 md:size-32 relative">
         <CircleProgress
           size={desktop ? 128 : 96}
@@ -114,7 +114,7 @@ type TimeLabelProps = HTMLAttributes<HTMLDivElement> & { hours: number; minutes:
 
 const TimeLabel: FC<TimeLabelProps> = ({ hours, minutes, seconds, className, ...props }) => {
   return (
-    <p className={clsx("md:text-h3 text-2xl font-bold text-gray", className)} {...props}>
+    <p className={cn("md:text-h3 text-2xl font-bold text-gray", className)} {...props}>
       <span>{String(hours).padStart(2, "0")}</span>:
       <span>{String(minutes).padStart(2, "0")}</span>
       {seconds && <span>:{String(seconds).padStart(2, "0")}</span>}

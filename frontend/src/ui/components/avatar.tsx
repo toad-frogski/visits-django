@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { cn } from "@/lib/cn";
 import { useState, type FC, type ImgHTMLAttributes } from "react";
 
 interface AvatarProps extends ImgHTMLAttributes<HTMLImageElement> {
@@ -14,7 +14,7 @@ const Avatar: FC<AvatarProps> = ({ className, src, alt, ...props }) => {
       {...props}
       src={avatar}
       alt={alt}
-      className={clsx(className, "size-12 rounded-full object-center")}
+      className={cn(className, "size-12 rounded-full object-center")}
       onError={() => setAvatar("")}
     />
   }
@@ -22,7 +22,7 @@ const Avatar: FC<AvatarProps> = ({ className, src, alt, ...props }) => {
 
   return (
     <span
-      className={clsx(
+      className={cn(
         className,
         "size-12 rounded-full inline-flex items-center justify-center text-center",
         `text-h2 text-white font-bold`,
