@@ -13,16 +13,37 @@ import Reset from "@/assets/timer-reset.svg?react";
 
 import { TextInput } from "@/ui/components/input";
 import { cn } from "@/lib/cn";
+import Card from "@/ui/components/card";
 
 const api = new VisitsApi(undefined, undefined, client);
 
 const SessionControl: FC = () => {
   const session = useAuthStore((state) => state.session);
+
+  switch (session?.status) {
+    case "active":
+      return <ActiveControl />;
+
+    case "cheater":
+      return (
+        <div>
+          <h1>Вы жулик </h1>
+          <p>Пожалуйста, укажите свое время ухода:</p>
+        </div>
+      );
+
+    case "inactive":
+      return <InactiveControl />;
+  }
+};
+
+const ActiveControl: FC = () => {
+  const session = useAuthStore((state) => state.session);
   const fetchSession = useAuthStore((state) => state.fetchSession);
+  const [loading, setLoading] = useState(false);
 
   const [isLeave, setIsLeave] = useState<boolean>(false);
   const [isBreak, setIsBreak] = useState<boolean>(false);
-  const [loading, setLoading] = useState(false);
   const [breakMessage, setBreakMessage] = useState("");
 
   const clear = () => {
@@ -31,150 +52,164 @@ const SessionControl: FC = () => {
     setBreakMessage("");
   };
 
-  switch (session?.status) {
-    case "active":
-      return (
-        <div
-          className={cn(
-            "flex flex-col lg:flex-row items-center justify-center gap-x-3",
-            isLeave && "gap-y-3"
-          )}
-        >
-          <div className="flex md:flex-col gap-3 w-full">
-            {session?.status === "active" && (
-              <>
-                <Button
-                  icon={Pause}
-                  onClick={() => {
-                    setIsLeave((prev) => !prev);
-                    if (isLeave) setIsBreak(false);
-                  }}
-                >
-                  Отлучиться
-                </Button>
-                <Button
-                  icon={Stop}
-                  disabled={loading || isLeave}
-                  onClick={() => {
-                    setLoading(true);
-                    api.exit().finally(() => {
-                      setLoading(false);
-                      fetchSession();
-                      clear();
-                    });
-                  }}
-                >
-                  Завершить
-                </Button>
-              </>
-            )}
-          </div>
+  return (
+    <div
+      className={cn(
+        "flex flex-col lg:flex-row items-center justify-center gap-x-3",
+        isLeave && "gap-y-3"
+      )}
+    >
+      <div className="flex md:flex-col gap-3 w-full">
+        {session?.status === "active" && (
+          <>
+            <Button
+              icon={Pause}
+              onClick={() => {
+                setIsLeave((prev) => !prev);
+                if (isLeave) setIsBreak(false);
+              }}
+            >
+              Отлучиться
+            </Button>
+            <Button
+              icon={Stop}
+              disabled={loading || isLeave}
+              onClick={() => {
+                setLoading(true);
+                api.exit().finally(() => {
+                  setLoading(false);
+                  fetchSession();
+                  clear();
+                });
+              }}
+            >
+              Завершить
+            </Button>
+          </>
+        )}
+      </div>
 
-          <div className="flex md:flex-col gap-3 w-full">
-            {session?.status === "active" && isLeave && (
-              <>
-                <Button
-                  variant="green"
-                  icon={Leaf}
-                  onClick={() => setIsBreak((prev) => !prev)}
-                >
-                  Перерыв
-                </Button>
-                <Button
-                  variant="blue"
-                  icon={Soup}
-                  disabled={loading || isBreak}
-                  onClick={() => {
-                    setLoading(true);
-                    api.leave({ type: "LUNCH" }).finally(() => {
-                      setLoading(false);
-                      fetchSession();
-                      clear();
-                    });
-                  }}
-                >
-                  Обед
-                </Button>
-              </>
-            )}
-          </div>
+      <div className="flex md:flex-col gap-3 w-full">
+        {session?.status === "active" && isLeave && (
+          <>
+            <Button
+              variant="green"
+              icon={Leaf}
+              onClick={() => setIsBreak((prev) => !prev)}
+            >
+              Перерыв
+            </Button>
+            <Button
+              variant="blue"
+              icon={Soup}
+              disabled={loading || isBreak}
+              onClick={() => {
+                setLoading(true);
+                api.leave({ type: "LUNCH" }).finally(() => {
+                  setLoading(false);
+                  fetchSession();
+                  clear();
+                });
+              }}
+            >
+              Обед
+            </Button>
+          </>
+        )}
+      </div>
 
-          <div className="flex flex-col gap-3 w-full">
-            {session?.status === "active" && isBreak && (
-              <>
-                <TextInput
-                  className="max-h-12"
-                  placeholder="Укажите причину"
-                  value={breakMessage}
-                  onChange={(e) => setBreakMessage(e.target.value)}
-                />
-                <Button
-                  disabled={loading || !breakMessage}
-                  onClick={() => {
+      <div className="flex flex-col gap-3 w-full">
+        {session?.status === "active" && isBreak && (
+          <>
+            <TextInput
+              className="max-h-12"
+              placeholder="Укажите причину"
+              value={breakMessage}
+              onChange={(e) => setBreakMessage(e.target.value)}
+            />
+            <Button
+              disabled={loading || !breakMessage}
+              onClick={() => {
+                setLoading(false);
+                api
+                  .leave({ type: "BREAK", comment: breakMessage })
+                  .finally(() => {
                     setLoading(false);
-                    api
-                      .leave({ type: "BREAK", comment: breakMessage })
-                      .finally(() => {
-                        setLoading(false);
-                        fetchSession();
-                        clear();
-                      });
-                  }}
-                >
-                  Подтвердить
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      );
-
-    case "inactive":
-    default:
-      // Handle enter
-      if (!session || !session.entries.length) {
-        return (
-          <Button
-            icon={Play}
-            disabled={loading}
-            onClick={() => {
-              api.enter({ type: "WORK" }).finally(() => fetchSession());
-            }}
-          >
-            Начать
-          </Button>
-        );
-      }
-
-      const last = session.entries[session.entries.length - 1];
-
-      // Handle break comeback.
-      if (last.type !== "WORK") {
-        return (
-          <Button
-            icon={Reset}
-            disabled={loading}
-            onClick={() => {
-              api.leave({ type: "WORK" }).finally(() => fetchSession());
-            }}
-          >
-            Возобновить
-          </Button>
-        );
-      }
-
-      return (
-        <Button
-          icon={Reset}
-          disabled={loading}
-          onClick={() => {
-            api.enter({ type: "WORK" }).finally(() => fetchSession());
-          }}
-        >
-          Возобновить
-        </Button>
-      );
-  }
+                    fetchSession();
+                    clear();
+                  });
+              }}
+            >
+              Подтвердить
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  );
 };
 
-export default SessionControl;
+const InactiveControl: FC = () => {
+  const session = useAuthStore((state) => state.session);
+  const fetchSession = useAuthStore((state) => state.fetchSession);
+  const [loading, setLoading] = useState(false);
+
+  if (!session || !session.entries.length) {
+    return (
+      <Button
+        icon={Play}
+        disabled={loading}
+        onClick={() => {
+          api.enter({ type: "WORK" }).finally(() => fetchSession());
+        }}
+      >
+        Начать
+      </Button>
+    );
+  }
+
+  const last = session.entries[session.entries.length - 1];
+
+  // Handle break comeback.
+  if (last.type !== "WORK") {
+    return (
+      <Button
+        icon={Reset}
+        disabled={loading}
+        onClick={() => {
+          api
+            .leave({ type: "WORK" })
+            .then(() => fetchSession())
+            .finally(() => setLoading(false));
+        }}
+      >
+        Возобновить
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      icon={Reset}
+      disabled={loading}
+      onClick={() => {
+        api
+          .enter({ type: "WORK" })
+          .then(() => fetchSession())
+          .finally(() => setLoading(false));
+      }}
+    >
+      Возобновить
+    </Button>
+  );
+};
+
+const SessionControlWrapper: FC = () => {
+  return (
+    <Card className="rounded h-fit md:flex-1">
+      <SessionControl />
+    </Card>
+  );
+};
+
+export default SessionControlWrapper;

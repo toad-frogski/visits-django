@@ -60,9 +60,7 @@ const Dashboard: FC = () => {
         <section>
           <Timer />
         </section>
-        <Card className="rounded h-fit md:flex-1">
-          <Outlet />
-        </Card>
+        <Outlet />
       </div>
     </div>
   );

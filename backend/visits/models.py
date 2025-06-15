@@ -100,9 +100,15 @@ class Session(models.Model):
 
         last = entries[-1]
         if last.end is None:
-            if last.type != SessionEntry.Type.WORK:
-                return Session.Status.INACTIVE
+            now = timezone.localtime()
 
-            return Session.Status.ACTIVE
+            if now.date() != self.date and now.hour > 8:
+                return Session.Status.CHEATER
+
+            return (
+                Session.Status.ACTIVE
+                if last.type == SessionEntry.Type.WORK
+                else Session.Status.INACTIVE
+            )
 
         return Session.Status.INACTIVE
