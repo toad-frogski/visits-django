@@ -163,7 +163,7 @@ const TimeLabel: FC<TimeLabelProps> = ({
 }) => {
   return (
     <p
-      className={cn("md:text-h3 text-2xl font-bold text-gray", className)}
+      className={cn("md:text-h3 text-2xs font-bold text-gray", className)}
       {...props}
     >
       {days !== 0 && <span>{String(days).padStart(2, "0")}</span>}:
