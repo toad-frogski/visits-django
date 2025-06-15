@@ -206,7 +206,7 @@ const InactiveControl: FC = () => {
 
 const SessionControlWrapper: FC = () => {
   return (
-    <Card className="rounded h-fit md:flex-1">
+    <Card className="rounded h-fit w-full">
       <SessionControl />
     </Card>
   );
