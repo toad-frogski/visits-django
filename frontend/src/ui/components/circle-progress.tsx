@@ -1,19 +1,32 @@
-import { cn } from "@/lib/cn";
 import { type FC } from "react";
+import { tv } from "tailwind-variants";
 
-type CircleProgressProps = {
+export type CircleProgressProps = {
   size?: number;
   strokeWidth?: number;
   progress: number;
-  variant?: "accent" | "green";
+  color?: "accent" | "green" | "red";
   className?: string;
 };
+
+const circleProgress = tv({
+  variants: {
+    color: {
+      accent: "stroke-accent",
+      red: "stroke-red",
+      green: "stroke-green",
+    },
+  },
+  defaultVariants: {
+    color: "accent",
+  },
+});
 
 const CircleProgress: FC<CircleProgressProps> = ({
   size = 24,
   strokeWidth = 3,
   progress,
-  variant,
+  color,
   className,
 }) => {
   const radius = (size - strokeWidth) / 2;
@@ -33,10 +46,7 @@ const CircleProgress: FC<CircleProgressProps> = ({
         cy={size / 2}
       />
       <circle
-        className={cn({
-          "stroke-accent": !variant || variant === "accent",
-          "stroke-green": variant === "green",
-        })}
+        className={circleProgress({ color: color })}
         fill="transparent"
         strokeWidth={strokeWidth}
         strokeLinecap="round"

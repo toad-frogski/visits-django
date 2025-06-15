@@ -5,7 +5,9 @@ import {
   type FC,
   type HTMLAttributes,
 } from "react";
-import CircleProgress from "@/ui/components/circle-progress";
+import CircleProgress, {
+  type CircleProgressProps,
+} from "@/ui/components/circle-progress";
 import useDesktop from "@/lib/hooks/useDesktop";
 import { cn } from "@/lib/cn";
 import useAuthStore from "@/stores/auth";
@@ -74,6 +76,7 @@ const Timer: FC<TimerProps> = ({ className, ...props }) => {
       total={1000 * 60 * 60 * 8}
       extra={breakMs !== 0 ? breakMs : undefined}
       className={className}
+      color={session?.status === "cheater" ? "red" : "accent"}
       {...props}
     />
   );
@@ -83,12 +86,14 @@ type TimerBlockProps = HTMLAttributes<HTMLDivElement> & {
   current: number;
   total: number;
   extra?: number;
+  color?: CircleProgressProps["color"];
 };
 
 export const TimerBlock: FC<TimerBlockProps> = ({
   current,
   total,
   extra,
+  color,
   className,
   ...props
 }) => {
@@ -96,6 +101,7 @@ export const TimerBlock: FC<TimerBlockProps> = ({
 
   const format = (ms: number) => {
     return {
+      days: Math.floor(ms / (60 * 60 * 1000) / 24),
       hours: Math.floor(ms / (60 * 60 * 1000)) % 24,
       minutes: Math.floor(ms / (60 * 1000)) % 60,
       seconds: Math.floor(ms / 1000) % 60,
@@ -119,11 +125,18 @@ export const TimerBlock: FC<TimerBlockProps> = ({
           strokeWidth={desktop ? 10 : 7}
           progress={(current / total) * 100}
           className="absolute left-0 top-0"
+          color={color}
         />
-        <TimeLabel hours={currentTime.hours} minutes={currentTime.minutes} className="z-10" />
+        <TimeLabel
+          days={currentTime.days}
+          hours={currentTime.hours}
+          minutes={currentTime.minutes}
+          className="z-10"
+        />
       </div>
       {extraTime.minutes !== 0 && (
         <TimeLabel
+          days={extraTime.days}
           hours={extraTime.hours}
           minutes={extraTime.minutes}
           className="mt-3 text-center !text-lg"
@@ -134,12 +147,14 @@ export const TimerBlock: FC<TimerBlockProps> = ({
 };
 
 type TimeLabelProps = HTMLAttributes<HTMLDivElement> & {
+  days: number;
   hours: number;
   minutes: number;
   seconds?: number;
 };
 
 const TimeLabel: FC<TimeLabelProps> = ({
+  days,
   hours,
   minutes,
   seconds,
@@ -151,6 +166,7 @@ const TimeLabel: FC<TimeLabelProps> = ({
       className={cn("md:text-h3 text-2xl font-bold text-gray", className)}
       {...props}
     >
+      {days !== 0 && <span>{String(days).padStart(2, "0")}</span>}:
       <span>{String(hours).padStart(2, "0")}</span>:
       <span>{String(minutes).padStart(2, "0")}</span>
       {seconds && <span>:{String(seconds).padStart(2, "0")}</span>}
