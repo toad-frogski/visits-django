@@ -32,6 +32,7 @@ const SessionControl: FC = () => {
         </div>
       );
 
+    default:
     case "inactive":
       return <InactiveControl />;
   }
