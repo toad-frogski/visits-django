@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from channels.routing import URLRouter
 
 from visits import urls as visits_urls
 from rfid import urls as rfid_urls
@@ -15,4 +16,8 @@ urlpatterns = [
     path('api/v1/session/', include(session_urls)),
     path("api/v1/visits/", include(visits_urls.urlpatterns)),
     path("api/v1/rfid/", include(rfid_urls.urlpatterns)),
+]
+
+websocket_urlpatterns =[
+    path("api/ws/", URLRouter(visits_urls.websocket_urlpatterns))
 ]
