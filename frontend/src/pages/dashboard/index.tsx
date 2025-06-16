@@ -1,6 +1,5 @@
 import { useEffect, type FC } from "react";
 import { NavLink, Outlet } from "react-router";
-import Card from "@/ui/components/card";
 import Timer from "@/ui/widgets/timer";
 import useAuthStore from "@/stores/auth";
 import useDesktop from "@/lib/hooks/useDesktop";
@@ -23,18 +22,13 @@ const Dashboard: FC = () => {
   }, []);
 
   return (
-    <div className="flex h-full flex-col md:flex-row max-h-screen">
+    <div className="flex h-full flex-col md:flex-row">
       {desktop ? (
         <section className="bg-surface h-full pl-6 py-6 shadow">
           <nav>
             <ul className="flex flex-col gap-3">
               {breadcrumbs.map(({ to, label }) => (
-                <SidebarBreadcrumb
-                  key={`dashboard-${to}`}
-                  label={label}
-                  to={to}
-                  long
-                />
+                <SidebarBreadcrumb key={`dashboard-${to}`} label={label} to={to} long />
               ))}
             </ul>
           </nav>
@@ -46,9 +40,7 @@ const Dashboard: FC = () => {
               <NavLink
                 key={`dashboard-${to}`}
                 to={to}
-                className={({ isActive }) =>
-                  cn("p-4", isActive ? "text-accent" : "text-gray")
-                }
+                className={({ isActive }) => cn("p-4", isActive ? "text-accent" : "text-gray")}
               >
                 {label}
               </NavLink>
@@ -56,7 +48,7 @@ const Dashboard: FC = () => {
           </ul>
         </nav>
       )}
-      <div className="p-3 md:p-6 flex flex-1 gap-3 md:gap-6 flex-col md:flex-row-reverse">
+      <div className="p-3 md:p-6 flex flex-1 gap-3 md:gap-6 flex-col md:flex-row-reverse overflow-auto">
         <section>
           <Timer />
         </section>
