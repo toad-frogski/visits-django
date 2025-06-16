@@ -1,8 +1,10 @@
 import { forwardRef, useEffect, useRef, useState, type ChangeEvent, type FC, type InputHTMLAttributes } from "react";
-import Eye from "@/assets/eye.svg?react";
-import EyeOff from "@/assets/eye-off.svg?react";
 import { cn } from "@/lib/cn";
 import useDesktop from "@/lib/hooks/useDesktop";
+
+import Eye from "@/assets/eye.svg?react";
+import EyeOff from "@/assets/eye-off.svg?react";
+import Clock from "@/assets/clock.svg?react";
 
 export type BaseInputProps = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
@@ -111,39 +113,9 @@ const TimeInput = forwardRef<HTMLInputElement, Omit<BaseInputProps, "type">>(
     const [minutes, setMinutes] = useState<number>(0);
     const hoursRef = useRef<HTMLDivElement>(null);
     const minutesRef = useRef<HTMLDivElement>(null);
+    const mobileTimeRef = useRef<HTMLInputElement>(null);
 
     const isDesktop = useDesktop();
-
-    useEffect(() => {
-      if (!value) return;
-
-      const [h, m] = String(value).split(":").map(Number);
-      if (!isNaN(h)) setHours(h);
-      if (!isNaN(m)) setMinutes(m);
-    }, [value]);
-
-    useEffect(() => {
-      if (hoursRef.current) {
-        hoursRef.current.innerText = String(hours).padStart(2, "0");
-      }
-    }, [hours]);
-
-    useEffect(() => {
-      if (minutesRef.current) {
-        minutesRef.current.innerText = String(minutes).padStart(2, "0");
-      }
-    }, [minutes]);
-
-    useEffect(() => {
-      if (!onChange) return;
-
-      const newValue = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-      const event = {
-        target: { value: newValue },
-      } as React.ChangeEvent<HTMLInputElement>;
-
-      onChange(event);
-    }, [hours, minutes, onChange]);
 
     const handleHoursChange = (increment: number) => {
       setHours((hours + increment + 24) % 24);
@@ -157,7 +129,7 @@ const TimeInput = forwardRef<HTMLInputElement, Omit<BaseInputProps, "type">>(
       value: number,
       setValue: React.Dispatch<React.SetStateAction<number>>,
       max: number,
-      nextRef?: React.RefObject<HTMLDivElement>
+      nextRef?: React.RefObject<HTMLDivElement | null>
     ) => {
       return (digit: number | string) => {
         digit = Number(digit) || 0;
@@ -224,12 +196,56 @@ const TimeInput = forwardRef<HTMLInputElement, Omit<BaseInputProps, "type">>(
       }
     };
 
+    const parseTime = (time: string) => {
+      if (!time) return;
+
+      const [h, m] = String(time).split(":").map(Number);
+      if (!isNaN(h)) setHours(h);
+      if (!isNaN(m)) setMinutes(m);
+    };
+
+    const handleMobileChange = (e: ChangeEvent<HTMLInputElement>) => {
+      parseTime(e.target.value);
+    };
+
+    useEffect(() => {
+      parseTime(value as string);
+    }, [value]);
+
+    useEffect(() => {
+      if (hoursRef.current) {
+        hoursRef.current.innerText = String(hours).padStart(2, "0");
+      }
+    }, [hours]);
+
+    useEffect(() => {
+      if (minutesRef.current) {
+        minutesRef.current.innerText = String(minutes).padStart(2, "0");
+      }
+    }, [minutes]);
+
+    useEffect(() => {
+      if (!onChange) return;
+
+      const newValue = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+      const event = {
+        target: { value: newValue },
+      } as React.ChangeEvent<HTMLInputElement>;
+
+      onChange(event);
+    }, [hours, minutes, onChange]);
+
     return (
       <div
         className={cn(
           className,
-          "w-fit py-3 px-2 flex items-center border border-gray-light hover:border-accent bg-surface rounded transition-colors duration-200 ease-in-out"
+          "relative py-3 pl-2 pr-10 flex items-center border border-gray-light hover:border-accent bg-surface rounded transition-colors duration-200 ease-in-out text-gray font-semibold"
         )}
+        onClick={() => {
+          if (!isDesktop) {
+            mobileTimeRef.current?.focus();
+          }
+        }}
       >
         <div
           ref={hoursRef}
@@ -245,10 +261,10 @@ const TimeInput = forwardRef<HTMLInputElement, Omit<BaseInputProps, "type">>(
             e.preventDefault();
             handleHoursChange(e.deltaY > 0 ? -1 : 1);
           }}
-          className="outline-none focus:bg-background rounded px-1"
+          className="outline-none focus:bg-background rounded px-1 caret-transparent"
           contentEditable
           inputMode="numeric"
-        ></div>
+        />
 
         <span className="px-1">:</span>
 
@@ -267,16 +283,26 @@ const TimeInput = forwardRef<HTMLInputElement, Omit<BaseInputProps, "type">>(
             e.stopPropagation();
             handleMinutesChange(e.deltaY > 0 ? -1 : 1);
           }}
-          className="outline-none focus:bg-background rounded px-1"
+          className="outline-none focus:bg-background rounded px-1 caret-transparent"
           contentEditable
           inputMode="numeric"
-        ></div>
+        />
+
+        <Clock className="absolute right-2" width={24} height={24} />
 
         <input
           ref={ref}
           type="hidden"
           value={`${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`}
           {...props}
+        />
+
+        <input
+          ref={mobileTimeRef}
+          type="time"
+          className="opacity-0"
+          value={`${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`}
+          onChange={handleMobileChange}
         />
       </div>
     );
