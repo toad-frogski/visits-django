@@ -1,14 +1,16 @@
 from django.contrib.auth.models import User
 from datetime import date
-from typing import Any, Callable, Dict, List, TypedDict
+from typing import Callable, Generic, List, TypeVar, TypedDict
+
+T = TypeVar("T")
 
 
-class StatisticsExtraDataResult(TypedDict):
+class StatisticsExtraDataResult(TypedDict, Generic[T]):
     name: str
-    data: Dict[str, Any]
+    data: T
 
 
-StatisticsExtraDataCallback = Callable[[User, date], StatisticsExtraDataResult]
+StatisticsExtraDataCallback = Callable[[User, date], StatisticsExtraDataResult[T]]
 
 _registered_statistics_extra_callbacks: List[StatisticsExtraDataCallback] = []
 

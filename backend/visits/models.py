@@ -48,7 +48,9 @@ class SessionManager(models.Manager["Session"]):
 
 
 class Session(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sessions")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sessions"
+    )
     date = models.DateField(_("Date"), default=timezone.localdate)
     objects: SessionManager = SessionManager()
 
