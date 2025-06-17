@@ -1,4 +1,3 @@
-from django.test import tag
 from rest_framework.views import APIView
 from rest_framework.generics import UpdateAPIView
 from rest_framework.response import Response
@@ -8,7 +7,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
 from drf_spectacular.utils import extend_schema
 from django.utils.translation import gettext as _
+from django.utils import timezone
 from django.contrib.auth.models import User
+from django.db.models import Prefetch, Subquery, OuterRef
 from datetime import datetime
 
 from .models import Session, SessionEntry
@@ -160,13 +161,16 @@ class UsersTodayView(APIView):
         responses={status.HTTP_200_OK: serializers.UserSessionSerializer(many=True)},
     )
     def get(self, request: Request):
-        users = User.objects.filter(is_active=True)
-        session_service = SessionService()
 
-        data = []
-        for user in users:
-            session = session_service.get_current_session(user)
-            data.append(
+        session_service = SessionService()
+        active_users_with_sessions = session_service.get_active_user_with_sessions()
+
+        result = []
+        for user_session in active_users_with_sessions:
+            user: User = user_session.get("user")
+            session: Session | None = user_session.get("session")
+
+            result.append(
                 {
                     "user": user,
                     "session": {
@@ -177,6 +181,6 @@ class UsersTodayView(APIView):
             )
 
         serializer = serializers.UserSessionSerializer(
-            data, many=True, context={"request": request}
+            result, many=True, context={"request": request}
         )
         return Response(serializer.data)

@@ -2,6 +2,7 @@ from datetime import datetime
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
+from django.db.models import Subquery, OuterRef
 from visits.models import Session, SessionEntry
 
 
@@ -9,9 +10,7 @@ class SessionService:
 
     @staticmethod
     def enter(user: User, type: SessionEntry.Type, time: datetime):
-        session, _ = Session.objects.get_or_create(
-            user=user, date=timezone.localdate()
-        )
+        session, _ = Session.objects.get_or_create(user=user, date=timezone.localdate())
 
         last_entry = session.get_last_entry()
         if last_entry and last_entry.end is None:
@@ -111,3 +110,24 @@ class SessionService:
     @staticmethod
     def get_session_status(session: Session | None) -> Session.Status:
         return session.status if session else Session.Status.INACTIVE
+
+    @staticmethod
+    def get_active_user_with_sessions():
+        current_sessions = Session.objects.filter(user=OuterRef("pk")).order_by(
+            "-date", "-id"
+        )
+
+        users = (
+            User.objects.filter(is_active=True)
+            .annotate(current_session=Subquery(current_sessions.values("id")[:1]))
+            .prefetch_related("avatar")
+        )
+
+        session_ids = [u.current_session for u in users if u.current_session]
+        sessions = Session.objects.filter(id__in=session_ids).select_related("user")
+        sessions_by_id = {s.id: s for s in sessions}
+
+        return [
+            {"user": user, "session": sessions_by_id.get(user.current_session)}
+            for user in users
+        ]

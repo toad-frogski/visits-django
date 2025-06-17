@@ -34,6 +34,9 @@ class SessionEntry(models.Model):
 
 
 class SessionManager(models.Manager["Session"]):
+    def get_queryset(self) -> models.QuerySet["Session"]:
+        return super().get_queryset().prefetch_related("entries")
+
     def get_last_user_session(self, user) -> Optional["Session"]:
         today = timezone.localdate()
         return (
@@ -45,7 +48,7 @@ class SessionManager(models.Manager["Session"]):
 
 
 class Session(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sessions")
     date = models.DateField(_("Date"), default=timezone.localdate)
     objects: SessionManager = SessionManager()
 
@@ -93,6 +96,9 @@ class Session(models.Model):
     @property
     def status(self):
         entries: list[SessionEntry] = list(self.entries.order_by("start"))  # type: ignore
+
+        if len(entries) == 0:
+            return Session.Status.INACTIVE
 
         for i in range(1, len(entries)):
             if entries[i - 1].end is None or entries[i].start < entries[i - 1].end:

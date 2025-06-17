@@ -8,7 +8,6 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.contrib.auth import login, logout
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
-from django.shortcuts import get_object_or_404
 
 from .models import Avatar
 from .serializers import LoginSerializer, UserModelSerializer, AvatarModelSerializer
