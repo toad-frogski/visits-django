@@ -192,7 +192,7 @@ class UserMonthStatisticsView(APIView):
     @extend_schema(
         "statistics",
         request=serializers.UserMonthStatisticsRequestSerializer,
-        responses=serializers.UserMonthStatisticsResponseSerializer,
+        responses=serializers.UserMonthStatisticsResponseSerializer(many=True),
     )
     def get(self, request: Request):
         request_serializer = serializers.UserMonthStatisticsRequestSerializer(
