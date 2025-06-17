@@ -1,7 +1,12 @@
 from django.dispatch import receiver
 from django_auth_ldap.backend import populate_user, LDAPBackend, _LDAPUser
+from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from ldap.cidict import cidict
+from channels.layers import get_channel_layer, BaseChannelLayer
+from asgiref.sync import async_to_sync
+
+from .models import SessionEntry
 
 
 @receiver(populate_user, sender=LDAPBackend)
@@ -32,3 +37,23 @@ def user_populated(user: User, ldap_user: _LDAPUser, **kwargs):
 
     if updated:
         user.save()
+
+
+@receiver(post_save, sender=SessionEntry)
+def session_updated(sender, instance: SessionEntry, **kwargs):
+    channel_layer: BaseChannelLayer | None = get_channel_layer()
+
+    if channel_layer is None:
+        return
+
+    message = {
+        "type": "session_status_updated",
+        "payload": {
+            "session_id": instance.session.id,
+            "status": instance.session.status,
+            "user_id": instance.session.user.id,
+            "comment": instance.comment,
+        },
+    }
+
+    async_to_sync(channel_layer.group_send)("session_status", message)

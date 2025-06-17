@@ -29,6 +29,7 @@ const SessionControl: FC = () => {
     case "cheater":
       return <CheaterControl />;
 
+    default:
     case "inactive":
       return <InactiveControl />;
   }
