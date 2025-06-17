@@ -225,11 +225,11 @@ const CheaterControl: FC = () => {
   if (!session) return;
 
   return (
-    <div className="flex gap-3 flex-col md:flex-row">
-      <p className="text-gray font-semibold flex-1">
+    <div className="flex gap-3 flex-col lg:flex-row items-center">
+      <p className="text-gray font-semibold flex-1 text-center">
         Вы ушли и не отметились в системе. Пожалуйста, укажите время выхода
       </p>
-      <div className="lg:flex-1 gap-3 flex flex-col xl:flex-row flex-wrap">
+      <div className="lg:flex-1 gap-3 flex flex-col xl:flex-row flex-wrap w-full">
         <TimeInput
           className="md:flex-1"
           onChange={(time) => {
