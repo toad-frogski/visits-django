@@ -1,5 +1,13 @@
 from django.urls import path
-from .views import CurrentSessionView, EnterView, ExitView, LeaveView, UsersTodayView, UpdateSessionEntryView
+from .views import (
+    CurrentSessionView,
+    EnterView,
+    ExitView,
+    LeaveView,
+    UsersTodayView,
+    UpdateSessionEntryView,
+    UserMonthStatisticsView,
+)
 
 urlpatterns = [
     path("current", CurrentSessionView.as_view()),
@@ -8,4 +16,5 @@ urlpatterns = [
     path("exit", ExitView.as_view()),
     path("leave", LeaveView.as_view()),
     path("today", UsersTodayView.as_view()),
+    path("stats/me", UserMonthStatisticsView.as_view()),
 ]

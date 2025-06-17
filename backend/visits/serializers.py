@@ -1,5 +1,5 @@
+from datetime import timedelta
 from email.policy import default
-import hashlib
 from rest_framework import serializers
 from django.utils import timezone
 
@@ -8,7 +8,9 @@ from .models import Session, SessionEntry
 
 
 class SessionEnterSerializer(serializers.ModelSerializer):
-    type = serializers.ChoiceField(choices=SessionEntry.Type.choices, default=SessionEntry.Type.WORK)
+    type = serializers.ChoiceField(
+        choices=SessionEntry.Type.choices, default=SessionEntry.Type.WORK
+    )
     start = serializers.DateTimeField(default=lambda: timezone.localtime())
 
     class Meta:
@@ -18,9 +20,11 @@ class SessionEnterSerializer(serializers.ModelSerializer):
 
 class SessionExitSerializer(serializers.ModelSerializer):
     end = serializers.DateTimeField(default=lambda: timezone.localtime())
+
     class Meta:
         model = SessionEntry
         fields = ["end", "comment"]
+
 
 class SessionEntryLeaveSerializer(serializers.ModelSerializer):
     time = serializers.DateTimeField(default=lambda: timezone.localtime())
@@ -29,8 +33,9 @@ class SessionEntryLeaveSerializer(serializers.ModelSerializer):
         model = SessionEntry
         fields = ["time", "type", "comment"]
 
+
 class SessionEntryModelSerializer(serializers.ModelSerializer):
-    id =  serializers.ReadOnlyField()
+    id = serializers.ReadOnlyField()
 
     class Meta:
         model = SessionEntry
@@ -54,3 +59,19 @@ class SessionSerializer(serializers.Serializer):
 class UserSessionSerializer(serializers.Serializer):
     user = UserModelSerializer()
     session = SessionSerializer()
+
+
+def first_day_of_current_month():
+    today = timezone.localdate().today()
+    return today.replace(day=1)
+
+
+def last_day_of_current_month():
+    today = timezone.localdate().today()
+    next_month = today.replace(day=28) + timedelta(days=4)
+    return next_month.replace(day=1) - timedelta(days=1)
+
+
+class UserMonthStatisticsRequestSerializer(serializers.Serializer):
+    start = serializers.DateField(default=first_day_of_current_month)
+    end = serializers.DateField(default=last_day_of_current_month)

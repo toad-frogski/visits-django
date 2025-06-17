@@ -7,13 +7,12 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
 from drf_spectacular.utils import extend_schema
 from django.utils.translation import gettext as _
-from django.utils import timezone
 from django.contrib.auth.models import User
-from django.db.models import Prefetch, Subquery, OuterRef
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 from .models import Session, SessionEntry
 from .services import SessionService
+from .callbacks import statistics_extra_callbacks
 from . import serializers
 
 
@@ -184,3 +183,80 @@ class UsersTodayView(APIView):
             result, many=True, context={"request": request}
         )
         return Response(serializer.data)
+
+
+@extend_schema(tags=["statistics"])
+class UserMonthStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        "statistics", request=serializers.UserMonthStatisticsRequestSerializer
+    )
+    def get(self, request: Request):
+        serializer = serializers.UserMonthStatisticsRequestSerializer(
+            data=request.query_params
+        )
+        serializer.is_valid(raise_exception=True)
+        start: date = serializer.validated_data["start"]
+        end: date = serializer.validated_data["end"]
+        user = request.user
+
+        sessions = Session.objects.filter(
+            user=user, date__range=(start, end)
+        ).prefetch_related("entries")
+
+        sessions_by_date = {session.date: session for session in sessions}
+
+        result = []
+        current_date = start
+        while current_date <= end:
+            session = sessions_by_date.get(current_date)
+            if session:
+                entries = list(session.entries.all())
+                statistics = self._calculate_statistics(entries)
+            else:
+                statistics = None
+
+            extra = self._collect_extra(user, current_date)
+            result.append(
+                {
+                    "date": current_date,
+                    "session": serializers.SessionModelSerializer(session).data,
+                    "statistics": statistics,
+                    "extra": extra,
+                }
+            )
+            current_date += timedelta(days=1)
+
+        return Response(data=result)
+
+    def _calculate_statistics(self, entries: list[SessionEntry]) -> dict[str, float]:
+        result = {
+            "work_time": 0.0,
+            "break_time": 0.0,
+            "lunch_time": 0.0,
+        }
+
+        for entry in entries:
+            if not entry.end:
+                continue
+
+            delta = (entry.end - entry.start).total_seconds()
+
+            if entry.type == "WORK":
+                result["work_time"] += delta
+            elif entry.type == "BREAK":
+                result["break_time"] += delta
+            elif entry.type == "LUNCH":
+                result["lunch_time"] += delta
+
+        return result
+
+    def _collect_extra(self, user: User, date: date):
+        results = []
+        for callback in statistics_extra_callbacks():
+            data = callback(user, date)
+            if data:
+                results.append(data)
+
+        return results
