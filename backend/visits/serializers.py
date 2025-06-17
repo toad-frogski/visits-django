@@ -75,3 +75,16 @@ def last_day_of_current_month():
 class UserMonthStatisticsRequestSerializer(serializers.Serializer):
     start = serializers.DateField(default=first_day_of_current_month)
     end = serializers.DateField(default=last_day_of_current_month)
+
+
+class UserMonthStatisticsResponseSerializer(serializers.Serializer):
+
+    class StatisticsFieldSerializer(serializers.Serializer):
+        work_time = serializers.FloatField(default=0.0)
+        break_time = serializers.FloatField(default=0.0)
+        lunch_time = serializers.FloatField(default=0.0)
+
+    date = serializers.DateField()
+    session = SessionModelSerializer(allow_null=True)
+    statistics = StatisticsFieldSerializer(allow_null=True)
+    extra = serializers.ListField(child=serializers.DictField())

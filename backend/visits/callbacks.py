@@ -6,7 +6,7 @@ T = TypeVar("T")
 
 
 class StatisticsExtraDataResult(TypedDict, Generic[T]):
-    name: str
+    type: str
     data: T
 
 

@@ -33,8 +33,8 @@ class EnterView(APIView):
         serializer = serializers.SessionEnterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        start: datetime = serializer.validated_data.get("start")
-        type: SessionEntry.Type = serializer.validated_data.get("type")
+        start: datetime = serializer.validated_data.get("start")  # type: ignore
+        type: SessionEntry.Type = serializer.validated_data.get("type")  # type: ignore
 
         session_service = SessionService()
 
@@ -66,8 +66,8 @@ class ExitView(APIView):
         serializer = serializers.SessionExitSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        time: datetime = serializer.validated_data.get("end")
-        comment: SessionEntry.Type = serializer.validated_data.get("comment")
+        time: datetime = serializer.validated_data.get("end")  # type: ignore
+        comment: SessionEntry.Type = serializer.validated_data.get("comment")  # type: ignore
 
         session_service = SessionService()
 
@@ -101,9 +101,9 @@ class LeaveView(APIView):
         serializer = serializers.SessionEntryLeaveSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        type: SessionEntry.Type = serializer.validated_data.get("type")
-        time: datetime = serializer.validated_data.get("time")
-        comment: str | None = serializer.validated_data.get("comment")
+        type: SessionEntry.Type = serializer.validated_data.get("type")  # type: ignore
+        time: datetime = serializer.validated_data.get("time")  # type: ignore
+        comment: str | None = serializer.validated_data.get("comment")  # type: ignore
 
         session_service = SessionService()
 
@@ -166,7 +166,7 @@ class UsersTodayView(APIView):
 
         result = []
         for user_session in active_users_with_sessions:
-            user: User = user_session.get("user")
+            user: User = user_session.get("user")  # type: ignore
             session: Session | None = user_session.get("session")
 
             result.append(
@@ -190,15 +190,17 @@ class UserMonthStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        "statistics", request=serializers.UserMonthStatisticsRequestSerializer
+        "statistics",
+        request=serializers.UserMonthStatisticsRequestSerializer,
+        responses=serializers.UserMonthStatisticsResponseSerializer,
     )
     def get(self, request: Request):
-        serializer = serializers.UserMonthStatisticsRequestSerializer(
+        request_serializer = serializers.UserMonthStatisticsRequestSerializer(
             data=request.query_params
         )
-        serializer.is_valid(raise_exception=True)
-        start: date = serializer.validated_data["start"]
-        end: date = serializer.validated_data["end"]
+        request_serializer.is_valid(raise_exception=True)
+        start: date = request_serializer.validated_data["start"]  # type: ignore
+        end: date = request_serializer.validated_data["end"]  # type: ignore
         user = request.user
 
         sessions = Session.objects.filter(
@@ -212,7 +214,7 @@ class UserMonthStatisticsView(APIView):
         while current_date <= end:
             session = sessions_by_date.get(current_date)
             if session:
-                entries = list(session.entries.all())
+                entries = list(session.entries.all())  # type: ignore
                 statistics = self._calculate_statistics(entries)
             else:
                 statistics = None
@@ -221,14 +223,15 @@ class UserMonthStatisticsView(APIView):
             result.append(
                 {
                     "date": current_date,
-                    "session": serializers.SessionModelSerializer(session).data,
+                    "session": session,
                     "statistics": statistics,
                     "extra": extra,
                 }
             )
             current_date += timedelta(days=1)
 
-        return Response(data=result)
+        response_serializer = serializers.UserMonthStatisticsResponseSerializer(result, many=True)
+        return Response(response_serializer.data)
 
     def _calculate_statistics(self, entries: list[SessionEntry]) -> dict[str, float]:
         result = {
