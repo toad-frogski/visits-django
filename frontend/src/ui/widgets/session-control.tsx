@@ -237,6 +237,7 @@ const CheaterControl: FC = () => {
       </p>
       <div className="lg:flex-1 gap-3 flex flex-col xl:flex-row flex-wrap w-full">
         <TimeInput
+          hourCycle={24}
           className="md:flex-1"
           onChange={(time) => {
             setError("");

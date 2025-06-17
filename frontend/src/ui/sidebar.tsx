@@ -23,7 +23,7 @@ const Sidebar: FC<SidebarProps> = ({ items, long }) => {
   if (!isDesktop) return null;
 
   return (
-    <aside className="flex flex-col h-screen py-6 pl-4 font-bold text-gray bg-surface shadow z-10">
+    <aside className="flex flex-col h-screen py-6 pl-4 font-bold text-gray bg-surface shadow z-10 fixed">
       <header
         className={cn(
           "flex gap-3 mb-12 pl-4 items-center justify-center",

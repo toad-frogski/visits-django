@@ -13,9 +13,9 @@ const navItems = [
 
 const MainLayout: FC = () => {
   return (
-    <div className="h-screen flex flex-col md:flex-row">
+    <div className="min-h-screen flex flex-col md:flex-row">
       <Sidebar items={navItems} />
-      <main className="flex-1 pb-20 md:pb-0 overflow-y-auto">
+      <main className="flex-1 pb-20 md:pb-0 overflow-y-auto md:pl-[88px]">
         <Outlet />
       </main>
       <MobileNav items={navItems} />

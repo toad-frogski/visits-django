@@ -5,7 +5,7 @@ from rest_framework.exceptions import APIException, ValidationError, NotFound
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
 from datetime import date, datetime, timedelta
@@ -121,8 +121,8 @@ class LeaveView(APIView):
 
 @extend_schema(tags=["visits"])
 class UpdateSessionEntryView(UpdateAPIView):
-    serializer_class = serializers.SessionEntryModelSerializer
     permission_classes = [IsAuthenticated]
+    serializer_class = serializers.SessionEntryModelSerializer
 
     def get_queryset(self):
         return SessionEntry.objects.filter(session__user=self.request.user)
@@ -230,7 +230,9 @@ class UserMonthStatisticsView(APIView):
             )
             current_date += timedelta(days=1)
 
-        response_serializer = serializers.UserMonthStatisticsResponseSerializer(result, many=True)
+        response_serializer = serializers.UserMonthStatisticsResponseSerializer(
+            result, many=True
+        )
         return Response(response_serializer.data)
 
     def _calculate_statistics(self, entries: list[SessionEntry]) -> dict[str, float]:

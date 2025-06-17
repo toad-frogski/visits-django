@@ -61,20 +61,9 @@ class UserSessionSerializer(serializers.Serializer):
     session = SessionSerializer()
 
 
-def first_day_of_current_month():
-    today = timezone.localdate().today()
-    return today.replace(day=1)
-
-
-def last_day_of_current_month():
-    today = timezone.localdate().today()
-    next_month = today.replace(day=28) + timedelta(days=4)
-    return next_month.replace(day=1) - timedelta(days=1)
-
-
 class UserMonthStatisticsRequestSerializer(serializers.Serializer):
-    start = serializers.DateField(default=first_day_of_current_month)
-    end = serializers.DateField(default=last_day_of_current_month)
+    start = serializers.DateField(default=lambda: timezone.localdate().replace(day=1))
+    end = serializers.DateField(default=lambda: timezone.localdate())
 
 
 class UserMonthStatisticsResponseSerializer(serializers.Serializer):
@@ -86,5 +75,5 @@ class UserMonthStatisticsResponseSerializer(serializers.Serializer):
 
     date = serializers.DateField()
     session = SessionModelSerializer(allow_null=True)
-    statistics = StatisticsFieldSerializer(allow_null=True)
+    statistics = StatisticsFieldSerializer()
     extra = serializers.ListField(child=serializers.DictField())
