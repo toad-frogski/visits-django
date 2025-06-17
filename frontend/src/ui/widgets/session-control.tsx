@@ -1,8 +1,14 @@
 import { useState, type FC } from "react";
 import Button from "@/ui/components/button";
 import useAuthStore from "@/stores/auth";
-import { VisitsApi } from "@/lib/api";
+import { TextInput } from "@/ui/components/input";
+import { cn } from "@/lib/cn";
+import Card from "@/ui/components/card";
+import TimeInput from "@/ui/components/time-input";
+import type { Time } from "@internationalized/date";
+
 import client from "@/lib/api-client";
+import { VisitsApi, type SessionModel } from "@/lib/api";
 
 import Pause from "@/assets/pause.svg?react";
 import Play from "@/assets/play.svg?react";
@@ -10,10 +16,6 @@ import Stop from "@/assets/square.svg?react";
 import Leaf from "@/assets/leaf.svg?react";
 import Soup from "@/assets/soup.svg?react";
 import Reset from "@/assets/timer-reset.svg?react";
-
-import { TextInput } from "@/ui/components/input";
-import { cn } from "@/lib/cn";
-import Card from "@/ui/components/card";
 
 const api = new VisitsApi(undefined, undefined, client);
 
@@ -25,12 +27,7 @@ const SessionControl: FC = () => {
       return <ActiveControl />;
 
     case "cheater":
-      return (
-        <div>
-          <h1>Вы жулик </h1>
-          <p>Пожалуйста, укажите свое время ухода:</p>
-        </div>
-      );
+      return <CheaterControl />;
 
     case "inactive":
       return <InactiveControl />;
@@ -53,12 +50,7 @@ const ActiveControl: FC = () => {
   };
 
   return (
-    <div
-      className={cn(
-        "flex flex-col lg:flex-row items-center justify-center gap-x-3",
-        isLeave && "gap-y-3"
-      )}
-    >
+    <div className={cn("flex flex-col lg:flex-row items-center justify-center gap-x-3", isLeave && "gap-y-3")}>
       <div className="flex md:flex-col gap-3 w-full">
         {session?.status === "active" && (
           <>
@@ -92,11 +84,7 @@ const ActiveControl: FC = () => {
       <div className="flex md:flex-col gap-3 w-full">
         {session?.status === "active" && isLeave && (
           <>
-            <Button
-              variant="green"
-              icon={Leaf}
-              onClick={() => setIsBreak((prev) => !prev)}
-            >
+            <Button variant="green" icon={Leaf} onClick={() => setIsBreak((prev) => !prev)}>
               Перерыв
             </Button>
             <Button
@@ -131,13 +119,11 @@ const ActiveControl: FC = () => {
               disabled={loading || !breakMessage}
               onClick={() => {
                 setLoading(false);
-                api
-                  .leave({ type: "BREAK", comment: breakMessage })
-                  .finally(() => {
-                    setLoading(false);
-                    fetchSession();
-                    clear();
-                  });
+                api.leave({ type: "BREAK", comment: breakMessage }).finally(() => {
+                  setLoading(false);
+                  fetchSession();
+                  clear();
+                });
               }}
             >
               Подтвердить
@@ -201,6 +187,62 @@ const InactiveControl: FC = () => {
     >
       Возобновить
     </Button>
+  );
+};
+
+const CheaterControl: FC = () => {
+  const session = useAuthStore((state) => state.session);
+
+  const [time, setTime] = useState<Time | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const getLastDate = (session: SessionModel | null): Date | null => {
+    if (!session) return null;
+
+    const last = session?.entries[session.entries.length - 1];
+    const lastStart = new Date(last.start!);
+
+    return lastStart;
+  };
+
+  const handleSubmit = () => {
+    const last = getLastDate(session);
+
+    if (!last) return;
+
+    const [lh, lm] = [last.getHours(), last.getMinutes()];
+
+    if (lh > time!.hour || (lh === time!.hour && lm > time!.minute)) {
+      const formatted = `${String(lh).padStart(2, "0")}:${String(lm).padStart(2, "0")}`;
+      setError(`Время выхода не должно быть раньше ${formatted}`);
+      return;
+    }
+
+    setLoading(true);
+  };
+
+  if (!session) return;
+
+  return (
+    <div className="flex gap-3 flex-col md:flex-row">
+      <p className="text-gray font-semibold flex-1">
+        Вы ушли и не отметились в системе. Пожалуйста, укажите время выхода
+      </p>
+      <div className="lg:flex-1 gap-3 flex flex-col xl:flex-row flex-wrap">
+        <TimeInput
+          className="md:flex-1"
+          onChange={(time) => {
+            setError("");
+            setTime(time);
+          }}
+          errorMessage={error}
+        />
+        <Button className="md:flex-1" disabled={!session || loading || !time} onClick={handleSubmit}>
+          Подтвердить
+        </Button>
+      </div>
+    </div>
   );
 };
 
