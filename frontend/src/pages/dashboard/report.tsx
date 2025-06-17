@@ -1,8 +1,4 @@
-import {
-  StatisticsApi,
-  type StatisticsField,
-  type UserMonthStatisticsResponse,
-} from "@/lib/api";
+import { StatisticsApi, type UserMonthStatisticsResponse } from "@/lib/api";
 import client from "@/lib/api-client";
 import { parseMs, type Time } from "@/lib/utils";
 import { useEffect, useRef, useState, type FC } from "react";
@@ -21,11 +17,15 @@ const api = new StatisticsApi(undefined, undefined, client);
 
 const DashboardReport: FC = () => {
   const [stats, setStats] = useState<UserMonthStatisticsResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    api.statistics().then(({ data }) => setStats(data));
+    api
+      .statistics()
+      .then(({ data }) => setStats(data))
+      .finally(() => setIsLoading(false));
   }, []);
 
   useEffect(() => {
@@ -37,6 +37,23 @@ const DashboardReport: FC = () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [stats]);
+
+  if (isLoading) {
+    return (
+      <div className="rounded flex-1">
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className="w-full bg-surface mb-3 rounded overflow-hidden p-2 animate-pulse"
+          >
+            <div className="h-1 w-1/2 mb-3" />
+            <div className="h-1 w-full mb-2" />
+            <div className="h-1 w-3/4" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded flex-1">
@@ -51,9 +68,13 @@ const DashboardReport: FC = () => {
                 slot="trigger"
                 className="w-full cursor-pointer pr-2 py-2 pl-6 hover:bg-accent-light/20 duration-200 ease-in-out transition-colors"
               >
-                <div className="flex gap-3">
-                  <span className="text-gray">{date} |</span>
-                  <StatisticsBadge statistics={statistics} session={session} current={currentDate} />
+                <div className="flex gap-3 items-center flex-col md:flex-row">
+                  <span className="text-gray text-nowrap">{date} | </span>
+                  <StatisticsBadge
+                    statistics={statistics}
+                    session={session}
+                    current={currentDate}
+                  />
                 </div>
               </Button>
             </Heading>
