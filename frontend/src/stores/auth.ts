@@ -51,7 +51,7 @@ const useAuthStore = create<AuthState>()(
         try {
           const { data } = await visitsApi.current();
           set({ session: data });
-        } catch {}
+        } catch { /* empty */ }
       },
 
       setSession: (session) => set({ session }),

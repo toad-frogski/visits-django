@@ -30,6 +30,8 @@ class SessionEntryLeaveSerializer(serializers.ModelSerializer):
         fields = ["time", "type", "comment"]
 
 class SessionEntryModelSerializer(serializers.ModelSerializer):
+    id =  serializers.ReadOnlyField()
+
     class Meta:
         model = SessionEntry
         fields = ["id", "start", "end", "type", "comment", "created_at", "updated_at"]

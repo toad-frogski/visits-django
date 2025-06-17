@@ -1,6 +1,6 @@
-from datetime import datetime
 from django.test import tag
 from rest_framework.views import APIView
+from rest_framework.generics import UpdateAPIView
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException, ValidationError, NotFound
 from rest_framework import status
@@ -9,6 +9,7 @@ from rest_framework.request import Request
 from drf_spectacular.utils import extend_schema
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
+from datetime import datetime
 
 from .models import Session, SessionEntry
 from .services import SessionService
@@ -119,6 +120,15 @@ class LeaveView(APIView):
 
 
 @extend_schema(tags=["visits"])
+class UpdateSessionEntryView(UpdateAPIView):
+    serializer_class = serializers.SessionEntryModelSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return SessionEntry.objects.filter(session__user=self.request.user)
+
+
+@extend_schema(tags=["visits"])
 class CurrentSessionView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -133,6 +143,9 @@ class CurrentSessionView(APIView):
     def get(self, request: Request):
         session_service = SessionService()
         session = session_service.get_current_session(request.user)
+        if session is None:
+            return Response({"status": Session.Status.INACTIVE, "entries": []})
+
         serializer = serializers.SessionModelSerializer(session)
 
         return Response(serializer.data)

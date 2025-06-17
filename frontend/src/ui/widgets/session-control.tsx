@@ -8,7 +8,7 @@ import TimeInput from "@/ui/components/time-input";
 import type { Time } from "@internationalized/date";
 
 import client from "@/lib/api-client";
-import { VisitsApi, type SessionModel } from "@/lib/api";
+import { VisitsApi } from "@/lib/api";
 
 import Pause from "@/assets/pause.svg?react";
 import Play from "@/assets/play.svg?react";
@@ -192,26 +192,22 @@ const InactiveControl: FC = () => {
 
 const CheaterControl: FC = () => {
   const session = useAuthStore((state) => state.session);
+  const fetchSession = useAuthStore((state) => state.fetchSession);
 
   const [time, setTime] = useState<Time | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const getLastDate = (session: SessionModel | null): Date | null => {
-    if (!session) return null;
-
-    const last = session?.entries[session.entries.length - 1];
-    const lastStart = new Date(last.start!);
-
-    return lastStart;
-  };
 
   const handleSubmit = () => {
-    const last = getLastDate(session);
+    if (!session) return;
+    if (!time) return;
 
+    const last = session.entries[session.entries.length - 1];
     if (!last) return;
 
-    const [lh, lm] = [last.getHours(), last.getMinutes()];
+    const lastStart = new Date(last.start!);
+    const [lh, lm] = [lastStart.getHours(), lastStart.getMinutes()];
 
     if (lh > time!.hour || (lh === time!.hour && lm > time!.minute)) {
       const formatted = `${String(lh).padStart(2, "0")}:${String(lm).padStart(2, "0")}`;
@@ -220,6 +216,16 @@ const CheaterControl: FC = () => {
     }
 
     setLoading(true);
+    const lastEnd = new Date(lastStart);
+    lastEnd.setHours(time.hour);
+    lastEnd.setMinutes(time.minute);
+    lastEnd.setMilliseconds(0);
+
+    api
+      .v1VisitsUpdatePartialUpdate(last.id, { end: lastEnd.toISOString() })
+      .then(() => fetchSession())
+      .catch((e) => console.log(e))
+      .finally(() => setLoading(false));
   };
 
   if (!session) return;
