@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { useState, type FC, type ImgHTMLAttributes } from "react";
+import { useEffect, useState, type FC, type ImgHTMLAttributes } from "react";
 
 interface AvatarProps extends ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -7,18 +7,19 @@ interface AvatarProps extends ImgHTMLAttributes<HTMLImageElement> {
 }
 
 const Avatar: FC<AvatarProps> = ({ className, src, alt, ...props }) => {
-  const [avatar, setAvatar] = useState(src || "");
+  const [showImage, setShowImage] = useState(false);
 
-  if (!!avatar) {
-    return (
-      <img
-        {...props}
-        src={avatar}
-        alt={alt}
-        className={cn(className, "size-12 rounded-full object-center")}
-        onError={() => setAvatar("")}
-      />
-    );
+  useEffect(() => {
+    if (!src) return;
+
+    const img = new Image();
+    img.src = src;
+    img.onload = () => setShowImage(true);
+    img.onerror = () => setShowImage(false);
+  }, [src]);
+
+  if (showImage) {
+    return <img {...props} src={src} alt={alt} className={cn(className, "size-12 rounded-full object-center")} />;
   }
 
   return (
@@ -26,20 +27,17 @@ const Avatar: FC<AvatarProps> = ({ className, src, alt, ...props }) => {
       className={cn(
         className,
         "size-12 rounded-full inline-flex items-center justify-center text-center",
-        `text-h2 text-white font-bold`
+        "text-h2 text-white font-bold"
       )}
       style={{ backgroundColor: colorFromStr(alt) }}
     >
-      {alt.charAt(0)}
+      {alt.charAt(0).toUpperCase()}
     </span>
   );
 };
 
 const colorFromStr = (str: string): string => {
-  const hash = [...str].reduce(
-    (acc, char) => (char.charCodeAt(0) + ((acc << 5) - acc)) | 0,
-    0
-  );
+  const hash = [...str].reduce((acc, char) => (char.charCodeAt(0) + ((acc << 5) - acc)) | 0, 0);
   return `hsl(${hash % 360}, 60%, 75%)`;
 };
 

@@ -8,14 +8,17 @@ import TimeInput from "@/ui/components/time-input";
 import type { Time } from "@internationalized/date";
 
 import client from "@/lib/api-client";
-import { VisitsApi } from "@/lib/api";
+import { TypeEnum, VisitsApi } from "@/lib/api";
 
-import Pause from "@/assets/pause.svg?react";
 import Play from "@/assets/play.svg?react";
-import Stop from "@/assets/square.svg?react";
+import House from "@/assets/house.svg?react";
+import Coffee from "@/assets/coffee.svg?react";
+import Pencil from "@/assets/pencil.svg?react";
 import Leaf from "@/assets/leaf.svg?react";
 import Soup from "@/assets/soup.svg?react";
 import Reset from "@/assets/timer-reset.svg?react";
+import { ToggleButton, ToggleButtonGroup } from "@/ui/components/toggle-button";
+import { Radio, RadioGroup } from "react-aria-components";
 
 const api = new VisitsApi(undefined, undefined, client);
 
@@ -35,103 +38,120 @@ const SessionControl: FC = () => {
   }
 };
 
+type ActionType = "mark" | "leave";
+
 const ActiveControl: FC = () => {
-  const session = useAuthStore((state) => state.session);
   const fetchSession = useAuthStore((state) => state.fetchSession);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [isLeave, setIsLeave] = useState<boolean>(false);
-  const [isBreak, setIsBreak] = useState<boolean>(false);
+  const [actionType, setActionType] = useState<Set<ActionType>>(new Set(["leave"]));
+  const [leaveType, setLeaveType] = useState<TypeEnum | null>(null);
   const [breakMessage, setBreakMessage] = useState("");
 
-  const clear = () => {
-    setIsLeave(false);
-    setIsBreak(false);
-    setBreakMessage("");
+  const handleLeaveSubmit = () => {
+    if (!actionType.has("leave")) return;
+
+    switch (leaveType) {
+      case "BREAK":
+        api
+          .leave({ comment: breakMessage, type: "BREAK" })
+          .then(() => fetchSession())
+          .catch(() => setError("Something went wrong"))
+          .finally(() => setLoading(false));
+        break;
+
+      case "LUNCH":
+        api
+          .leave({ type: "LUNCH" })
+          .then(() => fetchSession())
+          .catch(() => setError("Something went wrong"))
+          .finally(() => setLoading(false));
+        break;
+    }
   };
 
   return (
-    <div className={cn("flex flex-col lg:flex-row items-center justify-center gap-x-3", isLeave && "gap-y-3")}>
-      <div className="flex md:flex-col gap-3 w-full">
-        {session?.status === "active" && (
-          <>
-            <Button
-              icon={Pause}
-              onClick={() => {
-                setIsLeave((prev) => !prev);
-                if (isLeave) setIsBreak(false);
-              }}
-            >
-              Отлучиться
-            </Button>
-            <Button
-              icon={Stop}
-              disabled={loading || isLeave}
-              onClick={() => {
-                setLoading(true);
-                api.exit().finally(() => {
-                  setLoading(false);
-                  fetchSession();
-                  clear();
-                });
-              }}
-            >
-              Завершить
-            </Button>
-          </>
-        )}
+    <div className="flex flex-col lg:flex-row md:gap-9 gap-6 flex-wrap md:min-h-56">
+      <div className="flex flex-col">
+        <p className="text-lg font-bold">Выберите тип действия</p>
+        <ToggleButtonGroup
+          className="gap-3 flex-1 justify-between"
+          defaultSelectedKeys={actionType}
+          disallowEmptySelection
+          selectedKeys={actionType}
+          onSelectionChange={(keys) => setActionType(keys as Set<ActionType>)}
+        >
+          <Button
+            icon={House}
+            variant="white"
+            className="mt-3"
+            onClick={() => {
+              setLoading(true);
+              api
+                .exit()
+                .then(() => fetchSession())
+                .finally(() => setLoading(false));
+            }}
+          >
+            Завершить сессию
+          </Button>
+          <ToggleButton id="mark" icon={Pencil}>
+            Отметить выход
+          </ToggleButton>
+          <ToggleButton id="leave" icon={Coffee}>
+            Выйти
+          </ToggleButton>
+        </ToggleButtonGroup>
       </div>
-
-      <div className="flex md:flex-col gap-3 w-full">
-        {session?.status === "active" && isLeave && (
-          <>
-            <Button variant="green" icon={Leaf} onClick={() => setIsBreak((prev) => !prev)}>
-              Перерыв
-            </Button>
-            <Button
-              variant="blue"
-              icon={Soup}
-              disabled={loading || isBreak}
-              onClick={() => {
-                setLoading(true);
-                api.leave({ type: "LUNCH" }).finally(() => {
-                  setLoading(false);
-                  fetchSession();
-                  clear();
-                });
-              }}
+      {actionType.has("leave") && (
+        <div className="flex-1 flex flex-col">
+          <p className="text-lg font-bold">Выберите тип выхода</p>
+          <RadioGroup onChange={(value) => setLeaveType(value as TypeEnum)} className="flex-1">
+            <Radio
+              className={({ isSelected }) =>
+                cn("flex gap-3 mt-3", isSelected ? "text-accent *:stroke-accent" : "text-gray")
+              }
+              value={TypeEnum.Lunch}
             >
-              Обед
-            </Button>
-          </>
-        )}
-      </div>
+              <Soup width={24} height={24} />
+              <span>Обед</span>
+            </Radio>
+            <Radio
+              className={({ isSelected }) =>
+                cn("flex gap-3 mt-3", isSelected ? "text-accent *:stroke-accent" : "text-gray")
+              }
+              value={TypeEnum.Break}
+            >
+              <Leaf width={24} height={24} />
+              <span>Перерыв</span>
+            </Radio>
+          </RadioGroup>
 
-      <div className="flex flex-col gap-3 w-full">
-        {session?.status === "active" && isBreak && (
-          <>
+          {leaveType === "BREAK" && (
             <TextInput
-              className="max-h-12"
-              placeholder="Укажите причину"
+              className="mt-3"
+              placeholder="Отметьте причину"
               value={breakMessage}
               onChange={(e) => setBreakMessage(e.target.value)}
             />
-            <Button
-              disabled={loading || !breakMessage}
-              onClick={() => {
-                setLoading(false);
-                api.leave({ type: "BREAK", comment: breakMessage }).finally(() => {
-                  setLoading(false);
-                  fetchSession();
-                  clear();
-                });
-              }}
-            >
-              Подтвердить
-            </Button>
-          </>
-        )}
-      </div>
+          )}
+
+          <Button
+            className="mt-3"
+            variant="green"
+            disabled={(leaveType === "BREAK" && !breakMessage) || loading || !leaveType}
+            onClick={handleLeaveSubmit}
+          >
+            Подтвердить
+          </Button>
+        </div>
+      )}
+      {actionType.has("mark") && (
+        <div className="flex items-center justify-center border-dashed border-2 rounded border-accent flex-1">
+          <span>Work in progress</span>
+        </div>
+      )}
     </div>
   );
 };
@@ -198,7 +218,6 @@ const CheaterControl: FC = () => {
   const [time, setTime] = useState<Time | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
 
   const handleSubmit = () => {
     if (!session) return;
