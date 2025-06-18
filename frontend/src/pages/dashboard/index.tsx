@@ -55,7 +55,7 @@ const Dashboard: FC = () => {
           </ul>
         </nav>
       )}
-      <div className="flex flex-1 gap-3 md:gap-6 flex-col md:flex-row-reverse p-3 md:p-6 md:pl-[164px]">
+      <div className="flex flex-1 gap-3 md:gap-6 flex-col lg:flex-row-reverse p-3 md:p-6 md:pl-[164px]">
         <section className="sticky top-0">
           <Timer />
         </section>

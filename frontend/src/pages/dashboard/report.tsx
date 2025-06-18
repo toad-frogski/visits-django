@@ -3,8 +3,9 @@ import client from "@/lib/api-client";
 import { parseMs, type Time } from "@/lib/utils";
 import { useEffect, useRef, useState, type FC } from "react";
 
+import Calendar from "@/assets/calendar.svg?react";
 import Clock from "@/assets/clock.svg?react";
-import Leaf from "@/assets/leaf.svg?react";
+import Coffee from "@/assets/coffee.svg?react";
 import Soup from "@/assets/soup.svg?react";
 import Disclosure, { DisclosurePanel, DisclosureTrigger } from "@/ui/components/disclosure";
 
@@ -54,8 +55,12 @@ const DashboardReport: FC = () => {
           <Disclosure key={date}>
             <DisclosureTrigger>
               <div className="flex gap-3 items-center flex-col md:flex-row">
-                <span className="text-gray text-nowrap">{date} | </span>
+                <span className="text-gray text-nowrap inline-flex gap-3 items-center">
+                  {" "}
+                  <Calendar width={16} height={16} /> {date}
+                </span>
                 <StatisticsBadge statistics={statistics} session={session} current={currentDate} />
+                <ExtraBadge extra={extra} />
               </div>
             </DisclosureTrigger>
             <DisclosurePanel>
@@ -65,12 +70,13 @@ const DashboardReport: FC = () => {
 
                 return (
                   <div key={entry.id} className="text-gray flex gap-3 items-center mb-2">
-                    {entry.type === "BREAK" && <Leaf width={16} height={16} />}
+                    {entry.type === "BREAK" && <Coffee width={16} height={16} />}
                     {entry.type === "LUNCH" && <Soup width={16} height={16} />}
                     {entry.type === "WORK" && <Clock width={16} height={16} />}
                     {start.toLocaleTimeString()}
                     <span> - </span>
                     {end ? end.toLocaleTimeString() : (currentDate ?? new Date()).toLocaleTimeString()}
+                    {entry.comment && <span className="text-gray">{entry.comment}</span>}
                   </div>
                 );
               })}
@@ -133,11 +139,32 @@ const StatisticsBadge: FC<StatisticsBadgeProps> = ({ statistics, session, curren
       {[
         { time: workTime, icon: Clock },
         { time: lunchTime, icon: Soup },
-        { time: breakTime, icon: Leaf },
+        { time: breakTime, icon: Coffee },
       ].map(({ time, icon: Icon }) => (
         <span className="inline-flex items-center text-gray w-16 flex-1 ml-3">
           {format(time)}
           <Icon width={16} height={16} className="ml-auto" />
+        </span>
+      ))}
+    </div>
+  );
+};
+
+type ExtraData = {
+  type: string;
+  data: Record<string, any>;
+};
+
+type ExtraBadgeProps = {
+  extra: ExtraData[];
+};
+
+const ExtraBadge: FC<ExtraBadgeProps> = ({ extra }) => {
+  return (
+    <div className="flex gap-3">
+      {extra.map(({ type, data }) => (
+        <span>
+          {type}: {JSON.stringify(data)}
         </span>
       ))}
     </div>
