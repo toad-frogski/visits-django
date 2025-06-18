@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "session",
     "visits",
     "rfid",
+    "redmine",
 ]
 
 MIDDLEWARE = [
@@ -106,7 +107,15 @@ DATABASES = {
             "charset": "utf8mb4",
         },
         "TEST": {"MIRROR": "default"},
-    }
+    },
+    "redmine": {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv("REDMINE_DB_NAME", ""),
+        'USER': os.getenv("REDMINE_DB_USER", ""),
+        'PASSWORD': os.getenv("REDMINE_DB_PASSWORD", ""),
+        'HOST': os.getenv("REDMINE_DB_HOST", ""),
+        'PORT': os.getenv("REDMINE_DB_PORT", 3306),
+    },
 }
 
 

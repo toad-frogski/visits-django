@@ -12,7 +12,7 @@ from datetime import date, datetime, timedelta
 
 from .models import Session, SessionEntry
 from .services import SessionService
-from .callbacks import statistics_extra_callbacks
+from .callbacks import StatisticsExtraDataResult, statistics_extra_callbacks
 from . import serializers
 
 
@@ -258,10 +258,15 @@ class UserMonthStatisticsView(APIView):
         return result
 
     def _collect_extra(self, user: User, date: date):
-        results = []
+        results: list[StatisticsExtraDataResult] = []
         for callback in statistics_extra_callbacks():
             data = callback(user, date)
             if data:
-                results.append(data)
+                results.append(
+                    {
+                        "type": getattr(callback, "_type"),
+                        "data": data,
+                    }
+                )
 
         return results
