@@ -1,12 +1,14 @@
 import {
+  ExtraFieldBaseTypeEnum,
   StatisticsApi,
   type ExtraFieldBase,
+  type RedmineExtraFieldPayload,
   type SessionModel,
   type StatisticsField,
   type UserMonthStatisticsResponse,
 } from "@/lib/api";
 import client from "@/lib/api-client";
-import { parseMs, type Time } from "@/lib/utils";
+import { formatTime, parseMs, type Time } from "@/lib/utils";
 import { useEffect, useRef, useState, type FC } from "react";
 
 import Calendar from "@/assets/calendar.svg?react";
@@ -64,11 +66,8 @@ const ReportItem: FC<ReportItemProps> = ({ date, session, statistics, extra, cur
   return (
     <Disclosure {...props}>
       <DisclosureTrigger>
-        <div className="flex gap-3 items-center flex-col md:flex-row">
-          <span className="text-gray text-nowrap inline-flex gap-3 items-center">
-            {" "}
-            <Calendar width={16} height={16} /> {date}
-          </span>
+        <div className="flex gap-6 items-center flex-col md:flex-row">
+          <DateBadge date={date} />
           <StatisticsBadge statistics={statistics} />
           <ExtraBadge extra={extra} />
         </div>
@@ -148,6 +147,14 @@ const CurrentReportItem: FC<ReportItemProps> = ({ statistics, session, ...props 
   );
 };
 
+const DateBadge: FC<{ date: string }> = ({ date }) => {
+  return (
+    <span className="inline-flex items-center gap-3 text-gray">
+      <Calendar width={16} height={16} /> {date}
+    </span>
+  );
+};
+
 type StatisticsBadgeProps = Pick<UserMonthStatisticsResponse, "statistics">;
 
 const StatisticsBadge: FC<StatisticsBadgeProps> = ({ statistics }) => {
@@ -155,23 +162,15 @@ const StatisticsBadge: FC<StatisticsBadgeProps> = ({ statistics }) => {
   const formattedLunchTime = parseMs((statistics.lunch_time || 0) * 1000);
   const formattedBreakTime = parseMs((statistics.break_time || 0) * 1000);
 
-  const format = (value: Time) => {
-    if (value.hours !== 0 || value.minutes !== 0) {
-      return `${String(value.hours).padStart(2, "0")}:${String(value.minutes).padStart(2, "0")}`;
-    }
-
-    return "--:--";
-  };
-
   return (
-    <div>
+    <div className="flex gap-3">
       {[
         { time: formattedWorkTime, icon: Clock },
         { time: formattedLunchTime, icon: Soup },
         { time: formattedBreakTime, icon: Coffee },
       ].map(({ time, icon: Icon }) => (
-        <span className="inline-flex items-center text-gray w-16 flex-1 ml-3">
-          {format(time)}
+        <span className="inline-flex items-center text-gray w-16 flex-1 gap-1">
+          {formatTime(time)}
           <Icon width={16} height={16} className="ml-auto" />
         </span>
       ))}
@@ -186,13 +185,21 @@ type ExtraBadgeProps = {
 const ExtraBadge: FC<ExtraBadgeProps> = ({ extra }) => {
   return (
     <div className="flex gap-3">
-      {extra.map(({ type, payload }) => (
-        <span>
-          {type}: {JSON.stringify(payload)}
-        </span>
-      ))}
+      {extra.map(
+        ({ type, payload }) =>
+          ({
+            [ExtraFieldBaseTypeEnum.Redmine]: <RedmineBadge {...payload} />,
+          }[type])
+      )}
     </div>
   );
+};
+
+const RedmineBadge: FC<RedmineExtraFieldPayload> = ({ hours }) => {
+  const time = parseMs(hours || 0);
+  const formatted = formatTime(time);
+
+  return <span className="text-gray">redmine: {formatted}</span>;
 };
 
 export default DashboardReport;

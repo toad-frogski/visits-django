@@ -14,7 +14,7 @@ const disclosure = tv({
   slots: {
     base: "w-full bg-surface mb-3 bg-gradient-to-r from-[16px] from-background via-surface via-[16px] shadow data-expanded:from-accent rounded overflow-hidden duration-200 transition-colors ease-in-out",
     trigger: "w-full cursor-pointer pr-2 py-2 pl-6 hover:bg-accent-light/20 duration-200 ease-in-out transition-colors",
-    content: "pl-6 pr-2",
+    content: "pl-6 pr-2 aria-hidden:hidden",
   },
 });
 

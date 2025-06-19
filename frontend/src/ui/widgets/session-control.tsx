@@ -73,7 +73,7 @@ const ActiveControl: FC = () => {
 
   return (
     <div className="flex flex-col lg:flex-row md:gap-9 gap-6 flex-wrap md:min-h-56">
-      <div className="flex flex-col">
+      <div className="flex flex-col flex-1">
         <p className="text-lg font-bold">Выберите тип действия</p>
         <ToggleButtonGroup
           className="gap-3 flex-1 justify-between"
@@ -147,8 +147,9 @@ const ActiveControl: FC = () => {
           </Button>
         </div>
       )}
+
       {actionType.has("mark") && (
-        <div className="flex items-center justify-center border-dashed border-2 rounded border-accent flex-1">
+        <div className="flex items-center justify-center rounded bg-background text-gray font-bold text-h2/h2 flex-1">
           <span>Work in progress</span>
         </div>
       )}
