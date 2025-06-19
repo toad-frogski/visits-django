@@ -18,7 +18,7 @@ import Leaf from "@/assets/leaf.svg?react";
 import Soup from "@/assets/soup.svg?react";
 import Reset from "@/assets/timer-reset.svg?react";
 import { ToggleButton, ToggleButtonGroup } from "@/ui/components/toggle-button";
-import { Radio, RadioGroup } from "react-aria-components";
+import Radio, { RadioGroup } from "@/ui/components/radio";
 
 const api = new VisitsApi(undefined, undefined, client);
 
@@ -45,7 +45,9 @@ const ActiveControl: FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [actionType, setActionType] = useState<Set<ActionType>>(new Set(["leave"]));
+  const [actionType, setActionType] = useState<Set<ActionType>>(
+    new Set(["leave"])
+  );
   const [leaveType, setLeaveType] = useState<TypeB70Enum | null>(null);
   const [breakMessage, setBreakMessage] = useState("");
 
@@ -107,40 +109,37 @@ const ActiveControl: FC = () => {
       {actionType.has("leave") && (
         <div className="flex-1 flex flex-col">
           <p className="text-lg font-bold">Выберите тип выхода</p>
-          <RadioGroup onChange={(value) => setLeaveType(value as TypeB70Enum)} className="flex-1">
-            <Radio
-              className={({ isSelected }) =>
-                cn("flex gap-3 mt-3", isSelected ? "text-accent *:stroke-accent" : "text-gray")
-              }
-              value={TypeB70Enum.Lunch}
+          <div className="flex-1">
+            <RadioGroup
+              onChange={(value) => setLeaveType(value as TypeB70Enum)}
+              className="flex flex-col gap-3"
             >
-              <Soup width={24} height={24} />
-              <span>Обед</span>
-            </Radio>
-            <Radio
-              className={({ isSelected }) =>
-                cn("flex gap-3 mt-3", isSelected ? "text-accent *:stroke-accent" : "text-gray")
-              }
-              value={TypeB70Enum.Break}
-            >
-              <Leaf width={24} height={24} />
-              <span>Перерыв</span>
-            </Radio>
-          </RadioGroup>
+              <Radio value={TypeB70Enum.Lunch}>
+                <Soup width={24} height={24} />
+                <span>Обед</span>
+              </Radio>
+              <Radio value={TypeB70Enum.Break}>
+                <Leaf width={24} height={24} />
+                <span>Перерыв</span>
+              </Radio>
+            </RadioGroup>
 
-          {leaveType === "BREAK" && (
-            <TextInput
-              className="mt-3"
-              placeholder="Отметьте причину"
-              value={breakMessage}
-              onChange={(e) => setBreakMessage(e.target.value)}
-            />
-          )}
+            {leaveType === "BREAK" && (
+              <TextInput
+                className="mt-3"
+                placeholder="Отметьте причину"
+                value={breakMessage}
+                onChange={(e) => setBreakMessage(e.target.value)}
+              />
+            )}
+          </div>
 
           <Button
             className="mt-3"
             variant="green"
-            disabled={(leaveType === "BREAK" && !breakMessage) || loading || !leaveType}
+            disabled={
+              (leaveType === "BREAK" && !breakMessage) || loading || !leaveType
+            }
             onClick={handleLeaveSubmit}
           >
             Подтвердить
@@ -231,7 +230,10 @@ const CheaterControl: FC = () => {
     const [lh, lm] = [lastStart.getHours(), lastStart.getMinutes()];
 
     if (lh > time!.hour || (lh === time!.hour && lm > time!.minute)) {
-      const formatted = `${String(lh).padStart(2, "0")}:${String(lm).padStart(2, "0")}`;
+      const formatted = `${String(lh).padStart(2, "0")}:${String(lm).padStart(
+        2,
+        "0"
+      )}`;
       setError(`Время выхода не должно быть раньше ${formatted}`);
       return;
     }
@@ -266,7 +268,11 @@ const CheaterControl: FC = () => {
           }}
           errorMessage={error}
         />
-        <Button className="md:flex-1" disabled={!session || loading || !time} onClick={handleSubmit}>
+        <Button
+          className="md:flex-1"
+          disabled={!session || loading || !time}
+          onClick={handleSubmit}
+        >
           Подтвердить
         </Button>
       </div>
