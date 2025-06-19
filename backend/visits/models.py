@@ -88,13 +88,8 @@ class Session(models.Model):
         end: datetime | None = None,
     ):
         entry = self.entries.get(id=entry_id)  # type: ignore
-
-        if start is not None:
-            entry.start = start
-
-        if end is not None:
-            entry.end = end
-
+        entry.start = start or entry.start
+        entry.end = end or entry.end
         entry.type = type
         entry.save()
 

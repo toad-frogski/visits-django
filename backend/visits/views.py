@@ -213,12 +213,8 @@ class UserMonthStatisticsView(APIView):
         current_date = start
         while current_date <= end:
             session = sessions_by_date.get(current_date)
-            if session:
-                entries = list(session.entries.all())  # type: ignore
-                statistics = self._calculate_statistics(entries)
-            else:
-                statistics = None
-
+            entries = session.entries.all() if session else []  # type: ignore
+            statistics = self._calculate_statistics(entries)
             extra = self._collect_extra(user, current_date)
             result.append(
                 {

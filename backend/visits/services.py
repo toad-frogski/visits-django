@@ -11,11 +11,20 @@ class SessionService:
     @staticmethod
     def enter(user: User, type: SessionEntry.SessionEntryType, time: datetime):
         session, _ = Session.objects.get_or_create(user=user, date=timezone.localdate())
-
         last_entry = session.get_last_entry()
-        if last_entry and last_entry.end is None:
-            raise ValueError("Previous entry has not been checked out.")
 
+        if not last_entry or not last_entry.end:
+            session.add_enter(start=time, type=type)
+            return
+
+        # Try to restore session
+        break_entry = SessionEntry.objects.create(
+            session=session,
+            type=SessionEntry.SessionEntryType.BREAK,
+            start=last_entry.end,
+            end=time,
+        )
+        break_entry.save()
         session.add_enter(start=time, type=type)
 
     @staticmethod
@@ -55,7 +64,10 @@ class SessionService:
 
     @staticmethod
     def handle_leave(
-        user: User, type: SessionEntry.SessionEntryType, time: datetime, comment: str | None = None
+        user: User,
+        type: SessionEntry.SessionEntryType,
+        time: datetime,
+        comment: str | None = None,
     ):
         session = Session.objects.get_last_user_session(user)
         if session is None:
@@ -66,7 +78,6 @@ class SessionService:
             raise ValueError("No open work entry to leave from.")
 
         last_entry.close(time)
-
         session.add_enter(start=time, type=type, comment=comment)
 
     @staticmethod

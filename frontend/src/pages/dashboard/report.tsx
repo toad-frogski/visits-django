@@ -1,4 +1,10 @@
-import { StatisticsApi, type ExtraFieldBase, type UserMonthStatisticsResponse } from "@/lib/api";
+import {
+  StatisticsApi,
+  type ExtraFieldBase,
+  type SessionModel,
+  type StatisticsField,
+  type UserMonthStatisticsResponse,
+} from "@/lib/api";
 import client from "@/lib/api-client";
 import { parseMs, type Time } from "@/lib/utils";
 import { useEffect, useRef, useState, type FC } from "react";
@@ -8,14 +14,15 @@ import Clock from "@/assets/clock.svg?react";
 import Coffee from "@/assets/coffee.svg?react";
 import Soup from "@/assets/soup.svg?react";
 import Disclosure, { DisclosurePanel, DisclosureTrigger } from "@/ui/components/disclosure";
+import type { DisclosureProps } from "react-aria-components";
 
 const api = new StatisticsApi(undefined, undefined, client);
 
 const DashboardReport: FC = () => {
   const [stats, setStats] = useState<UserMonthStatisticsResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const current = new Date();
 
   useEffect(() => {
     api
@@ -23,16 +30,6 @@ const DashboardReport: FC = () => {
       .then(({ data }) => setStats(data))
       .finally(() => setIsLoading(false));
   }, []);
-
-  useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setCurrentDate(new Date());
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [stats]);
 
   if (isLoading) {
     return (
@@ -50,60 +47,69 @@ const DashboardReport: FC = () => {
 
   return (
     <div className="rounded flex-1">
-      {stats.map(({ date, statistics, session, extra }) => {
-        return (
-          <Disclosure key={date}>
-            <DisclosureTrigger>
-              <div className="flex gap-3 items-center flex-col md:flex-row">
-                <span className="text-gray text-nowrap inline-flex gap-3 items-center">
-                  {" "}
-                  <Calendar width={16} height={16} /> {date}
-                </span>
-                <StatisticsBadge statistics={statistics} session={session} current={currentDate} />
-                <ExtraBadge extra={extra} />
-              </div>
-            </DisclosureTrigger>
-            <DisclosurePanel>
-              {session?.entries.map((entry) => {
-                const start = new Date(entry.start!);
-                const end = entry.end ? new Date(entry.end) : null;
+      {stats.map((item) => {
+        if (current.toISOString().split("T")[0] === item.date) {
+          return <CurrentReportItem key={item.date} {...item} />;
+        }
 
-                return (
-                  <div key={entry.id} className="text-gray flex gap-3 items-center mb-2">
-                    {entry.type === "BREAK" && <Coffee width={16} height={16} />}
-                    {entry.type === "LUNCH" && <Soup width={16} height={16} />}
-                    {entry.type === "WORK" && <Clock width={16} height={16} />}
-                    {start.toLocaleTimeString()}
-                    <span> - </span>
-                    {end ? end.toLocaleTimeString() : (currentDate ?? new Date()).toLocaleTimeString()}
-                    {entry.comment && <span className="text-gray">{entry.comment}</span>}
-                  </div>
-                );
-              })}
-            </DisclosurePanel>
-          </Disclosure>
-        );
+        return <ReportItem key={item.date} {...item} />;
       })}
     </div>
   );
 };
 
-type StatisticsBadgeProps = Pick<UserMonthStatisticsResponse, "session" | "statistics"> & {
-  current: Date;
+type ReportItemProps = DisclosureProps & UserMonthStatisticsResponse & { current?: Date };
+
+const ReportItem: FC<ReportItemProps> = ({ date, session, statistics, extra, current, ...props }) => {
+  return (
+    <Disclosure {...props}>
+      <DisclosureTrigger>
+        <div className="flex gap-3 items-center flex-col md:flex-row">
+          <span className="text-gray text-nowrap inline-flex gap-3 items-center">
+            {" "}
+            <Calendar width={16} height={16} /> {date}
+          </span>
+          <StatisticsBadge statistics={statistics} />
+          <ExtraBadge extra={extra} />
+        </div>
+      </DisclosureTrigger>
+      <DisclosurePanel>
+        {session?.entries.map((entry) => {
+          const start = new Date(entry.start!);
+          const end = entry.end ? new Date(entry.end) : current;
+
+          return (
+            <div key={entry.id} className="text-gray flex gap-3 items-center mb-2">
+              {entry.type === "BREAK" && <Coffee width={16} height={16} />}
+              {entry.type === "LUNCH" && <Soup width={16} height={16} />}
+              {entry.type === "WORK" && <Clock width={16} height={16} />}
+              {start.toLocaleTimeString()}
+              <span> - </span>
+              {end?.toLocaleTimeString() ?? "--:--"}
+              {entry.comment && <span className="text-gray">{entry.comment}</span>}
+            </div>
+          );
+        })}
+      </DisclosurePanel>
+    </Disclosure>
+  );
 };
 
-const StatisticsBadge: FC<StatisticsBadgeProps> = ({ statistics, session, current }) => {
+const CurrentReportItem: FC<ReportItemProps> = ({ statistics, session, ...props }) => {
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   let workSeconds = statistics?.work_time ?? 0;
   let lunchSeconds = statistics?.lunch_time ?? 0;
   let breakSeconds = statistics?.break_time ?? 0;
 
-  if (session?.status === "active") {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  if (session) {
     const last = session.entries[session.entries.length - 1];
     if (last?.start) {
       const lastStart = new Date(last.start).getTime();
 
       if (!isNaN(lastStart)) {
-        const currentDuration = Math.floor((current.getTime() - lastStart) / 1000);
+        const currentDuration = Math.floor((currentDate.getTime() - lastStart) / 1000);
 
         switch (last.type) {
           case "WORK":
@@ -122,9 +128,32 @@ const StatisticsBadge: FC<StatisticsBadgeProps> = ({ statistics, session, curren
     }
   }
 
-  const workTime = parseMs(workSeconds * 1000);
-  const lunchTime = parseMs(lunchSeconds * 1000);
-  const breakTime = parseMs(breakSeconds * 1000);
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [session]);
+
+  return (
+    <ReportItem
+      {...props}
+      statistics={{ work_time: workSeconds, break_time: breakSeconds, lunch_time: lunchSeconds }}
+      session={session}
+      current={currentDate}
+    />
+  );
+};
+
+type StatisticsBadgeProps = Pick<UserMonthStatisticsResponse, "statistics">;
+
+const StatisticsBadge: FC<StatisticsBadgeProps> = ({ statistics }) => {
+  const formattedWorkTime = parseMs((statistics.work_time || 0) * 1000);
+  const formattedLunchTime = parseMs((statistics.lunch_time || 0) * 1000);
+  const formattedBreakTime = parseMs((statistics.break_time || 0) * 1000);
 
   const format = (value: Time) => {
     if (value.hours !== 0 || value.minutes !== 0) {
@@ -137,9 +166,9 @@ const StatisticsBadge: FC<StatisticsBadgeProps> = ({ statistics, session, curren
   return (
     <div>
       {[
-        { time: workTime, icon: Clock },
-        { time: lunchTime, icon: Soup },
-        { time: breakTime, icon: Coffee },
+        { time: formattedWorkTime, icon: Clock },
+        { time: formattedLunchTime, icon: Soup },
+        { time: formattedBreakTime, icon: Coffee },
       ].map(({ time, icon: Icon }) => (
         <span className="inline-flex items-center text-gray w-16 flex-1 ml-3">
           {format(time)}
