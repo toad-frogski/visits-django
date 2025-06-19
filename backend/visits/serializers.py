@@ -1,15 +1,16 @@
-from datetime import timedelta
-from email.policy import default
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field, PolymorphicProxySerializer
 from django.utils import timezone
 
 from session.serializers import UserModelSerializer
 from .models import Session, SessionEntry
+from .callbacks import statistics_extra_callbacks
 
 
 class SessionEnterSerializer(serializers.ModelSerializer):
     type = serializers.ChoiceField(
-        choices=SessionEntry.Type.choices, default=SessionEntry.Type.WORK
+        choices=SessionEntry.SessionEntryType.choices,
+        default=SessionEntry.SessionEntryType.WORK,
     )
     start = serializers.DateTimeField(default=lambda: timezone.localtime())
 
@@ -44,7 +45,7 @@ class SessionEntryModelSerializer(serializers.ModelSerializer):
 
 class SessionModelSerializer(serializers.ModelSerializer):
     entries = SessionEntryModelSerializer(many=True)
-    status = serializers.ChoiceField(choices=Session.Status.choices)
+    status = serializers.ChoiceField(choices=Session.SessionStatus.choices)
 
     class Meta:
         model = Session
@@ -52,7 +53,7 @@ class SessionModelSerializer(serializers.ModelSerializer):
 
 
 class SessionSerializer(serializers.Serializer):
-    status = serializers.ChoiceField(choices=Session.Status.choices)
+    status = serializers.ChoiceField(choices=Session.SessionStatus.choices)
     comment = serializers.CharField(required=False, allow_blank=True)
 
 
@@ -73,7 +74,29 @@ class UserMonthStatisticsResponseSerializer(serializers.Serializer):
         break_time = serializers.FloatField(default=0.0)
         lunch_time = serializers.FloatField(default=0.0)
 
+    class ExtraFieldBaseSerializer(serializers.Serializer):
+        type = serializers.ChoiceField(
+            choices=[
+                (callback._type, callback._type)
+                for callback in statistics_extra_callbacks()
+            ]
+        )
+        payload = serializers.SerializerMethodField()
+
+        @extend_schema_field(
+            PolymorphicProxySerializer(
+                component_name="ExtraData",
+                serializers=[
+                    callback._serializer_class
+                    for callback in statistics_extra_callbacks()
+                ],
+                resource_type_field_name=None,
+            )
+        )
+        def get_payload(self, obj: dict) -> dict:
+            return obj["payload"]
+
     date = serializers.DateField()
     session = SessionModelSerializer(allow_null=True)
     statistics = StatisticsFieldSerializer()
-    extra = serializers.ListField(child=serializers.DictField())
+    extra = ExtraFieldBaseSerializer(many=True)

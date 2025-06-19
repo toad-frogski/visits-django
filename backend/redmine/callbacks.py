@@ -5,9 +5,10 @@ from django.core.cache import cache
 from django.utils import timezone
 from visits.callbacks import register_statistics_extra
 from .models import RedmineTimeEntry, RedmineUser
+from .serializers import RedmineExtraFieldPayloadSerializer
 
 
-@register_statistics_extra(type="redmine")
+@register_statistics_extra(type="redmine", serializer_class=RedmineExtraFieldPayloadSerializer)
 def redmine_statisitcs_extra(user: User, date: date):
     redmine_user = _get_redmine_user_by_username(user.username)
     if not redmine_user:

@@ -1,4 +1,4 @@
-import { StatisticsApi, type UserMonthStatisticsResponse } from "@/lib/api";
+import { StatisticsApi, type ExtraFieldBase, type UserMonthStatisticsResponse } from "@/lib/api";
 import client from "@/lib/api-client";
 import { parseMs, type Time } from "@/lib/utils";
 import { useEffect, useRef, useState, type FC } from "react";
@@ -150,21 +150,16 @@ const StatisticsBadge: FC<StatisticsBadgeProps> = ({ statistics, session, curren
   );
 };
 
-type ExtraData = {
-  type: string;
-  data: Record<string, any>;
-};
-
 type ExtraBadgeProps = {
-  extra: ExtraData[];
+  extra: ExtraFieldBase[];
 };
 
 const ExtraBadge: FC<ExtraBadgeProps> = ({ extra }) => {
   return (
     <div className="flex gap-3">
-      {extra.map(({ type, data }) => (
+      {extra.map(({ type, payload }) => (
         <span>
-          {type}: {JSON.stringify(data)}
+          {type}: {JSON.stringify(payload)}
         </span>
       ))}
     </div>

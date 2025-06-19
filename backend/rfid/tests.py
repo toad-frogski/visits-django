@@ -37,7 +37,7 @@ class RFIDSessionTestCase(TestCase):
 
     def test_exit(self):
         session = Session.objects.create(user=self.user)
-        session.add_enter(start=timezone.localtime(), type=SessionEntry.Type.SYSTEM)
+        session.add_enter(start=timezone.localtime(), type=SessionEntry.SessionEntryType.SYSTEM)
 
         response = self.client.post(
             "/api/v1/rfid/exit",

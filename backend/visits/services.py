@@ -9,7 +9,7 @@ from visits.models import Session, SessionEntry
 class SessionService:
 
     @staticmethod
-    def enter(user: User, type: SessionEntry.Type, time: datetime):
+    def enter(user: User, type: SessionEntry.SessionEntryType, time: datetime):
         session, _ = Session.objects.get_or_create(user=user, date=timezone.localdate())
 
         last_entry = session.get_last_entry()
@@ -21,7 +21,7 @@ class SessionService:
     @staticmethod
     def update_entry(
         entry_id: int,
-        type: SessionEntry.Type,
+        type: SessionEntry.SessionEntryType,
         start: datetime | None = None,
         end: datetime | None = None,
         comment: str | None = None,
@@ -55,7 +55,7 @@ class SessionService:
 
     @staticmethod
     def handle_leave(
-        user: User, type: SessionEntry.Type, time: datetime, comment: str | None = None
+        user: User, type: SessionEntry.SessionEntryType, time: datetime, comment: str | None = None
     ):
         session = Session.objects.get_last_user_session(user)
         if session is None:
@@ -72,7 +72,7 @@ class SessionService:
     @staticmethod
     def leave(
         user: User,
-        type: SessionEntry.Type = SessionEntry.Type.BREAK,
+        type: SessionEntry.SessionEntryType = SessionEntry.SessionEntryType.BREAK,
         time: datetime = timezone.localtime(),
         comment: str | None = None,
     ):
@@ -81,7 +81,7 @@ class SessionService:
     @staticmethod
     def comeback(
         user: User,
-        type: SessionEntry.Type = SessionEntry.Type.WORK,
+        type: SessionEntry.SessionEntryType = SessionEntry.SessionEntryType.WORK,
         time: datetime = timezone.localtime(),
         comment: str | None = None,
     ):
@@ -108,8 +108,8 @@ class SessionService:
         return last_entry.comment if last_entry else None
 
     @staticmethod
-    def get_session_status(session: Session | None) -> Session.Status:
-        return session.status if session else Session.Status.INACTIVE
+    def get_session_status(session: Session | None) -> Session.SessionStatus:
+        return session.status if session else Session.SessionStatus.INACTIVE
 
     @staticmethod
     def get_active_user_with_sessions():

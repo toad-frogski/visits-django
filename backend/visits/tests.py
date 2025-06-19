@@ -20,7 +20,7 @@ class SessionServiceTestCase(TestCase):
         assert_date.replace(hour=9, minute=0, second=0)
         response = self.client.post(
             "/api/v1/visits/enter",
-            {"start": assert_date.isoformat(), "type": SessionEntry.Type.SYSTEM},
+            {"start": assert_date.isoformat(), "type": SessionEntry.SessionEntryType.SYSTEM},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -30,25 +30,25 @@ class SessionServiceTestCase(TestCase):
         entry = session.entries.first()  # type: ignore
         self.assertIsNotNone(entry)
         self.assertEqual(entry.start, assert_date)
-        self.assertEqual(entry.type, SessionEntry.Type.SYSTEM)
+        self.assertEqual(entry.type, SessionEntry.SessionEntryType.SYSTEM)
 
     def test_handle_leave(self):
         assert_date = timezone.localtime()
         assert_date.replace(hour=9, minute=0, second=0)
         session = Session.objects.create(user=self.user, date=assert_date)
-        session.add_enter(start=assert_date, type=SessionEntry.Type.WORK)
+        session.add_enter(start=assert_date, type=SessionEntry.SessionEntryType.WORK)
 
         leave_time = assert_date + timedelta(hours=1)
         response = self.client.post(
             "/api/v1/visits/leave",
-            {"time": leave_time, "type": SessionEntry.Type.LUNCH},
+            {"time": leave_time, "type": SessionEntry.SessionEntryType.LUNCH},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(session.entries.count(), 2)
 
         [enter, leave] = session.entries.all()
         self.assertIsNotNone(enter.end)
-        self.assertEqual(leave.type, SessionEntry.Type.LUNCH)
+        self.assertEqual(leave.type, SessionEntry.SessionEntryType.LUNCH)
         self.assertEqual(enter.end, leave_time)
         self.assertEqual(leave.start, leave_time)
 
@@ -56,7 +56,7 @@ class SessionServiceTestCase(TestCase):
         assert_date = timezone.localtime().replace(microsecond=0)
         assert_date.replace(hour=9, minute=0, second=0)
         session = Session.objects.create(user=self.user, date=assert_date)
-        session.add_enter(start=assert_date, type=SessionEntry.Type.WORK)
+        session.add_enter(start=assert_date, type=SessionEntry.SessionEntryType.WORK)
         end_date = assert_date + timedelta(hours=1)
         response = self.client.put(
             "/api/v1/visits/exit", {"end": end_date}, content_type="application/json"
@@ -86,7 +86,7 @@ class SessionServiceTestCase(TestCase):
         entry.save()
 
         response = self.client.get("/api/v1/visits/current")
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data.get("status"), Session.SessionStatus.INACTIVE)
 
         session = Session.objects.create(user=self.user, date=today)
 

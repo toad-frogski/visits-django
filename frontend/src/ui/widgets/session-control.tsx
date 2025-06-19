@@ -8,7 +8,7 @@ import TimeInput from "@/ui/components/time-input";
 import type { Time } from "@internationalized/date";
 
 import client from "@/lib/api-client";
-import { TypeEnum, VisitsApi } from "@/lib/api";
+import { TypeB70Enum, VisitsApi } from "@/lib/api";
 
 import Play from "@/assets/play.svg?react";
 import House from "@/assets/house.svg?react";
@@ -46,7 +46,7 @@ const ActiveControl: FC = () => {
   const [error, setError] = useState("");
 
   const [actionType, setActionType] = useState<Set<ActionType>>(new Set(["leave"]));
-  const [leaveType, setLeaveType] = useState<TypeEnum | null>(null);
+  const [leaveType, setLeaveType] = useState<TypeB70Enum | null>(null);
   const [breakMessage, setBreakMessage] = useState("");
 
   const handleLeaveSubmit = () => {
@@ -107,12 +107,12 @@ const ActiveControl: FC = () => {
       {actionType.has("leave") && (
         <div className="flex-1 flex flex-col">
           <p className="text-lg font-bold">Выберите тип выхода</p>
-          <RadioGroup onChange={(value) => setLeaveType(value as TypeEnum)} className="flex-1">
+          <RadioGroup onChange={(value) => setLeaveType(value as TypeB70Enum)} className="flex-1">
             <Radio
               className={({ isSelected }) =>
                 cn("flex gap-3 mt-3", isSelected ? "text-accent *:stroke-accent" : "text-gray")
               }
-              value={TypeEnum.Lunch}
+              value={TypeB70Enum.Lunch}
             >
               <Soup width={24} height={24} />
               <span>Обед</span>
@@ -121,7 +121,7 @@ const ActiveControl: FC = () => {
               className={({ isSelected }) =>
                 cn("flex gap-3 mt-3", isSelected ? "text-accent *:stroke-accent" : "text-gray")
               }
-              value={TypeEnum.Break}
+              value={TypeB70Enum.Break}
             >
               <Leaf width={24} height={24} />
               <span>Перерыв</span>

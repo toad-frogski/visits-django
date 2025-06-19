@@ -34,7 +34,7 @@ class EnterView(APIView):
         serializer.is_valid(raise_exception=True)
 
         start: datetime = serializer.validated_data.get("start")  # type: ignore
-        type: SessionEntry.Type = serializer.validated_data.get("type")  # type: ignore
+        type: SessionEntry.SessionEntryType = serializer.validated_data.get("type")  # type: ignore
 
         session_service = SessionService()
 
@@ -67,7 +67,7 @@ class ExitView(APIView):
         serializer.is_valid(raise_exception=True)
 
         time: datetime = serializer.validated_data.get("end")  # type: ignore
-        comment: SessionEntry.Type = serializer.validated_data.get("comment")  # type: ignore
+        comment: SessionEntry.SessionEntryType = serializer.validated_data.get("comment")  # type: ignore
 
         session_service = SessionService()
 
@@ -101,7 +101,7 @@ class LeaveView(APIView):
         serializer = serializers.SessionEntryLeaveSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        type: SessionEntry.Type = serializer.validated_data.get("type")  # type: ignore
+        type: SessionEntry.SessionEntryType = serializer.validated_data.get("type")  # type: ignore
         time: datetime = serializer.validated_data.get("time")  # type: ignore
         comment: str | None = serializer.validated_data.get("comment")  # type: ignore
 
@@ -144,7 +144,7 @@ class CurrentSessionView(APIView):
         session_service = SessionService()
         session = session_service.get_current_session(request.user)
         if session is None:
-            return Response({"status": Session.Status.INACTIVE, "entries": []})
+            return Response({"status": Session.SessionStatus.INACTIVE, "entries": []})
 
         serializer = serializers.SessionModelSerializer(session)
 
@@ -258,14 +258,14 @@ class UserMonthStatisticsView(APIView):
         return result
 
     def _collect_extra(self, user: User, date: date):
-        results: list[StatisticsExtraDataResult] = []
+        results = []
         for callback in statistics_extra_callbacks():
             data = callback(user, date)
             if data:
                 results.append(
                     {
                         "type": getattr(callback, "_type"),
-                        "data": data,
+                        "payload": data,
                     }
                 )
 

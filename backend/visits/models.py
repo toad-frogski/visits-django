@@ -7,7 +7,8 @@ from datetime import datetime
 
 
 class SessionEntry(models.Model):
-    class Type(models.TextChoices):
+
+    class SessionEntryType(models.TextChoices):
         SYSTEM = "SYSTEM", _("System")
         LUNCH = "LUNCH", _("Lunch")
         BREAK = "BREAK", _("Break")
@@ -18,7 +19,9 @@ class SessionEntry(models.Model):
     )
     start = models.DateTimeField(default=timezone.localtime, null=False)
     end = models.DateTimeField(null=True, blank=True)
-    type = models.CharField(max_length=10, choices=Type.choices, default=Type.SYSTEM)
+    type = models.CharField(
+        max_length=10, choices=SessionEntryType.choices, default=SessionEntryType.SYSTEM
+    )
     comment = models.CharField(max_length=255, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -54,7 +57,7 @@ class Session(models.Model):
     date = models.DateField(_("Date"), default=timezone.localdate)
     objects: SessionManager = SessionManager()
 
-    class Status(models.TextChoices):
+    class SessionStatus(models.TextChoices):
         ACTIVE = "active", _("Active")
         INACTIVE = "inactive", _("Inactive")
         CHEATER = "cheater", _("Cheater")
@@ -71,7 +74,7 @@ class Session(models.Model):
     def add_enter(
         self,
         start: datetime,
-        type: SessionEntry.Type = SessionEntry.Type.SYSTEM,
+        type: SessionEntry.SessionEntryType = SessionEntry.SessionEntryType.SYSTEM,
         comment: str | None = None,
     ):
         entry = SessionEntry(session=self, start=start, type=type, comment=comment)
@@ -80,7 +83,7 @@ class Session(models.Model):
     def update_entry(
         self,
         entry_id: int,
-        type: SessionEntry.Type = SessionEntry.Type.SYSTEM,
+        type: SessionEntry.SessionEntryType = SessionEntry.SessionEntryType.SYSTEM,
         start: datetime | None = None,
         end: datetime | None = None,
     ):
@@ -100,23 +103,23 @@ class Session(models.Model):
         entries: list[SessionEntry] = list(self.entries.order_by("start"))  # type: ignore
 
         if len(entries) == 0:
-            return Session.Status.INACTIVE
+            return Session.SessionStatus.INACTIVE
 
         for i in range(1, len(entries)):
             if entries[i - 1].end is None or entries[i].start < entries[i - 1].end:
-                return Session.Status.CHEATER
+                return Session.SessionStatus.CHEATER
 
         last = entries[-1]
         if last.end is None:
             now = timezone.localtime()
 
             if now.date() != self.date and now.hour > 8:
-                return Session.Status.CHEATER
+                return Session.SessionStatus.CHEATER
 
             return (
-                Session.Status.ACTIVE
-                if last.type == SessionEntry.Type.WORK
-                else Session.Status.INACTIVE
+                Session.SessionStatus.ACTIVE
+                if last.type == SessionEntry.SessionEntryType.WORK
+                else Session.SessionStatus.INACTIVE
             )
 
-        return Session.Status.INACTIVE
+        return Session.SessionStatus.INACTIVE

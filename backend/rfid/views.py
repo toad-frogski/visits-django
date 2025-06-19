@@ -36,7 +36,9 @@ class EnterView(views.APIView):
 
         try:
             session_service.enter(
-                request.user, type=SessionEntry.Type.SYSTEM, time=timezone.localtime()
+                request.user,
+                type=SessionEntry.SessionEntryType.WORK,
+                time=timezone.localtime(),
             )
         except ValueError as e:
             raise ValidationError(detail=e)
