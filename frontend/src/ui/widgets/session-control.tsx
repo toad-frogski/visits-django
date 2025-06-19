@@ -2,7 +2,6 @@ import { useState, type FC } from "react";
 import Button from "@/ui/components/button";
 import useAuthStore from "@/stores/auth";
 import { TextInput } from "@/ui/components/input";
-import { cn } from "@/lib/cn";
 import Card from "@/ui/components/card";
 import TimeInput from "@/ui/components/time-input";
 import type { Time } from "@internationalized/date";

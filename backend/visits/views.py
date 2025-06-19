@@ -5,7 +5,7 @@ from rest_framework.exceptions import APIException, ValidationError, NotFound
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
 from datetime import date, datetime, timedelta
@@ -191,7 +191,7 @@ class UserMonthStatisticsView(APIView):
 
     @extend_schema(
         "statistics",
-        request=serializers.UserMonthStatisticsRequestSerializer,
+        parameters=[serializers.UserMonthStatisticsRequestSerializer],
         responses=serializers.UserMonthStatisticsResponseSerializer(many=True),
     )
     def get(self, request: Request):
@@ -254,7 +254,7 @@ class UserMonthStatisticsView(APIView):
         return result
 
     def _collect_extra(self, user: User, date: date):
-        results = []
+        results: list[StatisticsExtraDataResult] = []
         for callback in statistics_extra_callbacks():
             data = callback(user, date)
             if data:

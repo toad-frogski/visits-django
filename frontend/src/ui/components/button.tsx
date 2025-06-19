@@ -10,36 +10,6 @@ type ButtonVisualProps = {
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & ButtonVisualProps;
 
-// const button = tv({
-//   base: "p-3 rounded-md w-full text-background font-bold cursor-pointer transition-all duration-200 ease-in-out",
-//   variants: {
-//     color: {
-//       white: "bg-surface border border-gray-light hover:bg-background text-gray *:stroke-gray",
-//       accent: "bg-accent hover:bg-accent-light",
-//       green: "bg-green hover:bg-green-light",
-//       orange: "bg-orange hover:bg-orange-light",
-//       red: "bg-red hover:bg-red-light",
-//       yellow: "bg-yellow hover:bg-yellow-light",
-//       blue: "bg-blue hover:bg-blue-light",
-//     },
-//     disabled: {
-//       true: "text-surface bg-gray-light",
-//     },
-//     icon: {
-//       true: "flex gap-3",
-//     },
-//     iconPosition: {
-//       left: "justify-center",
-//       right: "justify-center flex-row-reverse",
-//       "left-edge": "justify-between",
-//       "right-edge": "justify-between flex-row-reverse",
-//     },
-//   },
-//   defaultVariants: {
-//     color: "accent",
-//   },
-// });
-
 const button = tv({
   slots: {
     base: "p-3 rounded-md w-full text-background font-bold cursor-pointer transition-all duration-200 ease-in-out",

@@ -9,7 +9,7 @@ T = TypeVar("T")
 
 class StatisticsExtraDataResult(TypedDict, Generic[T]):
     type: str
-    data: T
+    payload: T
 
 
 StatisticsExtraDataCallback = Callable[[User, date], T]

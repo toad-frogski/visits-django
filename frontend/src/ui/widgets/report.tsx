@@ -13,12 +13,17 @@ import Calendar from "@/assets/calendar.svg?react";
 import Clock from "@/assets/clock.svg?react";
 import Coffee from "@/assets/coffee.svg?react";
 import Soup from "@/assets/soup.svg?react";
-import Disclosure, { DisclosurePanel, DisclosureTrigger } from "@/ui/components/disclosure";
+import Disclosure, {
+  DisclosurePanel,
+  DisclosureTrigger,
+} from "@/ui/components/disclosure";
 import type { DisclosureProps } from "react-aria-components";
+import { useSearchParams } from "react-router";
 
 const api = new StatisticsApi(undefined, undefined, client);
 
 const Report: FC = () => {
+  const [searchParams] = useSearchParams();
   const [stats, setStats] = useState<UserMonthStatisticsResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -26,7 +31,10 @@ const Report: FC = () => {
 
   useEffect(() => {
     api
-      .statistics()
+      .statistics(
+        searchParams.get("end") ?? undefined,
+        searchParams.get("start") ?? undefined
+      )
       .then(({ data }) => setStats(data))
       .finally(() => setIsLoading(false));
   }, []);
@@ -35,7 +43,10 @@ const Report: FC = () => {
     return (
       <div className="rounded w-full">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="w-full bg-surface mb-3 rounded overflow-hidden p-2 animate-pulse">
+          <div
+            key={i}
+            className="w-full bg-surface mb-3 rounded overflow-hidden p-2 animate-pulse"
+          >
             <div className="h-1 w-1/2 mb-3" />
             <div className="h-1 w-full mb-2" />
             <div className="h-1 w-3/4" />
@@ -58,9 +69,17 @@ const Report: FC = () => {
   );
 };
 
-type ReportItemProps = DisclosureProps & UserMonthStatisticsResponse & { current?: Date };
+type ReportItemProps = DisclosureProps &
+  UserMonthStatisticsResponse & { current?: Date };
 
-const ReportItem: FC<ReportItemProps> = ({ date, session, statistics, extra, current, ...props }) => {
+const ReportItem: FC<ReportItemProps> = ({
+  date,
+  session,
+  statistics,
+  extra,
+  current,
+  ...props
+}) => {
   return (
     <Disclosure {...props}>
       <DisclosureTrigger>
@@ -76,14 +95,19 @@ const ReportItem: FC<ReportItemProps> = ({ date, session, statistics, extra, cur
           const end = entry.end ? new Date(entry.end) : current;
 
           return (
-            <div key={entry.id} className="text-gray flex gap-3 items-center mb-2">
+            <div
+              key={entry.id}
+              className="text-gray flex gap-3 items-center mb-2"
+            >
               {entry.type === "BREAK" && <Coffee width={16} height={16} />}
               {entry.type === "LUNCH" && <Soup width={16} height={16} />}
               {entry.type === "WORK" && <Clock width={16} height={16} />}
               {start.toLocaleTimeString()}
               <span> - </span>
               {end?.toLocaleTimeString() ?? "--:--"}
-              {entry.comment && <span className="text-gray">{entry.comment}</span>}
+              {entry.comment && (
+                <span className="text-gray">{entry.comment}</span>
+              )}
             </div>
           );
         })}
@@ -92,7 +116,11 @@ const ReportItem: FC<ReportItemProps> = ({ date, session, statistics, extra, cur
   );
 };
 
-const CurrentReportItem: FC<ReportItemProps> = ({ statistics, session, ...props }) => {
+const CurrentReportItem: FC<ReportItemProps> = ({
+  statistics,
+  session,
+  ...props
+}) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   let workSeconds = statistics?.work_time ?? 0;
   let lunchSeconds = statistics?.lunch_time ?? 0;
@@ -106,7 +134,9 @@ const CurrentReportItem: FC<ReportItemProps> = ({ statistics, session, ...props 
       const lastStart = new Date(last.start).getTime();
 
       if (!isNaN(lastStart)) {
-        const currentDuration = Math.floor((currentDate.getTime() - lastStart) / 1000);
+        const currentDuration = Math.floor(
+          (currentDate.getTime() - lastStart) / 1000
+        );
 
         switch (last.type) {
           case "WORK":
@@ -138,7 +168,11 @@ const CurrentReportItem: FC<ReportItemProps> = ({ statistics, session, ...props 
   return (
     <ReportItem
       {...props}
-      statistics={{ work_time: workSeconds, break_time: breakSeconds, lunch_time: lunchSeconds }}
+      statistics={{
+        work_time: workSeconds,
+        break_time: breakSeconds,
+        lunch_time: lunchSeconds,
+      }}
       session={session}
       current={currentDate}
     />

@@ -30,7 +30,12 @@ const MobileNavItem: FC<NavItem> = ({ to, label, icon: Icon }) => {
   return (
     <NavLink to={to}>
       {({ isActive }) => (
-        <div className={cn("w-20 pt-1 before:content-[''] before:h-1 before:w-full before:block before:mb-3", isActive && "before:bg-accent")}>
+        <div
+          className={cn(
+            "w-20 pt-1 before:content-[''] before:h-1 before:w-full before:block before:mb-3",
+            isActive && "before:bg-accent"
+          )}
+        >
           {Icon && (
             <Icon
               width={24}
