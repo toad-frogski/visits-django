@@ -1,10 +1,9 @@
 import { useState, type FC } from "react";
 import Button from "@/ui/components/button";
 import useAuthStore from "@/stores/auth";
-import { TextInput } from "@/ui/components/input";
+import { ErrorMessage, TextInput } from "@/ui/components/input";
 import Card from "@/ui/components/card";
 import TimeInput from "@/ui/components/time-input";
-import type { Time } from "@internationalized/date";
 
 import client from "@/lib/api-client";
 import { TypeB70Enum, VisitsApi } from "@/lib/api";
@@ -18,6 +17,8 @@ import Soup from "@/assets/soup.svg?react";
 import Reset from "@/assets/timer-reset.svg?react";
 import { ToggleButton, ToggleButtonGroup } from "@/ui/components/toggle-button";
 import Radio, { RadioGroup } from "@/ui/components/radio";
+import { Time } from "@internationalized/date";
+import { type RangeValue } from "@react-types/shared";
 
 const api = new VisitsApi(undefined, undefined, client);
 
@@ -48,7 +49,8 @@ const ActiveControl: FC = () => {
     new Set(["leave"])
   );
   const [leaveType, setLeaveType] = useState<TypeB70Enum | null>(null);
-  const [breakMessage, setBreakMessage] = useState("");
+  const [comment, setComment] = useState("");
+  const [range, setRange] = useState<RangeValue<Time>>();
 
   const handleLeaveSubmit = () => {
     if (!actionType.has("leave")) return;
@@ -56,7 +58,7 @@ const ActiveControl: FC = () => {
     switch (leaveType) {
       case "BREAK":
         api
-          .leave({ comment: breakMessage, type: "BREAK" })
+          .leave({ comment: comment, type: "BREAK" })
           .then(() => fetchSession())
           .catch(() => setError("Something went wrong"))
           .finally(() => setLoading(false));
@@ -72,12 +74,32 @@ const ActiveControl: FC = () => {
     }
   };
 
+  const handleMarkSubmit = () => {
+    if (!range?.start || !range.end) return;
+
+    if (range.start > range.end) {
+      setError("Укажите правильный промежуток");
+      return;
+    }
+
+    setLoading(true);
+    api
+      .createEntry({
+        start: range.start.toString(),
+        end: range.end.toString(),
+        type: "BREAK",
+        comment: comment,
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  };
+
   return (
-    <div className="flex flex-col lg:flex-row md:gap-9 gap-6 flex-wrap md:min-h-56">
+    <div className="flex flex-col lg:flex-row md:gap-9 gap-6 flex-wrap">
       <div className="flex flex-col flex-1">
         <p className="text-lg font-bold">Выберите тип действия</p>
         <ToggleButtonGroup
-          className="gap-3 flex-1 justify-between"
+          className="gap-3 flex-1"
           defaultSelectedKeys={actionType}
           disallowEmptySelection
           selectedKeys={actionType}
@@ -112,12 +134,14 @@ const ActiveControl: FC = () => {
             <RadioGroup
               onChange={(value) => setLeaveType(value as TypeB70Enum)}
               className="flex flex-col gap-3"
+              aria-label="leave type"
+              value={leaveType}
             >
-              <Radio value={TypeB70Enum.Lunch}>
+              <Radio value={TypeB70Enum.Lunch} aria-label="lunch">
                 <Soup width={24} height={24} />
                 <span>Обед</span>
               </Radio>
-              <Radio value={TypeB70Enum.Break}>
+              <Radio value={TypeB70Enum.Break} aria-label="break">
                 <Leaf width={24} height={24} />
                 <span>Перерыв</span>
               </Radio>
@@ -127,8 +151,8 @@ const ActiveControl: FC = () => {
               <TextInput
                 className="mt-3"
                 placeholder="Отметьте причину"
-                value={breakMessage}
-                onChange={(e) => setBreakMessage(e.target.value)}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
               />
             )}
           </div>
@@ -137,7 +161,7 @@ const ActiveControl: FC = () => {
             className="mt-3"
             variant="green"
             disabled={
-              (leaveType === "BREAK" && !breakMessage) || loading || !leaveType
+              (leaveType === "BREAK" && !comment) || loading || !leaveType
             }
             onClick={handleLeaveSubmit}
           >
@@ -147,8 +171,58 @@ const ActiveControl: FC = () => {
       )}
 
       {actionType.has("mark") && (
-        <div className="flex items-center justify-center rounded bg-background text-gray font-bold text-h2/h2 flex-1">
-          <span>Work in progress</span>
+        <div className="flex-1">
+          <p className="text-lg font-bold">
+            Отметьте время и оставьте комментарий
+          </p>
+          <div className="flex gap-3 mt-3">
+            <TimeInput
+              label="От"
+              className="w-full"
+              hourCycle={24}
+              aria-label="start date"
+              value={range?.start}
+              onChange={(value) => {
+                setRange(
+                  (prev) => ({ ...prev, start: value } as RangeValue<Time>)
+                );
+                setError("");
+              }}
+              color={!!error ? "red" : "accent"}
+            />
+            <TimeInput
+              label="До"
+              className="w-full"
+              hourCycle={24}
+              aria-label="end date"
+              value={range?.end}
+              onChange={(value) => {
+                setRange(
+                  (prev) => ({ ...prev, end: value } as RangeValue<Time>)
+                );
+                setError("");
+              }}
+              color={!!error ? "red" : "accent"}
+            />
+          </div>
+          {error && <ErrorMessage error={error} />}
+          <TextInput
+            className="mt-3"
+            placeholder="Отметьте причину"
+            value={comment}
+            onChange={(e) => {
+              setComment(e.target.value);
+              setError("");
+            }}
+          />
+          <Button
+            className="mt-3"
+            variant="green"
+            disabled={loading || !comment}
+            onClick={handleMarkSubmit}
+          >
+            Подтвердить
+          </Button>
         </div>
       )}
     </div>
@@ -244,7 +318,7 @@ const CheaterControl: FC = () => {
     lastEnd.setMilliseconds(0);
 
     api
-      .v1VisitsUpdatePartialUpdate(last.id, { end: lastEnd.toISOString() })
+      .partialUpdateEntry(last.id, { end: lastEnd.toISOString() })
       .then(() => fetchSession())
       .catch((e) => console.log(e))
       .finally(() => setLoading(false));

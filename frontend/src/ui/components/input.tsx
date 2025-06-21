@@ -37,8 +37,8 @@ const BaseInput = forwardRef<HTMLInputElement, BaseInputProps>(
         <label
           className={cn(
             "relative border rounded-md overflow-hidden transition-all duration-200 flex",
-            { "!border-gray !text-gray": !!props.disabled },
             { "border-red text-red": error },
+            { "!border-gray !text-gray": !!props.disabled },
             className,
             isFocused ? "border-accent" : "hover:border-blue-light"
           )}

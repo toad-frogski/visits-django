@@ -46,7 +46,7 @@ const dateRangePicker = tv({
   },
   slots: {
     base: "flex flex-col gap-1",
-    group: "flex items-center gap-2 bg-surface p-2 rounded transition-colors",
+    group: "flex items-center gap-2 bg-surface p-3 rounded transition-colors border",
     dateInput: "flex px-1 rounded outline-none",
     dateSegment: "px-0.5 rounded-sm focus:outline-none",
     separator: "text-gray",

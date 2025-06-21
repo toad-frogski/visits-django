@@ -1,11 +1,12 @@
 from rest_framework.views import APIView
-from rest_framework.generics import UpdateAPIView
+from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
+from rest_framework import mixins
 from rest_framework.exceptions import APIException, ValidationError, NotFound
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
 from datetime import date, datetime, timedelta
@@ -120,7 +121,18 @@ class LeaveView(APIView):
 
 
 @extend_schema(tags=["visits"])
-class UpdateSessionEntryView(UpdateAPIView):
+@extend_schema_view(
+    create=extend_schema("createEntry"),
+    destroy=extend_schema("destroyEntry"),
+    partial_update=extend_schema("partialUpdateEntry"),
+    update=extend_schema("updateEntry")
+)
+class SessionEntryModelViewset(
+    GenericViewSet,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+):
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.SessionEntryModelSerializer
 
