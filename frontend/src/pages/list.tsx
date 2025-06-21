@@ -12,7 +12,21 @@ const List: FC = () => {
   useWebSocket({
     url: `ws://${window.location.host}/api/ws/session/status`,
     handlers: {
-      session_update: () => api.today().then(({ data }) => setSessions(data)),
+      session_update: (payload) =>
+        setSessions((prev) =>
+          prev.map((session) =>
+            session.user.id === payload.user_id
+              ? {
+                  ...session,
+                  session: {
+                    ...session.session,
+                    status: payload.status,
+                    comment: payload.comment,
+                  },
+                }
+              : session
+          )
+        ),
     },
   });
 

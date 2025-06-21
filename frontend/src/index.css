@@ -48,8 +48,19 @@
   --leading-h2: 40px;
   --text-h3: 24px;
   --leading-h3: 32px;
+
+  --font-open-sans: "Open Sans", monospace;
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/open-sans-v43-cyrillic_latin-regular.woff2") format("woff2");
 }
 
 body {
   @apply bg-background;
+  @apply font-open-sans;
 }

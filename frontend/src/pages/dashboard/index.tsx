@@ -5,6 +5,7 @@ import useAuthStore from "@/stores/auth";
 import useDesktop from "@/lib/hooks/useDesktop";
 import { SidebarBreadcrumb, type NavItem } from "@/ui/sidebar";
 import { cn } from "@/lib/cn";
+import RedmineTimer from "@/ui/widgets/redmine-timer";
 
 const breadcrumbs = [
   { to: "general", label: "Главная" },
@@ -56,8 +57,9 @@ const Dashboard: FC = () => {
         </nav>
       )}
       <div className="flex flex-1 gap-3 md:gap-6 flex-col lg:flex-row-reverse p-3 md:p-6 md:pl-[164px]">
-        <section className="sticky top-0">
+        <section className="sticky top-0 flex justify-between lg:justify-start lg:flex-col gap-3">
           <Timer />
+          <RedmineTimer />
         </section>
         <Outlet />
       </div>

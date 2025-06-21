@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     "session",
     "visits",
     "rfid",
-    "redmine",
+    "holidays",
+    # "redmine",
 ]
 
 MIDDLEWARE = [

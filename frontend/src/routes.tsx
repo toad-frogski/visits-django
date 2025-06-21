@@ -1,11 +1,13 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import ProtectedLayout from "@/layouts/protected-layout";
-import SignIn from "@/pages/sign-in";
-import Dashboard from "@/pages/dashboard";
-import List from "@/pages/list";
-import DashboardGeneral from "@/pages/dashboard/general";
-import Profile from "@/pages/profile";
-import DashboardReport from "@/pages/dashboard/report";
+import { lazy } from "react";
+
+const SignIn = lazy(() => import("@/pages/sign-in"));
+const Dashboard = lazy(() => import("@/pages/dashboard"));
+const List = lazy(() => import("@/pages/list"));
+const DashboardGeneral = lazy(() => import("@/pages/dashboard/general"));
+const Profile = lazy(() => import("@/pages/profile"));
+const DashboardReport = lazy(() => import("@/pages/dashboard/report"));
 
 const router = createBrowserRouter([
   {

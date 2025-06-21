@@ -19,6 +19,7 @@ RUN pip install \
   Pillow \
   drf-spectacular \
   django-cors-headers \
+  requests \
   channels[daphne]
 
 FROM python:${PYTHON_IMAGE_VERSION}-slim AS runtime
