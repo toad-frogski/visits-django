@@ -8,7 +8,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.utils.translation import gettext as _
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
+from django.db.models import Q
 from datetime import date, datetime, timedelta
 
 from .models import Session, SessionEntry
@@ -125,7 +127,7 @@ class LeaveView(APIView):
     create=extend_schema("createEntry"),
     destroy=extend_schema("destroyEntry"),
     partial_update=extend_schema("partialUpdateEntry"),
-    update=extend_schema("updateEntry")
+    update=extend_schema("updateEntry"),
 )
 class SessionEntryModelViewset(
     GenericViewSet,
@@ -138,6 +140,27 @@ class SessionEntryModelViewset(
 
     def get_queryset(self):
         return SessionEntry.objects.filter(session__user=self.request.user)
+
+    def perform_create(self, serializer):
+        session_id = self.kwargs.get("session_id")
+        if not session_id:
+            raise ValidationError("Session id was not provided")
+
+        session = get_object_or_404(Session, id=session_id, user=self.request.user)
+
+        new_start = serializer.validated_data.get("start")
+        new_end = serializer.validated_data.get("end")
+
+        conflict_exists = (
+            SessionEntry.objects.filter(session=session)
+            .filter(Q(start__lt=new_end) & Q(end__gt=new_start))
+            .exists()
+        )
+
+        if conflict_exists:
+            raise ValidationError("New entry overlaps with an existing entry.")
+
+        serializer.save(session=session)
 
 
 @extend_schema(tags=["visits"])

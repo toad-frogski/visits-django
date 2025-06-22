@@ -38,7 +38,15 @@ class SessionEntry(models.Model):
 
 class SessionManager(models.Manager["Session"]):
     def get_queryset(self) -> models.QuerySet["Session"]:
-        return super().get_queryset().prefetch_related("entries")
+        return (
+            super()
+            .get_queryset()
+            .prefetch_related(
+                models.Prefetch(
+                    "entries", queryset=SessionEntry.objects.order_by("start")
+                )
+            )
+        )
 
     def get_last_user_session(self, user) -> Optional["Session"]:
         today = timezone.localdate()
@@ -66,7 +74,7 @@ class Session(models.Model):
         SICK = "sick", _("Sick")
 
     def get_last_entry(self) -> SessionEntry | None:
-        return self.entries.order_by("-id").first()  # type: ignore
+        return self.entries.order_by("-start").first()  # type: ignore
 
     def get_open_entries(self):
         return self.entries.filter(end__isnull=True)  # type: ignore

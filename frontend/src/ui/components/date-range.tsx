@@ -23,7 +23,7 @@ const dateRangePicker = tv({
   variants: {
     color: {
       accent: {
-        group: "focus-within:outline-accent focus-within:outline",
+        group: "focus-within:border-accent hover:border-accent",
         dateSegment: "text-gray focus:bg-background",
         button: "text-gray focus:bg-background p-1 rounded-full",
         calendarCell: "hover:bg-accent/10 focus:bg-accent/20",

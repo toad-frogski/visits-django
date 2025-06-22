@@ -19,6 +19,8 @@ import { ToggleButton, ToggleButtonGroup } from "@/ui/components/toggle-button";
 import Radio, { RadioGroup } from "@/ui/components/radio";
 import { Time } from "@internationalized/date";
 import { type RangeValue } from "@react-types/shared";
+import { isAxiosError } from "axios";
+import { useToast } from "@/ui/components/toast";
 
 const api = new VisitsApi(undefined, undefined, client);
 
@@ -42,15 +44,17 @@ type ActionType = "mark" | "leave";
 
 const ActiveControl: FC = () => {
   const fetchSession = useAuthStore((state) => state.fetchSession);
+  const session = useAuthStore((state) => state.session);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { addToast } = useToast();
 
   const [actionType, setActionType] = useState<Set<ActionType>>(
     new Set(["leave"])
   );
   const [leaveType, setLeaveType] = useState<TypeB70Enum | null>(null);
   const [comment, setComment] = useState("");
-  const [range, setRange] = useState<RangeValue<Time>>();
+  const [range, setRange] = useState<RangeValue<Time | null>>();
 
   const handleLeaveSubmit = () => {
     if (!actionType.has("leave")) return;
@@ -82,15 +86,29 @@ const ActiveControl: FC = () => {
       return;
     }
 
+    const today = new Date().toISOString().split("T")[0];
+
     setLoading(true);
     api
-      .createEntry({
-        start: range.start.toString(),
-        end: range.end.toString(),
+      .createEntry(session!.id, {
+        start: today + "T" + range.start.toString(),
+        end: today + "T" + range.end.toString(),
         type: "BREAK",
         comment: comment,
       })
-      .catch((e) => setError(e.message))
+      .then(() => {
+        fetchSession();
+        setError("");
+        setComment("");
+        setRange({ start: null, end: null });
+        addToast("Запись сохранена");
+      })
+      .catch((e) => {
+        if (isAxiosError(e) && e.status === 400) {
+          setError(e.response?.data);
+        }
+        setError("Что-то пошло не так");
+      })
       .finally(() => setLoading(false));
   };
 
