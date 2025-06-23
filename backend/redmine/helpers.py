@@ -6,7 +6,7 @@ from django.utils import timezone
 from .models import RedmineUser, RedmineTimeEntry
 
 
-def get_redmine_user_date_entries(user: RedmineUser, date: date):
+def get_redmine_user_time_entries_sum(user: RedmineUser, date: date):
     cache_key = f"redmine_stats_{user.login}_{date.isoformat()}"
     today = timezone.localdate()
     if today != date:

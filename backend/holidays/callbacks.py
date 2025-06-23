@@ -21,19 +21,35 @@ def holidays_statistics_extra(user: User, date: date):
 
 def _get_holidays(month: date) -> dict:
     cache_key = f"holidays_{month.year}_{month.month}"
-    holidays = cache.get(cache_key)
-    if holidays is None:
-        if not (url := getenv("HOLIDAYS_URL")):
-            return {}
-        days_in_month = calendar.monthrange(month.year, month.month)[1]
-        start_date = month.replace(day=1).strftime("%Y-%m-%d")
-        end_date = month.replace(day=days_in_month).strftime("%Y-%m-%d")
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
 
-        response = requests.get(url, {"start_date": start_date, "end_date": end_date})
-        if response.status_code != status.HTTP_200_OK:
+    if not (url := getenv("HOLIDAYS_URL")):
+        return {}
+
+    days_in_month = calendar.monthrange(month.year, month.month)[1]
+    start_date = month.replace(day=1).strftime("%Y-%m-%d")
+    end_date = month.replace(day=days_in_month).strftime("%Y-%m-%d")
+
+    try:
+        response = requests.get(
+            url, {"start_date": start_date, "end_date": end_date}, timeout=5
+        )
+        response.raise_for_status()
+
+        data = response.json()
+        if not isinstance(data, dict):
             return {}
-        holidays = (response.json() or {}).get("holidays", {})
-        holidays_map = {h["date"]: h["type"] for h in holidays}
+
+        holidays = data.get("holidays", [])
+        holidays_map = {
+            h["date"]: h["type"]
+            for h in holidays
+            if isinstance(h, dict) and "date" in h and "type" in h
+        }
         cache.set(cache_key, holidays_map, 60 * 60 * 24)
 
-    return holidays
+        return holidays_map
+    except:
+        return {}

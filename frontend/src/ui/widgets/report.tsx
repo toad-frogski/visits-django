@@ -227,7 +227,7 @@ const HolidaysBadge: FC<HolidaysExtraFieldPayload> = ({ type }) => {
 };
 
 const RedmineBadge: FC<RedmineExtraFieldPayload> = ({ hours }) => {
-  const time = parseMs(hours || 0);
+  const time = parseMs((hours || 0) * 1000 * 60 * 60);
   const formatted = formatTime(time);
 
   return <span className="text-gray">redmine: {formatted}</span>;

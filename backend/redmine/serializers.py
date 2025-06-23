@@ -6,6 +6,5 @@ class RedmineExtraFieldPayloadSerializer(serializers.Serializer):
     hours = serializers.FloatField()
 
 
-class RedmineSpendTimeStatisticsRequestSerializer(serializers.Serializer):
-    start = serializers.DateField(default=lambda: timezone.localdate().replace(day=1))
-    end = serializers.DateField(default=lambda: timezone.localdate())
+class RedmineSpentDateRequestSerializer(serializers.Serializer):
+    date = serializers.DateField(default=lambda: timezone.localdate())

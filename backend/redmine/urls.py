@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import RedmineSpendTimeStatisticsView
+from . import views
 
 urlpatterns = [
-    path("spend-time", RedmineSpendTimeStatisticsView.as_view()),
+    path("spend-time", views.RedmineSpentDateView.as_view()),
 ]

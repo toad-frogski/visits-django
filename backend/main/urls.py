@@ -6,6 +6,7 @@ from channels.routing import URLRouter
 from visits import urls as visits_urls
 from rfid import urls as rfid_urls
 from session import urls as session_urls
+from redmine import urls as redmine_urls
 
 urlpatterns = [
     path("api/admin/", admin.site.urls),
@@ -16,6 +17,7 @@ urlpatterns = [
     path('api/v1/session/', include(session_urls)),
     path("api/v1/visits/", include(visits_urls.urlpatterns)),
     path("api/v1/rfid/", include(rfid_urls.urlpatterns)),
+    path("api/v1/redmine/", include(redmine_urls.urlpatterns))
 ]
 
 websocket_urlpatterns =[

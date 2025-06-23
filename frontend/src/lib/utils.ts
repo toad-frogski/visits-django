@@ -1,3 +1,5 @@
+import { CalendarDate } from "@internationalized/date";
+
 export type Time = {
   days: number;
   hours: number;
@@ -13,11 +15,7 @@ export const parseMs = (
     roundSeconds?: boolean;
   } = {}
 ): Time => {
-  const {
-    roundHours = true,
-    roundMinutes = true,
-    roundSeconds = true,
-  } = options;
+  const { roundHours = true, roundMinutes = true, roundSeconds = true } = options;
 
   let days = Math.floor(ms / (24 * 60 * 60 * 1000));
   let hours = Math.floor(ms / (60 * 60 * 1000));
@@ -33,10 +31,16 @@ export const parseMs = (
 
 export const formatTime = (value: Time): string => {
   if (value.hours !== 0 || value.minutes !== 0) {
-    return `${String(value.hours).padStart(2, "0")}:${String(
-      value.minutes
-    ).padStart(2, "0")}`;
+    return `${String(value.hours).padStart(2, "0")}:${String(value.minutes).padStart(2, "0")}`;
   }
 
   return "--:--";
+};
+
+export const parseDate = (dateStr: string | null): CalendarDate | null => {
+  if (!dateStr) return null;
+
+  const [yearStr, monthStr, dayStr] = dateStr.split("-");
+
+  return new CalendarDate(Number(yearStr), Number(monthStr), Number(dayStr));
 };
