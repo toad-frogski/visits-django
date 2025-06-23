@@ -55,14 +55,22 @@ class ExitView(views.APIView):
 
     def post(self, request):
         session_service = SessionService()
+        session = session_service.get_current_session(request.user)
+        if not session:
+            raise NotFound()
 
-        try:
-            session_service.exit(request.user, timezone.localtime())
-        except SessionEntry.DoesNotExist as e:
-            raise NotFound(detail=e)
-        except ValueError as e:
-            raise ValidationError(detail=e)
-        except Exception as e:
-            raise APIException(detail=e)
+        last_entry = session.get_last_entry()
+        if not last_entry:
+            raise NotFound()
+
+        if last_entry.type == SessionEntry.SessionEntryType.WORK:
+            try:
+                last_entry.close(time=timezone.now())
+            except SessionEntry.DoesNotExist as e:
+                raise NotFound(detail=e)
+            except ValueError as e:
+                raise ValidationError(detail=e)
+            except Exception as e:
+                raise APIException(detail=e)
 
         return Response({"message": "RFID exit processed"}, status=status.HTTP_200_OK)

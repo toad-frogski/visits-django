@@ -20,7 +20,10 @@ class SessionEntry(models.Model):
     start = models.DateTimeField(default=timezone.localtime, null=False)
     end = models.DateTimeField(null=True, blank=True)
     type = models.CharField(
-        max_length=10, choices=SessionEntryType.choices, default=SessionEntryType.SYSTEM
+        max_length=10,
+        choices=SessionEntryType.choices,
+        default=SessionEntryType.SYSTEM,
+        null=False,
     )
     comment = models.CharField(max_length=255, blank=True, null=True)
 

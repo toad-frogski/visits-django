@@ -81,24 +81,6 @@ class SessionService:
         session.add_enter(start=time, type=type, comment=comment)
 
     @staticmethod
-    def leave(
-        user: User,
-        type: SessionEntry.SessionEntryType = SessionEntry.SessionEntryType.BREAK,
-        time: datetime = timezone.localtime(),
-        comment: str | None = None,
-    ):
-        SessionService.handle_leave(user, type, time, comment)
-
-    @staticmethod
-    def comeback(
-        user: User,
-        type: SessionEntry.SessionEntryType = SessionEntry.SessionEntryType.WORK,
-        time: datetime = timezone.localtime(),
-        comment: str | None = None,
-    ):
-        SessionService.handle_leave(user, type, time, comment)
-
-    @staticmethod
     def get_current_session(user: User) -> Session | None:
         session = Session.objects.get_last_user_session(user)
 
