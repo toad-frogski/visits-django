@@ -5,6 +5,7 @@ import { AvatarApi, RfidApi } from "@/lib/api";
 import client from "@/lib/api-client";
 import UploadImage from "@/ui/components/upload-image";
 import useAuthStore from "@/stores/auth";
+import { useToast } from "@/ui/components/toast";
 
 const rfidApi = new RfidApi(undefined, undefined, client);
 const avatarApi = new AvatarApi(undefined, undefined, client);
@@ -23,6 +24,7 @@ const AvatarForm: FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [file, setFile] = useState<File>();
+  const { addToast } = useToast();
 
   const submit = () => {
     if (file) {
@@ -30,6 +32,7 @@ const AvatarForm: FC = () => {
       avatarApi
         .v1SessionAvatarUpdate(file)
         .then(() => {
+          addToast("Аватар обновлен");
           setError("");
           fetchUser();
         })
@@ -53,6 +56,7 @@ const RfidForm: FC = () => {
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { addToast } = useToast();
 
   useEffect(() => {
     rfidApi.v1RfidRfidRetrieve().then(({ data }) => setToken(data.rfid_token));
@@ -62,7 +66,10 @@ const RfidForm: FC = () => {
     setLoading(true);
     rfidApi
       .v1RfidRfidUpdate({ rfid_token: token })
-      .then(() => setError(""))
+      .then(() => {
+        setError("");
+        addToast("RFID токен обновлен");
+      })
       .catch(() => setError("Не удалось сохранить"))
       .finally(() => setLoading(false));
   };
@@ -78,11 +85,7 @@ const RfidForm: FC = () => {
           onChange={(e) => setToken(e.target.value)}
           error={error}
         />
-        <Button
-          className="max-h-[60px] max-w-32"
-          onClick={submit}
-          disabled={loading}
-        >
+        <Button className="max-h-[60px] max-w-32" onClick={submit} disabled={loading}>
           Сохранить
         </Button>
       </div>

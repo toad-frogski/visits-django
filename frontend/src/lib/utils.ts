@@ -1,4 +1,4 @@
-import { CalendarDate } from "@internationalized/date";
+import { CalendarDate, type DateValue } from "@internationalized/date";
 
 export type Time = {
   days: number;
@@ -35,6 +35,10 @@ export const formatTime = (value: Time): string => {
   }
 
   return "--:--";
+};
+
+export const formatDate = (date: DateValue) => {
+  return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
 };
 
 export const parseDate = (dateStr: string | null): CalendarDate | null => {

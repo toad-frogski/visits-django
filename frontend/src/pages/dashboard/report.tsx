@@ -14,7 +14,7 @@ import {
 } from "@/lib/api";
 import client from "@/lib/api-client";
 import TimeBadge from "@/ui/components/time-badge";
-import { formatTime, parseDate, parseMs } from "@/lib/utils";
+import { formatDate, formatTime, parseDate, parseMs } from "@/lib/utils";
 import Disclosure, { DisclosurePanel, DisclosureTrigger } from "@/ui/components/disclosure";
 
 import Calendar from "@/assets/calendar.svg?react";
@@ -31,37 +31,36 @@ const DashboardReport: FC = () => {
   const [range, setRange] = useState<RangeValue<DateValue> | null>(() => {
     const start = parseDate(searchParams.get("start"));
     const end = parseDate(searchParams.get("end"));
-    if (!start || !end) return null;
 
-    return {
-      start: start,
-      end: end,
-    };
+    return start && end ? { start, end } : null;
   });
 
   useEffect(() => {
-    const start = range?.start
-      ? `${range.start.year}-${String(range.start.month).padStart(2, "0")}-${String(range.start.day).padStart(2, "0")}`
-      : searchParams.get("start") ?? undefined;
-    const end = range?.end
-      ? `${range.end.year}-${String(range.end.month).padStart(2, "0")}-${String(range.end.day).padStart(2, "0")}`
-      : searchParams.get("end") ?? undefined;
+    const start = parseDate(searchParams.get("start"));
+    const end = parseDate(searchParams.get("end"));
+
+    if (!start || !end) return;
+
+    if (!range || start !== range.start || end !== range.end) {
+      setRange({ start, end });
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const start = range?.start ? formatDate(range.start) : undefined;
+    const end = range?.end ? formatDate(range.end) : undefined;
 
     api
       .statistics(end, start)
       .then(({ data }) => setStats(data))
       .catch(() => setStats([]));
-  }, [range, searchParams]);
+  }, [range]);
 
   useEffect(() => {
     if (range?.start && range?.end) {
-      const start = `${range.start.year}-${String(range.start.month).padStart(2, "0")}-${String(
-        range.start.day
-      ).padStart(2, "0")}`;
-      const end = `${range.end.year}-${String(range.end.month).padStart(2, "0")}-${String(range.end.day).padStart(
-        2,
-        "0"
-      )}`;
+      const start = formatDate(range.start);
+      const end = formatDate(range.end);
+
       setSearchParams({ start: start, end: end });
     }
   }, [range, setSearchParams]);
