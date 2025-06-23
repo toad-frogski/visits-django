@@ -27,7 +27,7 @@ const api = new StatisticsApi(undefined, undefined, client);
 
 const DashboardReport: FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [stats, setStats] = useState<UserMonthStatisticsResponse[]>([]);
+  const [stats, setStats] = useState<UserMonthStatisticsResponse[]>();
   const [range, setRange] = useState<RangeValue<DateValue> | null>(() => {
     const start = parseDate(searchParams.get("start"));
     const end = parseDate(searchParams.get("end"));
@@ -77,7 +77,7 @@ const DashboardReport: FC = () => {
   );
 };
 
-const TotalTrackedTimeBadge: FC<{ stats: UserMonthStatisticsResponse[] }> = ({ stats }) => {
+const TotalTrackedTimeBadge: FC<{ stats?: UserMonthStatisticsResponse[] }> = ({ stats = [] }) => {
   const [time, setTime] = useState(0);
 
   useEffect(() => {
@@ -96,7 +96,7 @@ const TotalTrackedTimeBadge: FC<{ stats: UserMonthStatisticsResponse[] }> = ({ s
   );
 };
 
-const RedmineTotalTrackedTimeBadge: FC<{ stats: UserMonthStatisticsResponse[] }> = ({ stats }) => {
+const RedmineTotalTrackedTimeBadge: FC<{ stats?: UserMonthStatisticsResponse[] }> = ({ stats = [] }) => {
   const [time, setTime] = useState(0);
 
   useEffect(() => {

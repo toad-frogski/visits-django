@@ -1,4 +1,4 @@
-from django.conf import settings
+from django.conf import settings as django_settings
 import secrets
 import os
 
@@ -17,8 +17,8 @@ class RFIDSettings:
     }
 
     def __getattr__(self, name):
-        if hasattr(settings, name):
-            return getattr(settings, name)
+        if hasattr(django_settings, name):
+            return getattr(django_settings, name)
         if name in self.DEFAULTS:
             return self.DEFAULTS[name]
         raise AttributeError(f"RFID setting '{name}' not found.")
