@@ -6,6 +6,7 @@ import { type RangeValue } from "@react-types/shared";
 import Card from "@/ui/components/card";
 import {
   ExtraFieldBaseTypeEnum,
+  HolidaysExtraFieldPayloadTypeEnum,
   StatisticsApi,
   type ExtraFieldBase,
   type HolidaysExtraFieldPayload,
@@ -18,10 +19,13 @@ import { formatDate, formatTime, parseDate, parseMs } from "@/lib/utils";
 import Disclosure, { DisclosurePanel, DisclosureTrigger } from "@/ui/components/disclosure";
 
 import Calendar from "@/assets/calendar.svg?react";
+import House from "@/assets/house.svg?react";
+import Cake from "@/assets/cake.svg?react";
 import Clock from "@/assets/clock.svg?react";
 import Coffee from "@/assets/coffee.svg?react";
 import Soup from "@/assets/soup.svg?react";
 import { cn } from "@/lib/cn";
+import Button from "@/ui/components/button";
 
 const api = new StatisticsApi(undefined, undefined, client);
 
@@ -67,7 +71,10 @@ const DashboardReport: FC = () => {
 
   return (
     <div className="flex-1">
-      <DateRangePicker onChange={(range) => setRange(range)} value={range} />
+      <div className="flex flex-col md:flex-row gap-3 justify-between md:mt-0 mt-6">
+        <Button className="md:w-fit">Скачать отчет</Button>
+        <DateRangePicker onChange={(range) => setRange(range)} value={range} />
+      </div>
       <div className="mt-6">
         <TotalTrackedTimeBadge stats={stats} />
         <RedmineTotalTrackedTimeBadge stats={stats} />
@@ -155,11 +162,13 @@ const Report: FC<ReportProps> = ({ stats, className, ...props }) => {
 type ReportItemProps = DisclosureProps & UserMonthStatisticsResponse & { current?: Date };
 
 const ReportItem: FC<ReportItemProps> = ({ date, session, statistics, extra, current, ...props }) => {
+  const isSpecial = !!extra.find((e) => e.type === "holidays");
+
   return (
     <Disclosure {...props} className="rounded w-full">
-      <DisclosureTrigger isDisabled={!session}>
-        <div className="flex gap-3 md:gap-6 items-center flex-col md:flex-row">
-          <DateBadge date={date} />
+      <DisclosureTrigger isDisabled={!session} className={cn(isSpecial && "bg-accent/10")}>
+        <div className={"flex gap-3 md:gap-6 items-center flex-col md:flex-row"}>
+          <DateBadge date={date} extra={extra} />
           {session ? <StatisticsBadge statistics={statistics} /> : <span className="text-gray"> --- </span>}
           <ExtraBadge extra={extra} date={date} />
         </div>
@@ -243,10 +252,20 @@ const CurrentReportItem: FC<ReportItemProps> = ({ statistics, session, ...props 
   );
 };
 
-const DateBadge: FC<{ date: string }> = ({ date }) => {
+const DateBadge: FC<{ date: string; extra?: ExtraFieldBase[] }> = ({ date, extra = [] }) => {
+  const holidaysExtra = extra.find((e) => e.type === "holidays");
+  const type = holidaysExtra ? (holidaysExtra.payload as HolidaysExtraFieldPayload).type : "default";
+
   return (
     <span className="inline-flex items-center gap-3 text-gray">
-      <Calendar width={16} height={16} /> {date}
+      {
+        {
+          [HolidaysExtraFieldPayloadTypeEnum.Holiday]: <Cake width={16} height={16} />,
+          [HolidaysExtraFieldPayloadTypeEnum.Weekend]: <House width={16} height={16} />,
+          default: <Calendar width={16} height={16} />,
+        }[type]
+      }
+      {date}
     </span>
   );
 };
@@ -276,24 +295,18 @@ type ExtraBadgeProps = {
 
 const ExtraBadge: FC<ExtraBadgeProps> = ({ extra, date }) => {
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-3 md:ml-auto md:pr-3">
       {extra.map(
         ({ type, payload }) =>
           ({
             [ExtraFieldBaseTypeEnum.Redmine]: (
               <RedmineBadge key={`${date}-${type}`} {...(payload as RedmineExtraFieldPayload)} />
             ),
-            [ExtraFieldBaseTypeEnum.Holidays]: (
-              <HolidaysBadge key={`${date}-${type}`} {...(payload as HolidaysExtraFieldPayload)} />
-            ),
+            [ExtraFieldBaseTypeEnum.Holidays]: null,
           }[type])
       )}
     </div>
   );
-};
-
-const HolidaysBadge: FC<HolidaysExtraFieldPayload> = ({ type }) => {
-  return <span className="text-gray">{type}</span>;
 };
 
 const RedmineBadge: FC<RedmineExtraFieldPayload> = ({ hours }) => {
