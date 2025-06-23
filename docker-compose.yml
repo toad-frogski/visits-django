@@ -20,3 +20,17 @@ services:
       - ./backend:/var/www/backend
     env_file:
       - ./backend/.env
+
+
+  mqtt_subscriber:
+    image: visits_django/mqtt_subscriber
+    build: mqtt_subscriber
+    environment:
+      - MQTT_CLIENT
+      - MQTT_TOPIC
+      - MQTT_PASS
+      - MQTT_LOGIN
+      - MQTT_SERVER
+      - MQTT_PORT
+      - WEBAPP_URL
+      - AUTH_TOKEN

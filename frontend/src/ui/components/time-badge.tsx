@@ -4,7 +4,7 @@ import type { FC, HTMLAttributes } from "react";
 
 type TimeBadgeProps = HTMLAttributes<HTMLSpanElement> & {
   ms: number;
-  options: {
+  options?: {
     roundHours?: boolean;
     roundMinutes?: boolean;
     roundSeconds?: boolean;

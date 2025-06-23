@@ -12,7 +12,7 @@ class RFIDSettings:
         "RFID_SERVICE_TOKEN": os.getenv(
             "RFID_SERVICE_TOKEN", secrets.token_urlsafe(32)
         ),
-        "RFID_TOKEN_HEADER_NAME": "X-RFID-Token",
+        "RFID_TOKEN_HEADER_NAME": "X-RFID-Key",
         "RFID_SERVICE_TOKEN_HEADER_NAME": "X-Service-Key",
     }
 

@@ -8,6 +8,7 @@ import {
   ExtraFieldBaseTypeEnum,
   StatisticsApi,
   type ExtraFieldBase,
+  type HolidaysExtraFieldPayload,
   type RedmineExtraFieldPayload,
   type UserMonthStatisticsResponse,
 } from "@/lib/api";
@@ -20,6 +21,7 @@ import Calendar from "@/assets/calendar.svg?react";
 import Clock from "@/assets/clock.svg?react";
 import Coffee from "@/assets/coffee.svg?react";
 import Soup from "@/assets/soup.svg?react";
+import { cn } from "@/lib/cn";
 
 const api = new StatisticsApi(undefined, undefined, client);
 
@@ -279,8 +281,12 @@ const ExtraBadge: FC<ExtraBadgeProps> = ({ extra, date }) => {
       {extra.map(
         ({ type, payload }) =>
           ({
-            [ExtraFieldBaseTypeEnum.Redmine]: <RedmineBadge key={`${date}-${type}`} {...payload} />,
-            [ExtraFieldBaseTypeEnum.Holidays]: <HolidaysBadge key={`${date}-${type}`} {...payload} />,
+            [ExtraFieldBaseTypeEnum.Redmine]: (
+              <RedmineBadge key={`${date}-${type}`} {...(payload as RedmineExtraFieldPayload)} />
+            ),
+            [ExtraFieldBaseTypeEnum.Holidays]: (
+              <HolidaysBadge key={`${date}-${type}`} {...(payload as HolidaysExtraFieldPayload)} />
+            ),
           }[type])
       )}
     </div>
