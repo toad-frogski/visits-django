@@ -39,6 +39,20 @@ const DashboardReport: FC = () => {
     return start && end ? { start, end } : null;
   });
 
+  const exportReport = () => {
+    const start = range?.start ? formatDate(range.start) : undefined;
+    const end = range?.end ? formatDate(range.end) : undefined;
+
+    api._export(start, end, { responseType: "blob" }).then(({ data }) => {
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `report-${start ?? ""}-${end ?? ""}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  };
+
   useEffect(() => {
     const start = parseDate(searchParams.get("start"));
     const end = parseDate(searchParams.get("end"));
@@ -72,7 +86,9 @@ const DashboardReport: FC = () => {
   return (
     <div className="flex-1">
       <div className="flex flex-col md:flex-row gap-3 justify-between md:mt-0 mt-6">
-        <Button className="md:w-fit">Скачать отчет</Button>
+        <Button className="md:w-fit" onClick={exportReport}>
+          Скачать отчет
+        </Button>
         <DateRangePicker onChange={(range) => setRange(range)} value={range} />
       </div>
       <div className="mt-6">

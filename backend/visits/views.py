@@ -12,7 +12,8 @@ from rest_framework.exceptions import APIException, ValidationError, NotFound
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
+from drf_spectacular.types import OpenApiTypes
 from django.utils.translation import gettext as _
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
@@ -258,7 +259,14 @@ class ExportUserReportView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        "export", parameters=[serializers.UserMonthStatisticsRequestSerializer]
+        "export",
+        parameters=[serializers.UserMonthStatisticsRequestSerializer],
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                response=OpenApiTypes.BINARY,
+                description="Excel file with user statistics",
+            )
+        },
     )
     def get(self, request: Request):
         request_serializer = serializers.UserMonthStatisticsRequestSerializer(
@@ -312,7 +320,9 @@ class ExportUserReportView(APIView):
         ws.column_dimensions["E"].width = 15
         ws.column_dimensions["F"].width = 15
 
-        gray_fill = PatternFill(start_color="CACACA", end_color="CACACA", fill_type="solid")
+        gray_fill = PatternFill(
+            start_color="CACACA", end_color="CACACA", fill_type="solid"
+        )
 
         ws.append(
             ["Date", "Start Time", "End Time", "Work Time", "Break Time", "Lunch Time"]
