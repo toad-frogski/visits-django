@@ -48,7 +48,7 @@ const button = tv({
     },
     disabled: {
       true: {
-        base: "text-surface bg-gray-light",
+        base: "text-surface bg-gray-light cursor-default hover:bg-gray-light",
       },
     },
     withIcon: {

@@ -47,7 +47,7 @@ const DashboardReport: FC = () => {
       const url = URL.createObjectURL(data);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `report-${start ?? ""}-${end ?? ""}.xlsx`;
+      a.download = "report.xlsx";
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -95,7 +95,7 @@ const DashboardReport: FC = () => {
         <TotalTrackedTimeBadge stats={stats} />
         <RedmineTotalTrackedTimeBadge stats={stats} />
       </div>
-      <Report stats={stats} className="mt-6" />
+      <Report stats={stats} className="mt-6 overflow-hidden rounded shadow" />
     </div>
   );
 };

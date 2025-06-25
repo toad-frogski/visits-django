@@ -57,7 +57,7 @@
   font-family: "Open Sans";
   font-style: normal;
   font-weight: 400;
-  src: url("/fonts/open-sans-v43-cyrillic_latin-regular.woff2") format("woff2");
+  src: url("/fonts/open-sans.woff2") format("woff2");
 }
 
 body {
