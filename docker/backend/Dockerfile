@@ -20,7 +20,8 @@ RUN pip install \
   drf-spectacular \
   django-cors-headers \
   requests \
-  channels[daphne]
+  channels[daphne] \
+  openpyxl
 
 FROM python:${PYTHON_IMAGE_VERSION}-slim AS runtime
 

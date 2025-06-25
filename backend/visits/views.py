@@ -1,3 +1,9 @@
+from io import BytesIO
+from datetime import date, datetime, timedelta
+from math import e
+import math
+from openpyxl import Workbook
+from openpyxl.styles import NamedStyle, PatternFill
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
@@ -10,12 +16,11 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.utils.translation import gettext as _
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
+from django.http import HttpResponse
 from django.db.models import Q
-from datetime import date, datetime, timedelta
 
 from .models import Session, SessionEntry
-from .services import SessionService
-from .callbacks import StatisticsExtraDataResult, statistics_extra_callbacks
+from .services import SessionService, StatisticsService
 from . import serializers
 
 
@@ -238,66 +243,146 @@ class UserMonthStatisticsView(APIView):
         end: date = request_serializer.validated_data["end"]  # type: ignore
         user = request.user
 
-        sessions = Session.objects.filter(
-            user=user, date__range=(start, end)
-        ).prefetch_related("entries")
-
-        sessions_by_date = {session.date: session for session in sessions}
-
-        result = []
-        current_date = start
-        while current_date <= end:
-            session = sessions_by_date.get(current_date)
-            entries = session.entries.all() if session else []  # type: ignore
-            statistics = self._calculate_statistics(entries)
-            extra = self._collect_extra(user, current_date)
-            result.append(
-                {
-                    "date": current_date,
-                    "session": session,
-                    "statistics": statistics,
-                    "extra": extra,
-                }
-            )
-            current_date += timedelta(days=1)
+        statistics_service = StatisticsService()
+        result = statistics_service.get_user_date_range_statistics(user, start, end)
 
         response_serializer = serializers.UserMonthStatisticsResponseSerializer(
             result, many=True
         )
+
         return Response(response_serializer.data)
 
-    def _calculate_statistics(self, entries: list[SessionEntry]) -> dict[str, float]:
-        result = {
-            "work_time": 0.0,
-            "break_time": 0.0,
-            "lunch_time": 0.0,
-        }
 
-        for entry in entries:
-            if not entry.end:
+@extend_schema(tags=["statistics"])
+class ExportUserReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        "export", parameters=[serializers.UserMonthStatisticsRequestSerializer]
+    )
+    def get(self, request: Request):
+        request_serializer = serializers.UserMonthStatisticsRequestSerializer(
+            data=request.query_params
+        )
+        request_serializer.is_valid(raise_exception=True)
+        start: date = request_serializer.validated_data["start"]  # type: ignore
+        end: date = request_serializer.validated_data["end"]  # type: ignore
+        user = request.user
+
+        statistics_service = StatisticsService()
+        result = statistics_service.get_user_date_range_statistics(user, start, end)
+        wb = self._prepare_report_sheet(user, start, end, result)
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        response = HttpResponse(
+            output.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": f'attachment; filename="{request.user.username} {str(start.strftime("%Y-%m-%d"))} {str(end.strftime("%Y-%m-%d"))}.xlsx"'
+            },
+        )
+
+        return response
+
+    def _prepare_report_sheet(
+        self, user: User, start: date, end: date, data: list[dict]
+    ) -> Workbook:
+
+        def format_timedelta(td: timedelta) -> str:
+            total_minutes = int(td.total_seconds() // 60)
+            hours = total_minutes // 60
+            minutes = total_minutes % 60
+
+            return f"{hours}:{minutes:02d}"
+
+        wb = Workbook()
+        ws = wb.active
+        if not ws:
+            raise APIException(_("Failed to create worksheet."))
+
+        ws.title = f"Report {user.username} {start.strftime('%Y-%m-%d')} - {end.strftime('%Y-%m-%d')}"
+
+        ws.column_dimensions["A"].width = 12
+        ws.column_dimensions["B"].width = 15
+        ws.column_dimensions["C"].width = 15
+        ws.column_dimensions["D"].width = 15
+        ws.column_dimensions["E"].width = 15
+        ws.column_dimensions["F"].width = 15
+
+        gray_fill = PatternFill(start_color="CACACA", end_color="CACACA", fill_type="solid")
+
+        ws.append(
+            ["Date", "Start Time", "End Time", "Work Time", "Break Time", "Lunch Time"]
+        )
+        current_idx = 1
+        for cell in ws[current_idx]:
+            cell.fill = gray_fill
+
+        for row in data:
+            entries: list[SessionEntry] = (
+                list(row["session"].entries.all()) if row["session"] else []
+            )
+
+            if not entries:
+                ws.append([row["date"], "--", "--", "--", "--", "--"])
+                current_idx += 1
                 continue
 
-            delta = (entry.end - entry.start).total_seconds()
+            first_entry, last_entry = entries[0], entries[-1]
+            session_start = (
+                first_entry.start.strftime("%H:%M:%S") if first_entry.start else ""
+            )
+            session_end = last_entry.end.strftime("%H:%M:%S") if last_entry.end else ""
 
-            if entry.type == "WORK":
-                result["work_time"] += delta
-            elif entry.type == "BREAK":
-                result["break_time"] += delta
-            elif entry.type == "LUNCH":
-                result["lunch_time"] += delta
+            summary = [
+                row["date"],
+                session_start,
+                session_end,
+                format_timedelta(
+                    timedelta(seconds=math.floor(row["statistics"]["work_time"] or 0))
+                ),
+                format_timedelta(
+                    timedelta(seconds=math.floor(row["statistics"]["break_time"] or 0))
+                ),
+                format_timedelta(
+                    timedelta(seconds=math.floor(row["statistics"]["lunch_time"] or 0))
+                ),
+            ]
 
-        return result
+            ws.append(summary)
+            current_idx += 1
 
-    def _collect_extra(self, user: User, date: date):
-        results: list[StatisticsExtraDataResult] = []
-        for callback in statistics_extra_callbacks():
-            data = callback(user, date)
-            if data:
-                results.append(
-                    {
-                        "type": getattr(callback, "_type"),
-                        "payload": data,
-                    }
+            for cell in ws[current_idx]:
+                cell.fill = gray_fill
+
+            if len(entries) == 0:
+                continue
+
+            ws.append(["", "Start Time", "End Time", "Type", "Comment"])
+            current_idx += 1
+
+            ws.row_dimensions[current_idx].outline_level = 1
+            ws.row_dimensions[current_idx].hidden = True
+
+            group_start = group_end = current_idx + 1
+            for entry in entries:
+                ws.append(
+                    [
+                        "",
+                        (entry.start.strftime("%H:%M:%S") if entry.start else ""),
+                        entry.end.strftime("%H:%M:%S") if entry.end else "",
+                        entry.type if entry.type else "",
+                        entry.comment if entry.comment else "",
+                    ]
                 )
+                current_idx += 1
+                group_end = current_idx
 
-        return results
+            for i in range(group_start, group_end + 1):
+                ws.row_dimensions[i].outline_level = 1
+                ws.row_dimensions[i].hidden = True
+
+        return wb

@@ -1,5 +1,4 @@
 from django.urls import path
-from rest_framework.routers import DefaultRouter
 
 from . import views
 from . import consumers
@@ -27,6 +26,7 @@ urlpatterns = [
     path("leave", views.LeaveView.as_view()),
     path("today", views.UsersTodayView.as_view()),
     path("stats/me", views.UserMonthStatisticsView.as_view()),
+    path("stats/export", views.ExportUserReportView.as_view()),
 ]
 
 websocket_urlpatterns = [

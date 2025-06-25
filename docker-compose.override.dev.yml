@@ -4,6 +4,9 @@ services:
       - ./docker/nginx/conf.dev.d:/etc/nginx/conf.d:ro
     ports:
       - 80:80
+    depends_on:
+      - backend
+      - frontend
 
   backend:
     image: visits_django/backend:dev
@@ -12,6 +15,9 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - 5678:5678
+    depends_on:
+      - db
+      - ldap
 
   frontend:
     image: node:20-slim
