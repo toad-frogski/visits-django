@@ -1,4 +1,4 @@
-import type { FC } from "react";
+import { type FC } from "react";
 import {
   Button,
   CalendarCell,
@@ -15,9 +15,10 @@ import {
   type DateValue,
 } from "react-aria-components";
 
-import CalendarIcon from "@/assets/calendar.svg?react";
 import { tv } from "tailwind-variants";
 import { cn } from "@/lib/cn";
+
+import CalendarIcon from "@/assets/calendar.svg?react";
 
 const dateRangePicker = tv({
   variants: {
@@ -52,8 +53,7 @@ const dateRangePicker = tv({
     separator: "text-gray",
     button: "rounded-full hover:bg-gray-100 focus:outline-none ml-auto",
     popover: "entering:animate-fade-in exiting:animate-fade-out mt-1",
-    dialog:
-      "p-4 bg-surface rounded-lg shadow-lg outline-none border border-gray-light",
+    dialog: "p-4 bg-surface rounded-lg shadow-lg outline-none border border-gray-light",
     calendar: "w-full",
     calendarHeader: "flex items-center justify-between mb-4",
     navButton: "w-8 h-8 rounded-full hover:bg-gray-100",
@@ -67,12 +67,7 @@ const dateRangePicker = tv({
   },
 });
 
-const DateRangePicker: FC<DateRangePickerProps<DateValue>> = ({
-  className,
-  isDisabled,
-  isInvalid,
-  ...props
-}) => {
+const DateRangePicker: FC<DateRangePickerProps<DateValue>> = ({ className, isDisabled, isInvalid, ...props }) => {
   const {
     base,
     group,
@@ -98,9 +93,7 @@ const DateRangePicker: FC<DateRangePickerProps<DateValue>> = ({
     <AriaDateRangePicker className={cn(base(), className)} {...props} isInvalid={isInvalid} aria-label="date-picker">
       <Group className={group()}>
         <DateInput slot="start" className={dateInput()}>
-          {(segment) => (
-            <DateSegment segment={segment} className={cn(dateSegment())} />
-          )}
+          {(segment) => <DateSegment segment={segment} className={cn(dateSegment())} />}
         </DateInput>
 
         <span aria-hidden="true" className={separator()}>
@@ -108,9 +101,7 @@ const DateRangePicker: FC<DateRangePickerProps<DateValue>> = ({
         </span>
 
         <DateInput slot="end" className={dateInput()}>
-          {(segment) => (
-            <DateSegment segment={segment} className={cn(dateSegment())} />
-          )}
+          {(segment) => <DateSegment segment={segment} className={cn(dateSegment())} />}
         </DateInput>
 
         <Button className={button()}>
@@ -143,9 +134,7 @@ const DateRangePicker: FC<DateRangePickerProps<DateValue>> = ({
                     })
                   }
                 >
-                  {({ formattedDate }) => (
-                    <span className={calendarCellText()}>{formattedDate}</span>
-                  )}
+                  {({ formattedDate }) => <span className={calendarCellText()}>{formattedDate}</span>}
                 </CalendarCell>
               )}
             </CalendarGrid>

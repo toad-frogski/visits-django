@@ -1,8 +1,6 @@
 import DateRangePicker from "@/ui/components/date-range";
 import { useEffect, useRef, useState, type FC, type HTMLAttributes } from "react";
-import { DisclosureGroup, type DateValue, type DisclosureProps } from "react-aria-components";
-import { useSearchParams } from "react-router";
-import { type RangeValue } from "@react-types/shared";
+import { DisclosureGroup, type DisclosureProps } from "react-aria-components";
 import Card from "@/ui/components/card";
 import {
   ExtraFieldBaseTypeEnum,
@@ -15,7 +13,7 @@ import {
 } from "@/lib/api";
 import client from "@/lib/api-client";
 import TimeBadge from "@/ui/components/time-badge";
-import { formatDate, formatTime, parseDate, parseMs } from "@/lib/utils";
+import { formatDate, formatTime, parseMs } from "@/lib/utils";
 import Disclosure, { DisclosurePanel, DisclosureTrigger } from "@/ui/components/disclosure";
 
 import Calendar from "@/assets/calendar.svg?react";
@@ -26,18 +24,13 @@ import Coffee from "@/assets/coffee.svg?react";
 import Soup from "@/assets/soup.svg?react";
 import { cn } from "@/lib/cn";
 import Button from "@/ui/components/button";
+import useDateRangeQueryParams from "@/lib/hooks/useDateRangeQueryParams";
 
 const api = new StatisticsApi(undefined, undefined, client);
 
 const DashboardReport: FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [stats, setStats] = useState<UserMonthStatisticsResponse[]>();
-  const [range, setRange] = useState<RangeValue<DateValue> | null>(() => {
-    const start = parseDate(searchParams.get("start"));
-    const end = parseDate(searchParams.get("end"));
-
-    return start && end ? { start, end } : null;
-  });
+  const [range, setRange] = useDateRangeQueryParams();
 
   const exportReport = () => {
     const start = range?.start ? formatDate(range.start) : undefined;
@@ -54,17 +47,6 @@ const DashboardReport: FC = () => {
   };
 
   useEffect(() => {
-    const start = parseDate(searchParams.get("start"));
-    const end = parseDate(searchParams.get("end"));
-
-    if (!start || !end) return;
-
-    if (!range || start !== range.start || end !== range.end) {
-      setRange({ start, end });
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
     const start = range?.start ? formatDate(range.start) : undefined;
     const end = range?.end ? formatDate(range.end) : undefined;
 
@@ -73,15 +55,6 @@ const DashboardReport: FC = () => {
       .then(({ data }) => setStats(data))
       .catch(() => setStats([]));
   }, [range]);
-
-  useEffect(() => {
-    if (range?.start && range?.end) {
-      const start = formatDate(range.start);
-      const end = formatDate(range.end);
-
-      setSearchParams({ start: start, end: end });
-    }
-  }, [range, setSearchParams]);
 
   return (
     <div className="flex-1">
@@ -195,7 +168,7 @@ const ReportItem: FC<ReportItemProps> = ({ date, session, statistics, extra, cur
           const end = entry.end ? new Date(entry.end) : current;
 
           return (
-            <div key={entry.id} className="text-gray flex gap-3 items-center mb-2">
+            <div key={entry.id} className="text-gray flex gap-3 items-center py-1">
               {entry.type === "BREAK" && <Coffee width={16} height={16} />}
               {entry.type === "LUNCH" && <Soup width={16} height={16} />}
               {entry.type === "WORK" && <Clock width={16} height={16} />}

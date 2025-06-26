@@ -13,7 +13,8 @@ import { tv } from "tailwind-variants";
 const disclosure = tv({
   slots: {
     base: "w-full bg-surface relative before:top-0 before:left-0 before:h-full before:w-4 before:bg-transparent before:absolute before:transition-colors before:duration-200 before:ease-in-out",
-    trigger: "w-full outline-none py-2 px-4 pl-6 focus:bg-accent/10",
+    trigger:
+      "w-full outline-none py-2 px-4 pl-6 hover:bg-accent/10 focus-visible:bg-accent/10 transition-colors duration-200 ease-in-out",
     content: "pl-6 pr-2 aria-hidden:hidden",
   },
   variants: {
@@ -31,25 +32,17 @@ const disclosure = tv({
       },
       false: {
         trigger: "cursor-pointer",
-      }
+      },
     },
   },
 });
 
-const Disclosure: FC<AriaDisclosureProps> = ({
-  children,
-  className,
-  isExpanded,
-  isDisabled,
-  ...props
-}) => {
+const Disclosure: FC<AriaDisclosureProps> = ({ children, className, isExpanded, isDisabled, ...props }) => {
   const { base } = disclosure();
 
   return (
     <AriaDisclosure
-      className={({ isExpanded, isDisabled }) =>
-        cn(className, base({ active: isExpanded, disabled: isDisabled }))
-      }
+      className={({ isExpanded, isDisabled }) => cn(className, base({ active: isExpanded, disabled: isDisabled }))}
       {...props}
       isDisabled={isDisabled}
       isExpanded={isExpanded}
@@ -59,21 +52,14 @@ const Disclosure: FC<AriaDisclosureProps> = ({
   );
 };
 
-export const DisclosureTrigger: FC<AriaButtonProps> = ({
-  children,
-  className,
-  isDisabled,
-  ...props
-}) => {
+export const DisclosureTrigger: FC<AriaButtonProps> = ({ children, className, isDisabled, ...props }) => {
   const { trigger } = disclosure();
 
   return (
     <Button
       {...props}
       slot="trigger"
-      className={({ isDisabled }) =>
-        cn(className, trigger({ disabled: isDisabled }))
-      }
+      className={({ isDisabled }) => cn(className, trigger({ disabled: isDisabled }))}
       isDisabled={isDisabled}
     >
       {children}
@@ -81,11 +67,7 @@ export const DisclosureTrigger: FC<AriaButtonProps> = ({
   );
 };
 
-export const DisclosurePanel: FC<AriaDisclosurePanelProps> = ({
-  className,
-  children,
-  ...props
-}) => {
+export const DisclosurePanel: FC<AriaDisclosurePanelProps> = ({ className, children, ...props }) => {
   const { content } = disclosure();
 
   return (
