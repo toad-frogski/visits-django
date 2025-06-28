@@ -1,4 +1,4 @@
-import { useState, type FC } from "react";
+import { useEffect, useMemo, useState, type FC } from "react";
 import { ToggleButton, ToggleButtonGroup } from "@/ui/components/toggle-button";
 import Radio, { RadioGroup } from "@/ui/components/radio";
 import { Time } from "@internationalized/date";
@@ -9,7 +9,7 @@ import Button from "@/ui/components/button";
 import TimeInput from "@/ui/components/time-input";
 import useAuthStore from "@/stores/auth";
 import { ErrorMessage, TextInput } from "@/ui/components/input";
-import { TypeB70Enum, VisitsApi } from "@/lib/api";
+import { TypeB70Enum, VisitsApi, type SessionEntryModel } from "@/lib/api";
 import client from "@/lib/api-client";
 
 import Play from "@/assets/play.svg?react";
@@ -20,6 +20,7 @@ import Leaf from "@/assets/leaf.svg?react";
 import Soup from "@/assets/soup.svg?react";
 import Reset from "@/assets/timer-reset.svg?react";
 import Card from "@/ui/components/card";
+import { formatTime } from "@/lib/utils";
 
 const api = new VisitsApi(undefined, undefined, client);
 
@@ -58,7 +59,9 @@ const ActiveControl: FC = () => {
   const [error, setError] = useState("");
   const { addToast } = useToast();
 
-  const [actionType, setActionType] = useState<Set<ActionType>>(new Set(["leave"]));
+  const [actionType, setActionType] = useState<Set<ActionType>>(
+    new Set(["leave"])
+  );
   const [leaveType, setLeaveType] = useState<TypeB70Enum | null>(null);
   const [comment, setComment] = useState("");
   const [range, setRange] = useState<RangeValue<Time | null>>();
@@ -185,7 +188,9 @@ const ActiveControl: FC = () => {
           <Button
             className="mt-3"
             variant="green"
-            disabled={(leaveType === "BREAK" && !comment) || loading || !leaveType}
+            disabled={
+              (leaveType === "BREAK" && !comment) || loading || !leaveType
+            }
             onClick={handleLeaveSubmit}
           >
             Подтвердить
@@ -195,7 +200,9 @@ const ActiveControl: FC = () => {
 
       {actionType.has("mark") && (
         <div className="flex-1">
-          <p className="text-lg font-bold">Отметьте время и оставьте комментарий</p>
+          <p className="text-lg font-bold">
+            Отметьте время и оставьте комментарий
+          </p>
           <div className="flex gap-3 mt-3">
             <TimeInput
               label="От"
@@ -204,7 +211,9 @@ const ActiveControl: FC = () => {
               aria-label="start date"
               value={range?.start}
               onChange={(value) => {
-                setRange((prev) => ({ ...prev, start: value } as RangeValue<Time>));
+                setRange(
+                  (prev) => ({ ...prev, start: value } as RangeValue<Time>)
+                );
                 setError("");
               }}
               color={!!error ? "red" : "accent"}
@@ -216,7 +225,9 @@ const ActiveControl: FC = () => {
               aria-label="end date"
               value={range?.end}
               onChange={(value) => {
-                setRange((prev) => ({ ...prev, end: value } as RangeValue<Time>));
+                setRange(
+                  (prev) => ({ ...prev, end: value } as RangeValue<Time>)
+                );
                 setError("");
               }}
               color={!!error ? "red" : "accent"}
@@ -232,7 +243,12 @@ const ActiveControl: FC = () => {
               setError("");
             }}
           />
-          <Button className="mt-3" variant="green" disabled={loading || !comment} onClick={handleMarkSubmit}>
+          <Button
+            className="mt-3"
+            variant="green"
+            disabled={loading || !comment}
+            onClick={handleMarkSubmit}
+          >
             Подтвердить
           </Button>
         </div>
@@ -298,40 +314,23 @@ const InactiveControl: FC = () => {
 
 const CheaterControl: FC = () => {
   const session = useAuthStore((state) => state.session);
-  const fetchSession = useAuthStore((state) => state.fetchSession);
+  const [entries, setEntries] = useState<SessionEntryModel[]>([]);
 
-  const [time, setTime] = useState<Time | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  useEffect(
+    () =>
+      setEntries(
+        () =>
+          session?.entries.filter(
+            (entry, i) => !entry.end && i !== session.entries.length - 1
+          ) ?? []
+      ),
+    [session]
+  );
 
-  const handleSubmit = () => {
-    if (!session) return;
-    if (!time) return;
-
-    const last = session.entries[session.entries.length - 1];
-    if (!last) return;
-
-    const lastStart = new Date(last.start!);
-    const [lh, lm] = [lastStart.getHours(), lastStart.getMinutes()];
-
-    if (lh > time!.hour || (lh === time!.hour && lm > time!.minute)) {
-      const formatted = `${String(lh).padStart(2, "0")}:${String(lm).padStart(2, "0")}`;
-      setError(`Время выхода не должно быть раньше ${formatted}`);
-      return;
-    }
-
-    setLoading(true);
-    const lastEnd = new Date(lastStart);
-    lastEnd.setHours(time.hour);
-    lastEnd.setMinutes(time.minute);
-    lastEnd.setMilliseconds(0);
-
-    api
-      .partialUpdateEntry(last.id, { end: lastEnd.toISOString() })
-      .then(() => fetchSession())
-      .catch((e) => console.log(e))
-      .finally(() => setLoading(false));
-  };
+  const cheaterActionControls = useMemo(
+    () => entries.map((entry) => <CheaterItemControl entry={entry} />),
+    [entries]
+  );
 
   if (!session) return;
 
@@ -340,20 +339,75 @@ const CheaterControl: FC = () => {
       <p className="text-gray font-semibold flex-1 text-center">
         Вы ушли и не отметились в системе. Пожалуйста, укажите время выхода
       </p>
-      <div className="lg:flex-1 gap-3 flex flex-col xl:flex-row flex-wrap w-full">
+      <div className="flex-1">{cheaterActionControls}</div>
+    </div>
+  );
+};
+
+const CheaterItemControl: FC<{ entry: SessionEntryModel }> = ({ entry }) => {
+  const fetchSession = useAuthStore((state) => state.fetchSession);
+  const [time, setTime] = useState<Time | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = () => {
+    if (!time) return;
+
+    const start = new Date(entry.start!);
+    const [lh, lm] = [start.getHours(), start.getMinutes()];
+
+    if (lh > time!.hour || (lh === time!.hour && lm > time!.minute)) {
+      const formatted = formatTime(lh, lm);
+      setError(`Время выхода не должно быть раньше ${formatted}`);
+      return;
+    }
+
+    setLoading(true);
+    const end = new Date(start);
+    end.setHours(time.hour);
+    end.setMinutes(time.minute);
+    end.setMilliseconds(0);
+
+    api
+      .partialUpdateEntry(entry.id, { end: end.toISOString() })
+      .then(() => fetchSession())
+      .catch((e) => {
+        if (isAxiosError(e) && e.status === 400) {
+          setError(e.response?.data);
+          return;
+        }
+        setError("Что-то пошло не так");
+      })
+      .finally(() => setLoading(false));
+  };
+
+  return (
+    <div className="flex gap-3">
+      <div className="flex gap-3 items-center">
+        {(() => {
+          const startDate = new Date(entry.start!);
+          const startTime = new Time(startDate.getHours(), startDate.getMinutes());
+
+          return <TimeInput hourCycle={24} className="flex-1" value={startTime} />;
+        })()}
+        <span>-</span>
         <TimeInput
           hourCycle={24}
-          className="md:flex-1"
+          className="flex-1"
           onChange={(time) => {
             setError("");
             setTime(time);
           }}
           errorMessage={error}
         />
-        <Button className="md:flex-1" disabled={!session || loading || !time} onClick={handleSubmit}>
-          Подтвердить
-        </Button>
       </div>
+      <Button
+        className="md:flex-1"
+        disabled={loading || !time}
+        onClick={handleSubmit}
+      >
+        Подтвердить
+      </Button>
     </div>
   );
 };

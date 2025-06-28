@@ -19,7 +19,7 @@ const TimeBadge: FC<TimeBadgeProps> = ({
   ...props
 }) => {
   const time = parseMs(ms, options);
-  const formatted = formatTime(time);
+  const formatted = formatTime(time.hours, time.minutes);
 
   return (
     <span {...props} className={cn(className, "text-gray")}>

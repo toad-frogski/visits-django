@@ -300,7 +300,7 @@ const ExtraBadge: FC<ExtraBadgeProps> = ({ extra, date }) => {
 
 const RedmineBadge: FC<RedmineExtraFieldPayload> = ({ hours }) => {
   const time = parseMs((hours || 0) * 1000 * 60 * 60);
-  const formatted = formatTime(time);
+  const formatted = formatTime(time.hours, time.minutes);
 
   return <span className="text-gray">redmine: {formatted}</span>;
 };

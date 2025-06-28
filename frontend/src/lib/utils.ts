@@ -15,7 +15,11 @@ export const parseMs = (
     roundSeconds?: boolean;
   } = {}
 ): Time => {
-  const { roundHours = true, roundMinutes = true, roundSeconds = true } = options;
+  const {
+    roundHours = true,
+    roundMinutes = true,
+    roundSeconds = true,
+  } = options;
 
   let days = Math.floor(ms / (24 * 60 * 60 * 1000));
   let hours = Math.floor(ms / (60 * 60 * 1000));
@@ -29,16 +33,18 @@ export const parseMs = (
   return { days, hours, minutes, seconds };
 };
 
-export const formatTime = (value: Time): string => {
-  if (value.hours !== 0 || value.minutes !== 0) {
-    return `${String(value.hours).padStart(2, "0")}:${String(value.minutes).padStart(2, "0")}`;
+export const formatTime = (hours: number, minutes: number): string => {
+  if (hours > 0 || minutes > 0) {
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   }
 
   return "--:--";
 };
 
 export const formatDate = (date: DateValue) => {
-  return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
+  return `${date.year}-${String(date.month).padStart(2, "0")}-${String(
+    date.day
+  ).padStart(2, "0")}`;
 };
 
 export const parseDate = (dateStr: string | null): CalendarDate | null => {

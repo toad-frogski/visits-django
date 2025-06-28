@@ -1,3 +1,6 @@
+import math
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill
 from datetime import date, datetime, timedelta
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
@@ -195,3 +198,107 @@ class StatisticsService:
                 )
 
         return results
+
+
+class XlsxService:
+    def user_date_period_statistics_xlsx(
+        self, user: User, start: date, end: date, data: list[dict]
+    ) -> Workbook:
+
+        def format_timedelta(td: timedelta) -> str:
+            total_minutes = int(td.total_seconds() // 60)
+            hours = total_minutes // 60
+            minutes = total_minutes % 60
+
+            return f"{hours}:{minutes:02d}"
+
+        wb = Workbook()
+        ws = wb.active
+        if not ws:
+            raise Exception
+
+        ws.title = f"Report {user.username} {start.strftime('%Y-%m-%d')} - {end.strftime('%Y-%m-%d')}"
+
+        ws.column_dimensions["A"].width = 12
+        ws.column_dimensions["B"].width = 15
+        ws.column_dimensions["C"].width = 15
+        ws.column_dimensions["D"].width = 15
+        ws.column_dimensions["E"].width = 15
+        ws.column_dimensions["F"].width = 15
+
+        gray_fill = PatternFill(
+            start_color="CACACA", end_color="CACACA", fill_type="solid"
+        )
+
+        ws.append(
+            ["Date", "Start Time", "End Time", "Work Time", "Break Time", "Lunch Time"]
+        )
+        current_idx = 1
+        for cell in ws[current_idx]:
+            cell.fill = gray_fill
+
+        for row in data:
+            entries: list[SessionEntry] = (
+                list(row["session"].entries.all()) if row["session"] else []
+            )
+
+            if not entries:
+                ws.append([row["date"], "--", "--", "--", "--", "--"])
+                current_idx += 1
+                continue
+
+            first_entry, last_entry = entries[0], entries[-1]
+            session_start = (
+                first_entry.start.strftime("%H:%M:%S") if first_entry.start else ""
+            )
+            session_end = last_entry.end.strftime("%H:%M:%S") if last_entry.end else ""
+
+            summary = [
+                row["date"],
+                session_start,
+                session_end,
+                format_timedelta(
+                    timedelta(seconds=math.floor(row["statistics"]["work_time"] or 0))
+                ),
+                format_timedelta(
+                    timedelta(seconds=math.floor(row["statistics"]["break_time"] or 0))
+                ),
+                format_timedelta(
+                    timedelta(seconds=math.floor(row["statistics"]["lunch_time"] or 0))
+                ),
+            ]
+
+            ws.append(summary)
+            current_idx += 1
+
+            for cell in ws[current_idx]:
+                cell.fill = gray_fill
+
+            if len(entries) == 0:
+                continue
+
+            ws.append(["", "Start Time", "End Time", "Type", "Comment"])
+            current_idx += 1
+
+            ws.row_dimensions[current_idx].outline_level = 1
+            ws.row_dimensions[current_idx].hidden = True
+
+            group_start = group_end = current_idx + 1
+            for entry in entries:
+                ws.append(
+                    [
+                        "",
+                        (entry.start.strftime("%H:%M:%S") if entry.start else ""),
+                        entry.end.strftime("%H:%M:%S") if entry.end else "",
+                        entry.type if entry.type else "",
+                        entry.comment if entry.comment else "",
+                    ]
+                )
+                current_idx += 1
+                group_end = current_idx
+
+            for i in range(group_start, group_end + 1):
+                ws.row_dimensions[i].outline_level = 1
+                ws.row_dimensions[i].hidden = True
+
+        return wb
