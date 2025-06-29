@@ -145,13 +145,13 @@ const ActiveControl: FC = () => {
                 .finally(() => setLoading(false));
             }}
           >
-            Завершить сессию
+            Выйти
           </Button>
           <ToggleButton id="mark" icon={Pencil}>
-            Отметить выход
+            Отлучился, но не отметился
           </ToggleButton>
           <ToggleButton id="leave" icon={Coffee}>
-            Выйти
+            Отлучиться
           </ToggleButton>
         </ToggleButtonGroup>
       </div>
@@ -371,7 +371,7 @@ const CheaterItemControl: FC<{ entry: SessionEntryModel }> = ({ entry }) => {
     end.setMilliseconds(0);
 
     api
-      .partialUpdateEntry(entry.id, { end: end.toISOString() })
+      .chaterLeave(entry.id, { end: end.toISOString() })
       .then(() => fetchSession())
       .catch((e) => {
         if (isAxiosError(e) && e.status === 400) {
@@ -385,29 +385,37 @@ const CheaterItemControl: FC<{ entry: SessionEntryModel }> = ({ entry }) => {
 
   return (
     <div className="flex gap-3">
-      <div className="flex gap-3 items-center">
-        {(() => {
-          const startDate = new Date(entry.start!);
-          const startTime = new Time(
-            startDate.getHours(),
-            startDate.getMinutes()
-          );
+      <label>
+        <div className="flex gap-3 items-center">
+          {(() => {
+            const startDate = new Date(entry.start!);
+            const startTime = new Time(
+              startDate.getHours(),
+              startDate.getMinutes()
+            );
 
-          return (
-            <TimeInput hourCycle={24} className="flex-1" value={startTime} />
-          );
-        })()}
-        <span>-</span>
-        <TimeInput
-          hourCycle={24}
-          className="flex-1"
-          onChange={(time) => {
-            setError("");
-            setTime(time);
-          }}
-          errorMessage={error}
-        />
-      </div>
+            return (
+              <TimeInput
+                hourCycle={24}
+                className="flex-1"
+                value={startTime}
+                color={error ? "red" : "accent"}
+              />
+            );
+          })()}
+          <span>-</span>
+          <TimeInput
+            hourCycle={24}
+            className="flex-1"
+            onChange={(time) => {
+              setError("");
+              setTime(time);
+            }}
+            color={error ? "red" : "accent"}
+          />
+        </div>
+        <ErrorMessage error={error} />
+      </label>
       <Button
         className="md:flex-1"
         disabled={loading || !time}

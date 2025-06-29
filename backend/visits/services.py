@@ -5,7 +5,8 @@ from datetime import date, datetime, timedelta
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
-from django.db.models import Subquery, OuterRef
+from django.db.models import Subquery, OuterRef, Q
+from django.db.models.functions import Trunc
 from visits.models import Session, SessionEntry
 from visits.callbacks import statistics_extra_callbacks, StatisticsExtraDataResult
 
@@ -85,6 +86,43 @@ class SessionService:
 
         last_entry.close(time)
         session.add_enter(start=time, type=type, comment=comment)
+
+    def handle_cheater_leave(self, user: User, entry: SessionEntry, end: datetime):
+        session: Session = entry.session
+        last_entry = session.get_last_entry()
+
+        qs = (
+            SessionEntry.objects.filter(session=session)
+            .annotate(
+                start_trunc=Trunc("start", "minute"), end_trunc=Trunc("end", "minute")
+            )
+            .filter(Q(end_trunc__gt=entry.start) & Q(start_trunc__lt=end))
+            .exclude(pk=entry.pk)
+        )
+
+        if last_entry:
+            qs = qs.exclude(pk=last_entry.pk)
+
+        if qs.exists():
+            raise ValueError("Time overlap with other entries")
+
+        if not last_entry:
+            return
+
+        if last_entry.pk == entry.pk:
+            last_entry.close(end)
+            return
+
+        if last_entry.start < end:
+            raise ValueError("Time overlap with other entries")
+
+        entry.close(end)
+        SessionEntry.objects.create(
+            session=session,
+            start=end,
+            end=last_entry.start,
+            type=SessionEntry.SessionEntryType.BREAK,
+        )
 
     def get_current_session(self, user: User) -> Session | None:
         session = Session.objects.get_last_user_session(user)

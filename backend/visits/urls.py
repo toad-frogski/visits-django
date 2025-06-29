@@ -21,6 +21,7 @@ urlpatterns = [
     path("current", views.CurrentSessionView.as_view()),
     path("<int:session_id>/session-entry/create", session_entry_create),
     path("session-entry/<int:pk>", session_entry_detail),
+    path("session-entry/<int:pk>/cheater", views.CheaterLeaveView.as_view()),
     path("enter", views.EnterView.as_view()),
     path("exit", views.ExitView.as_view()),
     path("leave", views.LeaveView.as_view()),

@@ -1,6 +1,7 @@
 from io import BytesIO
 from datetime import date, datetime
 from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework import mixins
@@ -11,14 +12,11 @@ from rest_framework.request import Request
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
 from drf_spectacular.types import OpenApiTypes
 from django.utils.translation import gettext as _
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from django.http import HttpResponse
-from django.db.models import Q
 
 from .models import Session, SessionEntry
-from .services import SessionService, StatisticsService, XlsxService
-from . import serializers
+from . import serializers, services
 
 
 @extend_schema(tags=["visits"])
@@ -41,7 +39,7 @@ class EnterView(APIView):
         start: datetime = serializer.validated_data.get("start")  # type: ignore
         type: SessionEntry.SessionEntryType = serializer.validated_data.get("type")  # type: ignore
 
-        session_service = SessionService()
+        session_service = services.SessionService()
 
         try:
             session_service.enter(request.user, type, start)
@@ -74,7 +72,7 @@ class ExitView(APIView):
         time: datetime = serializer.validated_data.get("end")  # type: ignore
         comment: SessionEntry.SessionEntryType = serializer.validated_data.get("comment")  # type: ignore
 
-        session_service = SessionService()
+        session_service = services.SessionService()
 
         try:
             session_service.exit(request.user, time, comment)
@@ -110,12 +108,42 @@ class LeaveView(APIView):
         time: datetime = serializer.validated_data.get("time")  # type: ignore
         comment: str | None = serializer.validated_data.get("comment")  # type: ignore
 
-        session_service = SessionService()
+        session_service = services.SessionService()
 
         try:
             session_service.handle_leave(request.user, type, time, comment)
         except Session.DoesNotExist as e:
             raise NotFound(detail=str(e))
+        except ValueError as e:
+            raise ValidationError(detail=str(e))
+        except Exception as e:
+            raise APIException(detail=str(e))
+
+        return Response()
+
+
+@extend_schema(tags=["visits"])
+class CheaterLeaveView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.SessionEntryModelSerializer
+
+    def get_queryset(self):
+        return SessionEntry.objects.filter(session__user=self.request.user)
+
+    @extend_schema("chaterLeave", request=serializers.SessionEntryModelSerializer)
+    def post(self, request: Request, *args, **kwargs):
+        instance: SessionEntry = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        end: datetime = serializer.validated_data.get("end")
+
+        session_service = services.SessionService()
+
+        try:
+            session_service.handle_cheater_leave(
+                user=request.user, entry=instance, end=end
+            )
         except ValueError as e:
             raise ValidationError(detail=str(e))
         except Exception as e:
@@ -143,27 +171,6 @@ class SessionEntryModelViewset(
     def get_queryset(self):
         return SessionEntry.objects.filter(session__user=self.request.user)
 
-    def perform_create(self, serializer):
-        session_id = self.kwargs.get("session_id")
-        if not session_id:
-            raise ValidationError("Session id was not provided")
-
-        session = get_object_or_404(Session, id=session_id, user=self.request.user)
-
-        new_start = serializer.validated_data.get("start")
-        new_end = serializer.validated_data.get("end")
-
-        conflict_exists = (
-            SessionEntry.objects.filter(session=session)
-            .filter(Q(start__lt=new_end) & Q(end__gt=new_start))
-            .exists()
-        )
-
-        if conflict_exists:
-            raise ValidationError("New entry overlaps with an existing entry.")
-
-        serializer.save(session=session)
-
 
 @extend_schema(tags=["visits"])
 class CurrentSessionView(APIView):
@@ -178,7 +185,7 @@ class CurrentSessionView(APIView):
         },
     )
     def get(self, request: Request):
-        session_service = SessionService()
+        session_service = services.SessionService()
         session = session_service.get_current_session(request.user)
         if session is None:
             return Response({"status": Session.SessionStatus.INACTIVE, "entries": []})
@@ -198,7 +205,7 @@ class UsersTodayView(APIView):
     )
     def get(self, request: Request):
 
-        session_service = SessionService()
+        session_service = services.SessionService()
         active_users_with_sessions = session_service.get_active_user_with_sessions()
 
         result = []
@@ -236,11 +243,11 @@ class UserMonthStatisticsView(APIView):
             data=request.query_params
         )
         request_serializer.is_valid(raise_exception=True)
-        start: date = request_serializer.validated_data["start"]  # type: ignore
-        end: date = request_serializer.validated_data["end"]  # type: ignore
+        start: date = request_serializer.validated_data.get("start")  # type: ignore
+        end: date = request_serializer.validated_data.get("end")  # type: ignore
         user = request.user
 
-        statistics_service = StatisticsService()
+        statistics_service = services.StatisticsService()
         result = statistics_service.get_user_date_range_statistics(user, start, end)
 
         response_serializer = serializers.UserMonthStatisticsResponseSerializer(
@@ -273,9 +280,9 @@ class ExportUserReportView(APIView):
         end: date = request_serializer.validated_data["end"]  # type: ignore
         user = request.user
 
-        statistics_service = StatisticsService()
+        statistics_service = services.StatisticsService()
         result = statistics_service.get_user_date_range_statistics(user, start, end)
-        xlsx_service = XlsxService()
+        xlsx_service = services.XlsxService()
 
         try:
             wb = xlsx_service.user_date_period_statistics_xlsx(user, start, end, result)
