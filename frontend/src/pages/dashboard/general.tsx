@@ -315,17 +315,19 @@ const InactiveControl: FC = () => {
 const CheaterControl: FC = () => {
   const session = useAuthStore((state) => state.session);
   const [entries, setEntries] = useState<SessionEntryModel[]>([]);
+  const today = new Date().toISOString().split("T")[0];
 
-  useEffect(
-    () =>
-      setEntries(
-        () =>
-          session?.entries.filter(
+  useEffect(() => {
+    if (!session) return;
+
+    setEntries(() => {
+      return session.date === today
+        ? session.entries.filter(
             (entry, i) => !entry.end && i !== session.entries.length - 1
-          ) ?? []
-      ),
-    [session]
-  );
+          )
+        : session.entries.filter((entry) => !entry.end);
+    });
+  }, [session, today]);
 
   const cheaterActionControls = useMemo(
     () => entries.map((entry) => <CheaterItemControl entry={entry} />),
@@ -339,7 +341,7 @@ const CheaterControl: FC = () => {
       <p className="text-gray font-semibold flex-1 text-center">
         Вы ушли и не отметились в системе. Пожалуйста, укажите время выхода
       </p>
-      <div className="flex-1">{cheaterActionControls}</div>
+      <div className="flex-1 space-y-4">{cheaterActionControls}</div>
     </div>
   );
 };
@@ -386,9 +388,14 @@ const CheaterItemControl: FC<{ entry: SessionEntryModel }> = ({ entry }) => {
       <div className="flex gap-3 items-center">
         {(() => {
           const startDate = new Date(entry.start!);
-          const startTime = new Time(startDate.getHours(), startDate.getMinutes());
+          const startTime = new Time(
+            startDate.getHours(),
+            startDate.getMinutes()
+          );
 
-          return <TimeInput hourCycle={24} className="flex-1" value={startTime} />;
+          return (
+            <TimeInput hourCycle={24} className="flex-1" value={startTime} />
+          );
         })()}
         <span>-</span>
         <TimeInput
