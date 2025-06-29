@@ -17,7 +17,10 @@ def user_created_or_updated(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=Avatar)
-def user_avatar_changed(sender, instance: Avatar, *args, **kwargs):
+def user_avatar_changed(sender, instance: Avatar, created, *args, **kwargs):
+    if created:
+        return
+
     channel_layer: BaseChannelLayer | None = get_channel_layer()
 
     if channel_layer is None:
