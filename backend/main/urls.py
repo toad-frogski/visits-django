@@ -21,5 +21,5 @@ urlpatterns = [
 ]
 
 websocket_urlpatterns =[
-    path("api/ws/", URLRouter(visits_urls.websocket_urlpatterns))
+    path("api/ws/visits", URLRouter(visits_urls.websocket_urlpatterns))
 ]

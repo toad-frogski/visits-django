@@ -56,4 +56,4 @@ def session_updated(sender, instance: SessionEntry, **kwargs):
         },
     }
 
-    async_to_sync(channel_layer.group_send)("session_status", message)
+    async_to_sync(channel_layer.group_send)("visits", message)

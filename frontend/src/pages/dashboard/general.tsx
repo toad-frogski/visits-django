@@ -279,7 +279,7 @@ const InactiveControl: FC = () => {
   const last = session.entries[session.entries.length - 1];
 
   // Handle break comeback.
-  if (last.type !== "WORK") {
+  if (last.type !== "WORK" && !last.end) {
     return (
       <Button
         icon={Reset}

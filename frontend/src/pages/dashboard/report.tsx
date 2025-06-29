@@ -1,5 +1,11 @@
 import DateRangePicker from "@/ui/components/date-range";
-import { useEffect, useRef, useState, type FC, type HTMLAttributes } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FC,
+  type HTMLAttributes,
+} from "react";
 import { DisclosureGroup, type DisclosureProps } from "react-aria-components";
 import Card from "@/ui/components/card";
 import {
@@ -14,7 +20,10 @@ import {
 import client from "@/lib/api-client";
 import TimeBadge from "@/ui/components/time-badge";
 import { formatDate, formatTime, parseMs } from "@/lib/utils";
-import Disclosure, { DisclosurePanel, DisclosureTrigger } from "@/ui/components/disclosure";
+import Disclosure, {
+  DisclosurePanel,
+  DisclosureTrigger,
+} from "@/ui/components/disclosure";
 
 import Calendar from "@/assets/calendar.svg?react";
 import House from "@/assets/house.svg?react";
@@ -73,11 +82,16 @@ const DashboardReport: FC = () => {
   );
 };
 
-const TotalTrackedTimeBadge: FC<{ stats?: UserMonthStatisticsResponse[] }> = ({ stats = [] }) => {
+const TotalTrackedTimeBadge: FC<{ stats?: UserMonthStatisticsResponse[] }> = ({
+  stats = [],
+}) => {
   const [time, setTime] = useState(0);
 
   useEffect(() => {
-    const calculated = stats.reduce((acc, item) => (acc += item.statistics.work_time ?? 0), 0);
+    const calculated = stats.reduce(
+      (acc, item) => (acc += item.statistics.work_time ?? 0),
+      0
+    );
 
     setTime(calculated);
   }, [stats]);
@@ -92,7 +106,9 @@ const TotalTrackedTimeBadge: FC<{ stats?: UserMonthStatisticsResponse[] }> = ({ 
   );
 };
 
-const RedmineTotalTrackedTimeBadge: FC<{ stats?: UserMonthStatisticsResponse[] }> = ({ stats = [] }) => {
+const RedmineTotalTrackedTimeBadge: FC<{
+  stats?: UserMonthStatisticsResponse[];
+}> = ({ stats = [] }) => {
   const [time, setTime] = useState(0);
 
   useEffect(() => {
@@ -129,7 +145,10 @@ const Report: FC<ReportProps> = ({ stats, className, ...props }) => {
     return (
       <div className={cn(className, "w-full")}>
         {[...Array(10)].map((_, i) => (
-          <Disclosure key={i} className="w-full bg-surface mb-3 rounded overflow-hidden p-2 animate-pulse h-10" />
+          <Disclosure
+            key={i}
+            className="w-full bg-surface mb-3 rounded overflow-hidden p-2 animate-pulse h-10"
+          />
         ))}
       </div>
     );
@@ -148,34 +167,59 @@ const Report: FC<ReportProps> = ({ stats, className, ...props }) => {
   );
 };
 
-type ReportItemProps = DisclosureProps & UserMonthStatisticsResponse & { current?: Date };
+type ReportItemProps = DisclosureProps &
+  UserMonthStatisticsResponse & { current?: Date };
 
-const ReportItem: FC<ReportItemProps> = ({ date, session, statistics, extra, current, ...props }) => {
+const ReportItem: FC<ReportItemProps> = ({
+  date,
+  session,
+  statistics,
+  extra,
+  current,
+  ...props
+}) => {
   const isSpecial = !!extra.find((e) => e.type === "holidays");
 
   return (
     <Disclosure {...props} className="rounded w-full">
-      <DisclosureTrigger isDisabled={!session} className={cn(isSpecial && "bg-accent/10")}>
-        <div className={"flex gap-3 md:gap-6 items-center flex-col md:flex-row"}>
+      <DisclosureTrigger
+        isDisabled={!session}
+        className={cn(isSpecial && "bg-accent/10")}
+      >
+        <div
+          className={"flex gap-3 md:gap-6 items-center flex-col md:flex-row"}
+        >
           <DateBadge date={date} extra={extra} />
-          {session ? <StatisticsBadge statistics={statistics} /> : <span className="text-gray"> --- </span>}
+          {session ? (
+            <StatisticsBadge statistics={statistics} />
+          ) : (
+            <span className="text-gray"> --- </span>
+          )}
           <ExtraBadge extra={extra} date={date} />
         </div>
       </DisclosureTrigger>
       <DisclosurePanel>
-        {session?.entries.map((entry) => {
+        {session?.entries.map((entry, i) => {
           const start = new Date(entry.start!);
-          const end = entry.end ? new Date(entry.end) : current;
+            const isLast = i === session.entries.length - 1;
+            const end = entry.end
+              ? new Date(entry.end)
+              : (isLast ? current : undefined);
 
           return (
-            <div key={entry.id} className="text-gray flex gap-3 items-center py-1">
+            <div
+              key={entry.id}
+              className="text-gray flex gap-3 items-center py-1"
+            >
               {entry.type === "BREAK" && <Coffee width={16} height={16} />}
               {entry.type === "LUNCH" && <Soup width={16} height={16} />}
               {entry.type === "WORK" && <Clock width={16} height={16} />}
               {start.toLocaleTimeString()}
               <span> - </span>
               {end?.toLocaleTimeString() ?? "--:--"}
-              {entry.comment && <span className="text-gray">{entry.comment}</span>}
+              {entry.comment && (
+                <span className="text-gray">{entry.comment}</span>
+              )}
             </div>
           );
         })}
@@ -184,7 +228,11 @@ const ReportItem: FC<ReportItemProps> = ({ date, session, statistics, extra, cur
   );
 };
 
-const CurrentReportItem: FC<ReportItemProps> = ({ statistics, session, ...props }) => {
+const CurrentReportItem: FC<ReportItemProps> = ({
+  statistics,
+  session,
+  ...props
+}) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   let workSeconds = statistics?.work_time ?? 0;
   let lunchSeconds = statistics?.lunch_time ?? 0;
@@ -198,7 +246,9 @@ const CurrentReportItem: FC<ReportItemProps> = ({ statistics, session, ...props 
       const lastStart = new Date(last.start).getTime();
 
       if (!isNaN(lastStart)) {
-        const currentDuration = Math.floor((currentDate.getTime() - lastStart) / 1000);
+        const currentDuration = Math.floor(
+          (currentDate.getTime() - lastStart) / 1000
+        );
 
         switch (last.type) {
           case "WORK":
@@ -241,16 +291,25 @@ const CurrentReportItem: FC<ReportItemProps> = ({ statistics, session, ...props 
   );
 };
 
-const DateBadge: FC<{ date: string; extra?: ExtraFieldBase[] }> = ({ date, extra = [] }) => {
+const DateBadge: FC<{ date: string; extra?: ExtraFieldBase[] }> = ({
+  date,
+  extra = [],
+}) => {
   const holidaysExtra = extra.find((e) => e.type === "holidays");
-  const type = holidaysExtra ? (holidaysExtra.payload as HolidaysExtraFieldPayload).type : "default";
+  const type = holidaysExtra
+    ? (holidaysExtra.payload as HolidaysExtraFieldPayload).type
+    : "default";
 
   return (
     <span className="inline-flex items-center gap-3 text-gray">
       {
         {
-          [HolidaysExtraFieldPayloadTypeEnum.Holiday]: <Cake width={16} height={16} />,
-          [HolidaysExtraFieldPayloadTypeEnum.Weekend]: <House width={16} height={16} />,
+          [HolidaysExtraFieldPayloadTypeEnum.Holiday]: (
+            <Cake width={16} height={16} />
+          ),
+          [HolidaysExtraFieldPayloadTypeEnum.Weekend]: (
+            <House width={16} height={16} />
+          ),
           default: <Calendar width={16} height={16} />,
         }[type]
       }
@@ -269,7 +328,11 @@ const StatisticsBadge: FC<StatisticsBadgeProps> = ({ statistics }) => {
         { key: "lunch", time: statistics.lunch_time, icon: Soup },
         { key: "break", time: statistics.break_time, icon: Coffee },
       ].map(({ key, time, icon: Icon }) => (
-        <TimeBadge key={key} className="inline-flex items-center w-16 flex-1 gap-1" ms={time ? time * 1000 : 0}>
+        <TimeBadge
+          key={key}
+          className="inline-flex items-center w-16 flex-1 gap-1"
+          ms={time ? time * 1000 : 0}
+        >
           <Icon width={16} height={16} className="ml-auto" />
         </TimeBadge>
       ))}
@@ -289,7 +352,10 @@ const ExtraBadge: FC<ExtraBadgeProps> = ({ extra, date }) => {
         ({ type, payload }) =>
           ({
             [ExtraFieldBaseTypeEnum.Redmine]: (
-              <RedmineBadge key={`${date}-${type}`} {...(payload as RedmineExtraFieldPayload)} />
+              <RedmineBadge
+                key={`${date}-${type}`}
+                {...(payload as RedmineExtraFieldPayload)}
+              />
             ),
             [ExtraFieldBaseTypeEnum.Holidays]: null,
           }[type])

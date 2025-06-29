@@ -31,5 +31,5 @@ urlpatterns = [
 ]
 
 websocket_urlpatterns = [
-    path("session/status", consumers.SessionStatusConsumer.as_asgi())
+    path("notifications", consumers.NotificationsConsumer.as_asgi())
 ]
