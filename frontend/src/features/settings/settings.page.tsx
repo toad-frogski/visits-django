@@ -7,18 +7,16 @@ import type { FC } from "react";
 
 const SettingsPage: FC = () => {
   return (
-    <div className="p-3 md:p-6">
-      <Card>
-        <CardContent>
-          <h2 className="text-lg font-bold">General</h2>
-          <AvatarForm className="mt-6" />
-          <RfidForm className="mt-6" />
-          <Separator className="my-9" />
-          <h2 className="text-lg font-bold">Theme</h2>
-          <ThemeForm className="mt-6" />
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardContent>
+        <h2 className="text-lg font-bold">General</h2>
+        <AvatarForm className="mt-6" />
+        <RfidForm className="mt-6" />
+        <Separator className="my-9" />
+        <h2 className="text-lg font-bold">Theme</h2>
+        <ThemeForm className="mt-6" />
+      </CardContent>
+    </Card>
   );
 };
 

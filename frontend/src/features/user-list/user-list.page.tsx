@@ -21,7 +21,7 @@ const UserListPage: FC = () => {
   }
 
   return (
-    <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-4 p-3 md:p-6">
+    <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-4">
       {isPending
         ? [...Array(12)].map(() => (
             <Card className="rounded-l-full animate-pulse" />

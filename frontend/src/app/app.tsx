@@ -11,7 +11,7 @@ const App: FC = () => {
     return (
       <SidebarProvider defaultOpen={false}>
         <AppSidebar />
-        <main className="w-full">
+        <main className="w-full p-3 md:p-6">
           <Outlet />
         </main>
       </SidebarProvider>
@@ -19,7 +19,7 @@ const App: FC = () => {
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen p-3 md:p-6">
       <Outlet />
     </main>
   );
