@@ -18,7 +18,11 @@ const App: FC = () => {
     );
   }
 
-  return <Outlet />;
+  return (
+    <main className="min-h-screen">
+      <Outlet />
+    </main>
+  );
 };
 
 export default App;

@@ -7,7 +7,7 @@ import {
 } from "react";
 import CircleProgress, {
   type CircleProgressProps,
-} from "@/shared/ui/components/circle-progress";
+} from "@/shared/components/ui/circle-progress";
 import useDesktop from "@/lib/hooks/useDesktop";
 import { cn } from "@/lib/cn";
 import useAuthStore from "@/stores/auth";

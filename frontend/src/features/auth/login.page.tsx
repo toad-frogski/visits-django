@@ -2,7 +2,7 @@ import type { FC } from "react";
 import Layout from "./ui/layout";
 import LoginForm from "./ui/login-form";
 
-const Login: FC = () => {
+const LoginPage: FC = () => {
   return (
     <Layout>
       <LoginForm />
@@ -10,4 +10,4 @@ const Login: FC = () => {
   );
 };
 
-export const Component = Login;
+export const Component = LoginPage;

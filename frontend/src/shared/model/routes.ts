@@ -4,7 +4,7 @@ export const ROUTES = {
   DASHBOARD: "/dashboard",
   LOGIN: "/sign-in",
   USERS: "/users",
-  PROFILE: "/profile",
+  SETTINGS: "/settings",
 };
 
 export type PathParams = unknown;

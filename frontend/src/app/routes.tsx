@@ -18,7 +18,11 @@ const router = createBrowserRouter([
         children: [
           {
             path: ROUTES.DASHBOARD,
-            element: <p></p>,
+            lazy: () => import("@/features/dashboard/dashboard.page"),
+          },
+          {
+            path: ROUTES.SETTINGS,
+            lazy: () => import("@/features/settings/settings.page"),
           },
         ],
       },

@@ -4,7 +4,7 @@ import UserCard from "@/shared/components/ui/user-card";
 import type { FC } from "react";
 import { AlertCircle } from "lucide-react";
 
-const List: FC = () => {
+const UserListPage: FC = () => {
   const { sessions, isPending, error } = useUserList();
 
   if (error) {
@@ -33,4 +33,4 @@ const List: FC = () => {
   );
 };
 
-export const Component = List;
+export const Component = UserListPage;

@@ -1,7 +1,6 @@
 import { createContext, useContext, useLayoutEffect, useState } from "react";
 
 type ThemeMode = "dark" | "light" | "system";
-
 type ThemeVariant = string;
 
 type Theme = {

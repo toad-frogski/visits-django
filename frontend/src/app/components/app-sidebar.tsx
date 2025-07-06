@@ -5,6 +5,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import {
@@ -19,7 +20,7 @@ import {
 } from "@/shared/components/ui/sidebar";
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
-import { Users, LogIn, LogOut, Blocks } from "lucide-react";
+import { Users, LogIn, LogOut, Blocks, Settings } from "lucide-react";
 
 import type { FC } from "react";
 import { NavLink } from "react-router";
@@ -101,6 +102,13 @@ const AppSidebar: FC = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent sideOffset={12} side="right">
                   <DropdownMenuGroup>
+                    <NavLink to={ROUTES.SETTINGS}>
+                      <DropdownMenuItem>
+                        <Settings />
+                        Settings
+                      </DropdownMenuItem>
+                    </NavLink>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
                       <LogOut />
                       Log out

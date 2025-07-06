@@ -1,33 +1,22 @@
 import { type FC } from "react";
-import { tv } from "tailwind-variants";
 
-export type CircleProgressProps = {
+export type CircleProgressStyleProps = {
   size?: number;
   strokeWidth?: number;
-  progress: number;
-  color?: "accent" | "green" | "red";
   className?: string;
-};
+  circleClassName?: string;
+}
 
-const circleProgress = tv({
-  variants: {
-    color: {
-      accent: "stroke-accent",
-      red: "stroke-red",
-      green: "stroke-green",
-    },
-  },
-  defaultVariants: {
-    color: "accent",
-  },
-});
+type CircleProgressProps = CircleProgressStyleProps & {
+  progress: number;
+};
 
 const CircleProgress: FC<CircleProgressProps> = ({
   size = 24,
   strokeWidth = 3,
   progress,
-  color,
   className,
+  circleClassName,
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -46,7 +35,7 @@ const CircleProgress: FC<CircleProgressProps> = ({
         cy={size / 2}
       />
       <circle
-        className={circleProgress({ color: color })}
+        className={circleClassName}
         fill="transparent"
         strokeWidth={strokeWidth}
         strokeLinecap="round"

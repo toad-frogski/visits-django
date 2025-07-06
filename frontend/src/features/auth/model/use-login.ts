@@ -1,6 +1,5 @@
 import { rqClient } from "@/shared/api/instance";
 import type { ApiSchema } from "@/shared/api/schema";
-import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
 import { useNavigate } from "react-router";
 
@@ -11,7 +10,7 @@ export const useLogin = () => {
   const loginMutation = rqClient.useMutation("post", "/api/v1/session/login", {
     onSuccess(data) {
       setUser(data);
-      navigate(ROUTES.HOME);
+      navigate("/");
     },
   });
 
@@ -40,7 +39,7 @@ export const useLogout = () => {
   const mutation = rqClient.useMutation("post", "/api/v1/session/logout", {
     onSuccess() {
       clearUser();
-      navigate(ROUTES.HOME);
+      navigate("/");
     },
   });
 
