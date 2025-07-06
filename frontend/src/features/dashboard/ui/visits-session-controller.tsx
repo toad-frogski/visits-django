@@ -1,17 +1,24 @@
 import { Button } from "@/shared/components/ui/button";
-import { Play, RefreshCcw } from "lucide-react";
+import { Play, RefreshCcw, Ban, Coffee, Pencil } from "lucide-react";
 import {
+  useSessionActive,
+  useSessionCheater,
+  useSessionCheaterItem,
   useSessionControl,
   useSessionInactive,
 } from "../model/use-visits-session-controller";
-import type { FC } from "react";
+import { useMemo, useState, type FC } from "react";
+import type { ApiSchema } from "@/shared/api/schema";
+import { Input } from "@/shared/components/ui/input";
+import { formatTime } from "@/shared/lib/utils";
+import { Card, CardContent } from "@/shared/components/ui/card";
 
 const SessionControl: FC = () => {
   const { session } = useSessionControl();
 
   switch (session?.status) {
-    // case "active":
-    //   return <ActiveControl />;
+    case "active":
+      return <ActiveControl />;
 
     case "cheater":
       return <CheaterControl />;
@@ -52,118 +59,112 @@ const InactiveControl: FC = () => {
 };
 
 const CheaterControl: FC = () => {
-  // const session = useAuthStore((state) => state.session);
-  // const [entries, setEntries] = useState<SessionEntryModel[]>([]);
-  // const today = new Date().toISOString().split("T")[0];
+  const { entries } = useSessionCheater();
 
-  // useEffect(() => {
-  //   if (!session) return;
-
-  //   setEntries(() => {
-  //     return session.date === today
-  //       ? session.entries.filter(
-  //           (entry, i) => !entry.end && i !== session.entries.length - 1
-  //         )
-  //       : session.entries.filter((entry) => !entry.end);
-  //   });
-  // }, [session, today]);
-
-  // const cheaterActionControls = useMemo(
-  //   () => entries.map((entry) => <CheaterItemControl entry={entry} />),
-  //   [entries]
-  // );
-
-  // if (!session) return;
+  const cheaterActionControls = useMemo(
+    () => entries.map((entry) => <CheaterItemControl entry={entry} />),
+    [entries]
+  );
 
   return (
     <div className="flex gap-3 flex-col lg:flex-row items-center">
       <p className="text-gray font-semibold flex-1 text-center">
         Вы ушли и не отметились в системе. Пожалуйста, укажите время выхода
       </p>
-      {/* <div className="flex-1 space-y-4">{cheaterActionControls}</div> */}
+      <div className="flex-1 space-y-4">{cheaterActionControls}</div>
     </div>
   );
 };
 
-// const CheaterItemControl: FC<{ entry: SessionEntryModel }> = ({ entry }) => {
-//   const fetchSession = useAuthStore((state) => state.fetchSession);
-//   const [time, setTime] = useState<Time | null>(null);
-//   const [isPending, startTransition] = useTransition();
-//   const [error, setError] = useState("");
+const CheaterItemControl: FC<{ entry: ApiSchema["SessionEntryModel"] }> = ({
+  entry,
+}) => {
+  const { endTime, setEndTime, submit, isPending, error } =
+    useSessionCheaterItem();
 
-//   const handleSubmit = () => {
-//     if (!time) return;
+  return (
+    <div className="flex gap-3">
+      <label>
+        <div className="flex gap-3 items-center">
+          {(() => {
+            const time = new Date(entry.start!);
+            return (
+              <Input
+                type="time"
+                readOnly
+                value={formatTime(time.getHours(), time.getMinutes())}
+              />
+            );
+          })()}
+          <span>-</span>
+          <Input
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
+        </div>
+        {error && <p className="text-destructive">{error}</p>}
+      </label>
+      <Button disabled={isPending} onClick={() => submit(entry)}>
+        Подтвердить
+      </Button>
+    </div>
+  );
+};
 
-//     const start = new Date(entry.start!);
-//     const [lh, lm] = [start.getHours(), start.getMinutes()];
+type ActiveControlStep =
+  | { step: "select" }
+  | { step: "form"; type: "exit" | "leave" | "mark" };
 
-//     if (lh > time!.hour || (lh === time!.hour && lm > time!.minute)) {
-//       const formatted = formatTime(lh, lm);
-//       setError(`Время выхода не должно быть раньше ${formatted}`);
-//       return;
-//     }
+const ActiveControl: FC = () => {
+  const {} = useSessionActive();
+  const [step, setStep] = useState<ActiveControlStep>({ step: "select" });
 
-//     const end = new Date(start);
-//     end.setHours(time.hour);
-//     end.setMinutes(time.minute);
-//     end.setMilliseconds(0);
+  if (step.step === "select") {
+    return (
+      <div>
+        <p className="text-lg font-bold">Выберите тип действия</p>
+        <div className="flex gap-3 mt-3 flex-col md:flex-row">
+          <Button
+            variant="destructive"
+            className="flex-1"
+            onClick={() => setStep({ step: "form", type: "exit" })}
+          >
+            <Ban />
+            Завершить сессию
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => setStep({ step: "form", type: "leave" })}
+          >
+            <Coffee /> Отлучиться
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => setStep({ step: "form", type: "mark" })}
+          >
+            <Pencil />
+            Отлучился, но не отметился
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-//     startTransition(() =>
-//       api
-//         .cheaterLeave(entry.id, { end: end.toISOString() })
-//         .then(() => fetchSession())
-//         .catch((e) => {
-//           if (isAxiosError(e) && e.status === 400) {
-//             setError(e.response?.data);
-//             return;
-//           }
-//           setError("Что-то пошло не так");
-//         })
-//     );
-//   };
+  if (step.step === "form") {
+    switch (step.type) {
+      case "exit":
+        return;
 
-//   return (
-//     <div className="flex gap-3">
-//       <label>
-//         <div className="flex gap-3 items-center">
-//           {(() => {
-//             const startDate = new Date(entry.start!);
-//             const startTime = new Time(
-//               startDate.getHours(),
-//               startDate.getMinutes()
-//             );
+      case "mark":
+        return;
 
-//             return (
-//               <TimeInput
-//                 hourCycle={24}
-//                 className="flex-1"
-//                 value={startTime}
-//                 color={error ? "red" : "accent"}
-//               />
-//             );
-//           })()}
-//           <span>-</span>
-//           <TimeInput
-//             hourCycle={24}
-//             className="flex-1"
-//             onChange={(time) => {
-//               setError("");
-//               setTime(time);
-//             }}
-//             color={error ? "red" : "accent"}
-//           />
-//         </div>
-//         <ErrorMessage error={error} />
-//       </label>
-//       <Button
-//         className="md:flex-1"
-//         disabled={isPending || !time}
-//         onClick={handleSubmit}
-//       >
-//         Подтвердить
-//       </Button>
-//     </div>
-//   );
-// };
+      case "leave":
+        return;
+    }
+  }
+};
 
 export default SessionControl;
