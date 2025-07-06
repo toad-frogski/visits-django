@@ -21,6 +21,7 @@ RUN pip install \
   drf-spectacular \
   django-cors-headers \
   requests \
+  pytz \
   channels[daphne] \
   openpyxl
 

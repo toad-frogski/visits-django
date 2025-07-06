@@ -24,6 +24,6 @@ dist-ssr
 *.sw?
 
 # app files
-/src/lib/api
+/src/shared/api/schema/generated.ts
 .env
 .vite

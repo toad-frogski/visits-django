@@ -1,3 +1,4 @@
+import pytz
 import math
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
@@ -88,15 +89,28 @@ class SessionService:
         session.add_enter(start=time, type=type, comment=comment)
 
     def handle_cheater_leave(self, user: User, entry: SessionEntry, end: datetime):
+
+        def to_utc(dt: datetime):
+            if timezone.is_naive(dt):
+                return timezone.make_aware(dt, timezone=pytz.UTC)
+            else:
+                return dt.astimezone(pytz.UTC)
+
         session: Session = entry.session
         last_entry = session.get_last_entry()
+
+        normalized_start = to_utc(entry.start)
+        normalized_end = to_utc(end)
 
         qs = (
             SessionEntry.objects.filter(session=session)
             .annotate(
-                start_trunc=Trunc("start", "minute"), end_trunc=Trunc("end", "minute")
+                start_trunc=Trunc("start", "seconds", tzinfo=pytz.utc),
+                end_trunc=Trunc("end", "seconds", tzinfo=pytz.utc),
             )
-            .filter(Q(end_trunc__gt=entry.start) & Q(start_trunc__lt=end))
+            .filter(
+                Q(end_trunc__gt=normalized_start) & Q(start_trunc__lt=normalized_end)
+            )
             .exclude(pk=entry.pk)
         )
 

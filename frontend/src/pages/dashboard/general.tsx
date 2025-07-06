@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FC } from "react";
+import { useEffect, useMemo, useState, useTransition, type FC } from "react";
 import { ToggleButton, ToggleButtonGroup } from "@/ui/components/toggle-button";
 import Radio, { RadioGroup } from "@/ui/components/radio";
 import { Time } from "@internationalized/date";
@@ -55,7 +55,7 @@ type ActionType = "mark" | "leave";
 const ActiveControl: FC = () => {
   const fetchSession = useAuthStore((state) => state.fetchSession);
   const session = useAuthStore((state) => state.session);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const { addToast } = useToast();
 
@@ -71,19 +71,21 @@ const ActiveControl: FC = () => {
 
     switch (leaveType) {
       case "BREAK":
-        api
-          .leave({ comment: comment, type: "BREAK" })
-          .then(() => fetchSession())
-          .catch(() => setError("Something went wrong"))
-          .finally(() => setLoading(false));
+        startTransition(() =>
+          api
+            .leave({ comment: comment, type: "BREAK" })
+            .then(() => fetchSession())
+            .catch(() => setError("Something went wrong"))
+        );
         break;
 
       case "LUNCH":
-        api
-          .leave({ type: "LUNCH" })
-          .then(() => fetchSession())
-          .catch(() => setError("Something went wrong"))
-          .finally(() => setLoading(false));
+        startTransition(() =>
+          api
+            .leave({ type: "LUNCH" })
+            .then(() => fetchSession())
+            .catch(() => setError("Something went wrong"))
+        );
         break;
     }
   };
@@ -98,28 +100,28 @@ const ActiveControl: FC = () => {
 
     const today = new Date().toISOString().split("T")[0];
 
-    setLoading(true);
-    api
-      .createEntry(session!.id, {
-        start: today + "T" + range.start.toString(),
-        end: today + "T" + range.end.toString(),
-        type: "BREAK",
-        comment: comment,
-      })
-      .then(() => {
-        fetchSession();
-        setError("");
-        setComment("");
-        setRange({ start: null, end: null });
-        addToast("Запись сохранена");
-      })
-      .catch((e) => {
-        if (isAxiosError(e) && e.status === 400) {
-          setError(e.response?.data);
-        }
-        setError("Что-то пошло не так");
-      })
-      .finally(() => setLoading(false));
+    startTransition(() =>
+      api
+        .createEntry(session!.id, {
+          start: today + "T" + range.start!.toString(),
+          end: today + "T" + range.end!.toString(),
+          type: "BREAK",
+          comment: comment,
+        })
+        .then(() => {
+          fetchSession();
+          setError("");
+          setComment("");
+          setRange({ start: null, end: null });
+          addToast("Запись сохранена");
+        })
+        .catch((e) => {
+          if (isAxiosError(e) && e.status === 400) {
+            setError(e.response?.data);
+          }
+          setError("Что-то пошло не так");
+        })
+    );
   };
 
   return (
@@ -137,13 +139,9 @@ const ActiveControl: FC = () => {
             icon={House}
             variant="white"
             className="mt-3"
-            onClick={() => {
-              setLoading(true);
-              api
-                .exit()
-                .then(() => fetchSession())
-                .finally(() => setLoading(false));
-            }}
+            onClick={() =>
+              startTransition(() => api.exit().then(() => fetchSession()))
+            }
           >
             Выйти
           </Button>
@@ -189,7 +187,7 @@ const ActiveControl: FC = () => {
             className="mt-3"
             variant="green"
             disabled={
-              (leaveType === "BREAK" && !comment) || loading || !leaveType
+              (leaveType === "BREAK" && !comment) || isPending || !leaveType
             }
             onClick={handleLeaveSubmit}
           >
@@ -216,7 +214,7 @@ const ActiveControl: FC = () => {
                 );
                 setError("");
               }}
-              color={!!error ? "red" : "accent"}
+              color={error ? "red" : "accent"}
             />
             <TimeInput
               label="До"
@@ -230,7 +228,7 @@ const ActiveControl: FC = () => {
                 );
                 setError("");
               }}
-              color={!!error ? "red" : "accent"}
+              color={error ? "red" : "accent"}
             />
           </div>
           {error && <ErrorMessage error={error} />}
@@ -246,7 +244,7 @@ const ActiveControl: FC = () => {
           <Button
             className="mt-3"
             variant="green"
-            disabled={loading || !comment}
+            disabled={isPending || !comment}
             onClick={handleMarkSubmit}
           >
             Подтвердить
@@ -260,16 +258,18 @@ const ActiveControl: FC = () => {
 const InactiveControl: FC = () => {
   const session = useAuthStore((state) => state.session);
   const fetchSession = useAuthStore((state) => state.fetchSession);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   if (!session || !session.entries.length) {
     return (
       <Button
         icon={Play}
-        disabled={loading}
-        onClick={() => {
-          api.enter({ type: "WORK" }).finally(() => fetchSession());
-        }}
+        disabled={isPending}
+        onClick={() =>
+          startTransition(() =>
+            api.enter({ type: "WORK" }).then(() => fetchSession())
+          )
+        }
       >
         Начать
       </Button>
@@ -283,13 +283,12 @@ const InactiveControl: FC = () => {
     return (
       <Button
         icon={Reset}
-        disabled={loading}
-        onClick={() => {
-          api
-            .leave({ type: "WORK" })
-            .then(() => fetchSession())
-            .finally(() => setLoading(false));
-        }}
+        disabled={isPending}
+        onClick={() =>
+          startTransition(() =>
+            api.leave({ type: "WORK" }).then(() => fetchSession())
+          )
+        }
       >
         Возобновить
       </Button>
@@ -299,13 +298,12 @@ const InactiveControl: FC = () => {
   return (
     <Button
       icon={Reset}
-      disabled={loading}
-      onClick={() => {
-        api
-          .enter({ type: "WORK" })
-          .then(() => fetchSession())
-          .finally(() => setLoading(false));
-      }}
+      disabled={isPending}
+      onClick={() =>
+        startTransition(() =>
+          api.enter({ type: "WORK" }).then(() => fetchSession())
+        )
+      }
     >
       Возобновить
     </Button>
@@ -349,7 +347,7 @@ const CheaterControl: FC = () => {
 const CheaterItemControl: FC<{ entry: SessionEntryModel }> = ({ entry }) => {
   const fetchSession = useAuthStore((state) => state.fetchSession);
   const [time, setTime] = useState<Time | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
   const handleSubmit = () => {
@@ -364,23 +362,23 @@ const CheaterItemControl: FC<{ entry: SessionEntryModel }> = ({ entry }) => {
       return;
     }
 
-    setLoading(true);
     const end = new Date(start);
     end.setHours(time.hour);
     end.setMinutes(time.minute);
     end.setMilliseconds(0);
 
-    api
-      .chaterLeave(entry.id, { end: end.toISOString() })
-      .then(() => fetchSession())
-      .catch((e) => {
-        if (isAxiosError(e) && e.status === 400) {
-          setError(e.response?.data);
-          return;
-        }
-        setError("Что-то пошло не так");
-      })
-      .finally(() => setLoading(false));
+    startTransition(() =>
+      api
+        .cheaterLeave(entry.id, { end: end.toISOString() })
+        .then(() => fetchSession())
+        .catch((e) => {
+          if (isAxiosError(e) && e.status === 400) {
+            setError(e.response?.data);
+            return;
+          }
+          setError("Что-то пошло не так");
+        })
+    );
   };
 
   return (
@@ -418,7 +416,7 @@ const CheaterItemControl: FC<{ entry: SessionEntryModel }> = ({ entry }) => {
       </label>
       <Button
         className="md:flex-1"
-        disabled={loading || !time}
+        disabled={isPending || !time}
         onClick={handleSubmit}
       >
         Подтвердить

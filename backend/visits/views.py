@@ -130,7 +130,7 @@ class CheaterLeaveView(GenericAPIView):
     def get_queryset(self):
         return SessionEntry.objects.filter(session__user=self.request.user)
 
-    @extend_schema("chaterLeave", request=serializers.SessionEntryModelSerializer)
+    @extend_schema("cheaterLeave", request=serializers.SessionEntryModelSerializer)
     def post(self, request: Request, *args, **kwargs):
         instance: SessionEntry = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
