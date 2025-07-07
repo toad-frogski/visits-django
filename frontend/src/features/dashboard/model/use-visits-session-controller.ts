@@ -1,7 +1,12 @@
-import { useVisitsSession } from "@/features/dashboard/model/visits-session-store";
+import { useActiveControl } from "../model/active-control.context";
+import { useVisitsSession } from "../model/visits-session-store";
 import { rqClient } from "@/shared/api/instance";
 import type { ApiSchema } from "@/shared/api/schema";
-import { useEffect, useMemo, useState } from "react";
+import { CONFIG } from "@/shared/model/config";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import z from "zod";
 
 export function useSessionControl() {
   const session = useVisitsSession((state) => state.session);
@@ -127,6 +132,81 @@ export function useSessionCheaterItem() {
   };
 }
 
-export function useSessionActive() {
-  return {}
-}
+export const useActiveControlExit = () => {
+  const fetchSession = useVisitsSession((state) => state.fetchSession);
+  const { setStep } = useActiveControl();
+  const [comment, setComment] = useState("");
+  const now = new Date();
+  const needsComment = now.getHours() < (CONFIG.SESSION_END_TIME || 18);
+
+  const back = () => setStep({ step: "select" });
+
+  const { mutate, isPending, error } = rqClient.useMutation(
+    "put",
+    "/api/v1/visits/exit",
+    {
+      onSuccess() {
+        fetchSession();
+        setStep({ step: "select" });
+      },
+    }
+  );
+
+  const exit = () =>
+    mutate({ body: { comment: comment, end: new Date().toISOString() } });
+
+  return { comment, setComment, needsComment, exit, isPending, error, back };
+};
+
+const activeControlMarkSchema = z
+  .object({
+    start: z.string({ required_error: "Укажите время начала" }),
+    end: z.string({ required_error: "Укажите время окончания" }),
+    comment: z.string({ required_error: "Укажите комментарий" }),
+  })
+  .transform((data) => {
+    const [startHour, startMinute] = data.start.split(":").map(Number);
+    const [endHour, endMinute] = data.end.split(":").map(Number);
+
+    const now = new Date();
+    const startDate = new Date(now);
+    startDate.setHours(startHour, startMinute, 0, 0);
+
+    const endDate = new Date(now);
+    endDate.setHours(endHour, endMinute, 0, 0);
+
+    if (endDate <= startDate) {
+      endDate.setDate(endDate.getDate() + 1);
+    }
+
+    return {
+      ...data,
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+    };
+  });
+
+export const useActiveControlMark = () => {
+  const fetchSession = useVisitsSession((state) => state.fetchSession);
+  const session = useVisitsSession((state) => state.session)!;
+
+  const form = useForm({ resolver: zodResolver(activeControlMarkSchema) });
+
+  const { setStep } = useActiveControl();
+  const back = () => setStep({ step: "select" });
+
+  const { mutate, isPending, error } = rqClient.useMutation(
+    "post",
+    "/api/v1/visits/{session_id}/session-entry/create",
+    {
+      onSuccess() {
+        fetchSession();
+      },
+    }
+  );
+
+  const submit = (data: ApiSchema["SessionEntryModelRequest"]) =>
+    mutate({ body: data, params: { path: { session_id: session.id } } });
+
+  return { form, back, submit, isPending, error };
+};

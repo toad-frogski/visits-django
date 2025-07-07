@@ -1,24 +1,53 @@
 import { Button } from "@/shared/components/ui/button";
-import { Play, RefreshCcw, Ban, Coffee, Pencil } from "lucide-react";
 import {
-  useSessionActive,
+  Play,
+  RefreshCcw,
+  Ban,
+  Coffee,
+  Pencil,
+  ArrowLeft,
+  Clock,
+} from "lucide-react";
+import {
+  useActiveControlExit,
+  useActiveControlMark,
   useSessionCheater,
   useSessionCheaterItem,
   useSessionControl,
   useSessionInactive,
 } from "../model/use-visits-session-controller";
-import { useMemo, useState, type FC } from "react";
+import { useEffect, useMemo, type FC } from "react";
 import type { ApiSchema } from "@/shared/api/schema";
 import { Input } from "@/shared/components/ui/input";
 import { formatTime } from "@/shared/lib/utils";
-import { Card, CardContent } from "@/shared/components/ui/card";
+import {
+  ActiveControlProvider,
+  useActiveControl,
+} from "../model/active-control.context";
+import { CONFIG } from "@/shared/model/config";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/shared/components/ui/form";
+import type {
+  ControllerRenderProps,
+  FieldValues,
+  ControllerFieldState,
+  UseFormStateReturn,
+} from "react-hook-form";
 
 const SessionControl: FC = () => {
   const { session } = useSessionControl();
 
   switch (session?.status) {
     case "active":
-      return <ActiveControl />;
+      return (
+        <ActiveControlProvider>
+          <ActiveControl />
+        </ActiveControlProvider>
+      );
 
     case "cheater":
       return <CheaterControl />;
@@ -112,13 +141,8 @@ const CheaterItemControl: FC<{ entry: ApiSchema["SessionEntryModel"] }> = ({
   );
 };
 
-type ActiveControlStep =
-  | { step: "select" }
-  | { step: "form"; type: "exit" | "leave" | "mark" };
-
 const ActiveControl: FC = () => {
-  const {} = useSessionActive();
-  const [step, setStep] = useState<ActiveControlStep>({ step: "select" });
+  const { step, setStep } = useActiveControl();
 
   if (step.step === "select") {
     return (
@@ -156,15 +180,114 @@ const ActiveControl: FC = () => {
   if (step.step === "form") {
     switch (step.type) {
       case "exit":
-        return;
+        return <ActiveControlExit />;
 
       case "mark":
-        return;
+        return <ActiveControlMark />;
 
       case "leave":
         return;
     }
   }
+};
+
+const ActiveControlExit: FC = () => {
+  const { comment, setComment, needsComment, exit, isPending, back } =
+    useActiveControlExit();
+
+  useEffect(() => {
+    if (!needsComment) {
+      exit();
+      back();
+    }
+  }, [needsComment, exit, back]);
+
+  if (needsComment) {
+    return (
+      <div>
+        <Input
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Отметьте причину выхода"
+          className="mt-3"
+        />
+        <Button
+          disabled={!comment || isPending}
+          className="mt-3 w-full"
+          onClick={exit}
+        >
+          Отправить
+        </Button>
+        <Button className="mt-9 w-full" onClick={back} variant="outline">
+          <ArrowLeft /> Вернуться
+        </Button>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+const ActiveControlMark: FC = () => {
+  const { form, back, submit } = useActiveControlMark();
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(submit)}>
+        <h1>Отметьте время</h1>
+        <div className="flex gap-3 items-center mt-3">
+          <FormField
+            name="start"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <Input {...field} type="time" aria-label="start" />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <span> - </span>
+
+          <FormField
+            name="end"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <Input {...field} type="time" aria-label="end" />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="mt-3">
+          <FormField
+            name="comment"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <Input
+                  {...field}
+                  placeholder="Комментарий"
+                  aria-label="comment"
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <Button type="submit" className="w-full mt-3">
+          Отправить
+        </Button>
+      </form>
+
+      <Button className="mt-9 w-full" onClick={back} variant="outline">
+        <ArrowLeft /> Вернуться
+      </Button>
+    </Form>
+  );
 };
 
 export default SessionControl;
