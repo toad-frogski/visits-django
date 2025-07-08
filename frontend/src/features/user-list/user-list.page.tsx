@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { useUserList } from "./model/use-user-list";
-import UserCard from "@/shared/components/ui/user-card";
+import UserCard from "./ui/user-card";
 import type { FC } from "react";
 import { AlertCircle } from "lucide-react";
 
