@@ -5,7 +5,7 @@ import type { FC } from "react";
 import { AlertCircle } from "lucide-react";
 
 const UserListPage: FC = () => {
-  const { sessions, isPending, error } = useUserList();
+  const { sessions, isLoading, error } = useUserList();
 
   if (error) {
     return (
@@ -22,7 +22,7 @@ const UserListPage: FC = () => {
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-4">
-      {isPending
+      {isLoading
         ? [...Array(12)].map(() => (
             <Card className="rounded-l-full animate-pulse" />
           ))

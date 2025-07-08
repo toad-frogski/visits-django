@@ -8,15 +8,7 @@ export const useUserList = () => {
   const [sessions, setSessions] = useState<ApiSchema["UserSession"][]>([]);
   const user = useSession((state) => state.user);
   const fetchUser = useSession((state) => state.fetchUser);
-  const sessionsMutation = publicRqClient.useMutation(
-    "get",
-    "/api/v1/visits/today",
-    {
-      onSuccess(data) {
-        setSessions(data);
-      },
-    }
-  );
+  const { data, isLoading, error } = publicRqClient.useQuery("get", "/api/v1/visits/today");
 
   useWebSocket({
     url: `ws://${window.location.host}/api/ws/visits/notifications`,
@@ -57,12 +49,14 @@ export const useUserList = () => {
   });
 
   useEffect(() => {
-    sessionsMutation.mutate({});
-  }, []);
+    if (data) {
+      setSessions(data);
+    }
+  }, [data]);
 
   return {
     sessions,
-    isPending: sessionsMutation.isPending,
-    error: sessionsMutation.isError ? sessionsMutation.error : undefined,
+    isLoading: isLoading,
+    error: error ?? undefined,
   };
 };
