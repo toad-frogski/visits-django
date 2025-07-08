@@ -1,15 +1,8 @@
 import { Button } from "@/shared/components/ui/button";
-import {
-  Play,
-  RefreshCcw,
-  Ban,
-  Coffee,
-  Pencil,
-  ArrowLeft,
-  Clock,
-} from "lucide-react";
+import { Play, RefreshCcw, Ban, Coffee, Pencil, ArrowLeft } from "lucide-react";
 import {
   useActiveControlExit,
+  useActiveControlLeave,
   useActiveControlMark,
   useSessionCheater,
   useSessionCheaterItem,
@@ -20,23 +13,8 @@ import { useEffect, useMemo, type FC } from "react";
 import type { ApiSchema } from "@/shared/api/schema";
 import { Input } from "@/shared/components/ui/input";
 import { formatTime } from "@/shared/lib/utils";
-import {
-  ActiveControlProvider,
-  useActiveControl,
-} from "../model/active-control.context";
-import { CONFIG } from "@/shared/model/config";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/shared/components/ui/form";
-import type {
-  ControllerRenderProps,
-  FieldValues,
-  ControllerFieldState,
-  UseFormStateReturn,
-} from "react-hook-form";
+import { ActiveControlProvider, useActiveControl } from "../model/active-control.context";
+import { Form, FormField, FormItem, FormMessage } from "@/shared/components/ui/form";
 
 const SessionControl: FC = () => {
   const { session } = useSessionControl();
@@ -59,28 +37,19 @@ const SessionControl: FC = () => {
 };
 
 const InactiveControl: FC = () => {
-  const { status, leave, enter, leaveIsPending, enterIsPending } =
-    useSessionInactive();
+  const { status, leave, enter, leaveIsPending, enterIsPending } = useSessionInactive();
 
   switch (status) {
     case "new":
       return (
-        <Button
-          className="w-full justify-start"
-          disabled={enterIsPending}
-          onClick={enter}
-        >
+        <Button className="w-full justify-start" disabled={enterIsPending} onClick={enter}>
           <Play /> Начать
         </Button>
       );
 
     case "comeback":
       return (
-        <Button
-          className="w-full justify-start"
-          disabled={leaveIsPending}
-          onClick={leave}
-        >
+        <Button className="w-full justify-start" disabled={leaveIsPending} onClick={leave}>
           <RefreshCcw /> Возобновить
         </Button>
       );
@@ -90,10 +59,7 @@ const InactiveControl: FC = () => {
 const CheaterControl: FC = () => {
   const { entries } = useSessionCheater();
 
-  const cheaterActionControls = useMemo(
-    () => entries.map((entry) => <CheaterItemControl entry={entry} />),
-    [entries]
-  );
+  const cheaterActionControls = useMemo(() => entries.map((entry) => <CheaterItemControl entry={entry} />), [entries]);
 
   return (
     <div className="flex gap-3 flex-col lg:flex-row items-center">
@@ -105,11 +71,8 @@ const CheaterControl: FC = () => {
   );
 };
 
-const CheaterItemControl: FC<{ entry: ApiSchema["SessionEntryModel"] }> = ({
-  entry,
-}) => {
-  const { endTime, setEndTime, submit, isPending, error } =
-    useSessionCheaterItem();
+const CheaterItemControl: FC<{ entry: ApiSchema["SessionEntryModel"] }> = ({ entry }) => {
+  const { endTime, setEndTime, submit, isPending, error } = useSessionCheaterItem();
 
   return (
     <div className="flex gap-3">
@@ -117,20 +80,10 @@ const CheaterItemControl: FC<{ entry: ApiSchema["SessionEntryModel"] }> = ({
         <div className="flex gap-3 items-center">
           {(() => {
             const time = new Date(entry.start!);
-            return (
-              <Input
-                type="time"
-                readOnly
-                value={formatTime(time.getHours(), time.getMinutes())}
-              />
-            );
+            return <Input type="time" readOnly value={formatTime(time.getHours(), time.getMinutes())} />;
           })()}
           <span>-</span>
-          <Input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-          />
+          <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
         </div>
         {error && <p className="text-destructive">{error}</p>}
       </label>
@@ -149,26 +102,14 @@ const ActiveControl: FC = () => {
       <div>
         <p className="text-lg font-bold">Выберите тип действия</p>
         <div className="flex gap-3 mt-3 flex-col md:flex-row">
-          <Button
-            variant="destructive"
-            className="flex-1"
-            onClick={() => setStep({ step: "form", type: "exit" })}
-          >
+          <Button variant="destructive" className="flex-1" onClick={() => setStep({ step: "form", type: "exit" })}>
             <Ban />
             Завершить сессию
           </Button>
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => setStep({ step: "form", type: "leave" })}
-          >
+          <Button variant="outline" className="flex-1" onClick={() => setStep({ step: "form", type: "leave" })}>
             <Coffee /> Отлучиться
           </Button>
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => setStep({ step: "form", type: "mark" })}
-          >
+          <Button variant="outline" className="flex-1" onClick={() => setStep({ step: "form", type: "mark" })}>
             <Pencil />
             Отлучился, но не отметился
           </Button>
@@ -186,14 +127,13 @@ const ActiveControl: FC = () => {
         return <ActiveControlMark />;
 
       case "leave":
-        return;
+        return <ActiveControlLeave />;
     }
   }
 };
 
 const ActiveControlExit: FC = () => {
-  const { comment, setComment, needsComment, exit, isPending, back } =
-    useActiveControlExit();
+  const { comment, setComment, needsComment, exit, isPending, back } = useActiveControlExit();
 
   useEffect(() => {
     if (!needsComment) {
@@ -211,11 +151,7 @@ const ActiveControlExit: FC = () => {
           placeholder="Отметьте причину выхода"
           className="mt-3"
         />
-        <Button
-          disabled={!comment || isPending}
-          className="mt-3 w-full"
-          onClick={exit}
-        >
+        <Button disabled={!comment || isPending} className="mt-3 w-full" onClick={exit}>
           Отправить
         </Button>
         <Button className="mt-9 w-full" onClick={back} variant="outline">
@@ -267,11 +203,7 @@ const ActiveControlMark: FC = () => {
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <Input
-                  {...field}
-                  placeholder="Комментарий"
-                  aria-label="comment"
-                />
+                <Input {...field} placeholder="Комментарий" aria-label="comment" />
                 <FormMessage />
               </FormItem>
             )}
@@ -283,6 +215,21 @@ const ActiveControlMark: FC = () => {
         </Button>
       </form>
 
+      <Button className="mt-9 w-full" onClick={back} variant="outline">
+        <ArrowLeft /> Вернуться
+      </Button>
+    </Form>
+  );
+};
+
+const ActiveControlLeave: FC = () => {
+  const { back } = useActiveControlLeave();
+
+  return (
+    <Form>
+      <form>
+        
+      </form>
       <Button className="mt-9 w-full" onClick={back} variant="outline">
         <ArrowLeft /> Вернуться
       </Button>

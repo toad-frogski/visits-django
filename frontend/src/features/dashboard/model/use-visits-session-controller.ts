@@ -73,9 +73,7 @@ export function useSessionCheater() {
 
     setEntries(() => {
       return session.date === today
-        ? session.entries.filter(
-            (entry, i) => !entry.end && i !== session.entries.length - 1
-          )
+        ? session.entries.filter((entry, i) => !entry.end && i !== session.entries.length - 1)
         : session.entries.filter((entry) => !entry.end);
     });
   }, [session, today]);
@@ -87,20 +85,14 @@ export function useSessionCheaterItem() {
   const fetchSession = useVisitsSession((state) => state.fetchSession);
   const [endTime, setEndTime] = useState("");
 
-  const { mutate, isPending, error } = rqClient.useMutation(
-    "post",
-    "/api/v1/visits/session-entry/{id}/cheater",
-    {
-      onSuccess() {
-        fetchSession();
-      },
-    }
-  );
+  const { mutate, isPending, error } = rqClient.useMutation("post", "/api/v1/visits/session-entry/{id}/cheater", {
+    onSuccess() {
+      fetchSession();
+    },
+  });
 
-  const updateEntry = (
-    id: number,
-    data: ApiSchema["SessionEntryModelRequest"]
-  ) => mutate({ params: { path: { id: id } }, body: data });
+  const updateEntry = (id: number, data: ApiSchema["SessionEntryModelRequest"]) =>
+    mutate({ params: { path: { id: id } }, body: data });
 
   const getError = useMemo(() => {
     if (!error) return "";
@@ -141,19 +133,14 @@ export const useActiveControlExit = () => {
 
   const back = () => setStep({ step: "select" });
 
-  const { mutate, isPending, error } = rqClient.useMutation(
-    "put",
-    "/api/v1/visits/exit",
-    {
-      onSuccess() {
-        fetchSession();
-        setStep({ step: "select" });
-      },
-    }
-  );
+  const { mutate, isPending, error } = rqClient.useMutation("put", "/api/v1/visits/exit", {
+    onSuccess() {
+      fetchSession();
+      setStep({ step: "select" });
+    },
+  });
 
-  const exit = () =>
-    mutate({ body: { comment: comment, end: new Date().toISOString() } });
+  const exit = () => mutate({ body: { comment: comment, end: new Date().toISOString() } });
 
   return { comment, setComment, needsComment, exit, isPending, error, back };
 };
@@ -209,4 +196,12 @@ export const useActiveControlMark = () => {
     mutate({ body: data, params: { path: { session_id: session.id } } });
 
   return { form, back, submit, isPending, error };
+};
+
+export const useActiveControlLeave = () => {
+  const { setStep } = useActiveControl();
+
+  const back = () => setStep({ step: "select" });
+
+  return { back };
 };
