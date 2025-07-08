@@ -6,7 +6,7 @@ import { CONFIG } from "@/shared/model/config";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
+import z, { ZodType } from "zod";
 
 export function useSessionControl() {
   const session = useVisitsSession((state) => state.session);
@@ -145,37 +145,36 @@ export const useActiveControlExit = () => {
   return { comment, setComment, needsComment, exit, isPending, error, back };
 };
 
-const activeControlMarkSchema = z
-  .object({
-    start: z.string({ required_error: "Укажите время начала" }),
-    end: z.string({ required_error: "Укажите время окончания" }),
-    comment: z.string({ required_error: "Укажите комментарий" }),
-  })
-  .transform((data) => {
-    const [startHour, startMinute] = data.start.split(":").map(Number);
-    const [endHour, endMinute] = data.end.split(":").map(Number);
-
-    const now = new Date();
-    const startDate = new Date(now);
-    startDate.setHours(startHour, startMinute, 0, 0);
-
-    const endDate = new Date(now);
-    endDate.setHours(endHour, endMinute, 0, 0);
-
-    if (endDate <= startDate) {
-      endDate.setDate(endDate.getDate() + 1);
-    }
-
-    return {
-      ...data,
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-    };
-  });
-
 export const useActiveControlMark = () => {
   const fetchSession = useVisitsSession((state) => state.fetchSession);
   const session = useVisitsSession((state) => state.session)!;
+  const activeControlMarkSchema = z
+    .object({
+      start: z.string({ required_error: "Укажите время начала" }),
+      end: z.string({ required_error: "Укажите время окончания" }),
+      comment: z.string({ required_error: "Укажите комментарий" }),
+    })
+    .transform((data) => {
+      const [startHour, startMinute] = data.start.split(":").map(Number);
+      const [endHour, endMinute] = data.end.split(":").map(Number);
+
+      const now = new Date();
+      const startDate = new Date(now);
+      startDate.setHours(startHour, startMinute, 0, 0);
+
+      const endDate = new Date(now);
+      endDate.setHours(endHour, endMinute, 0, 0);
+
+      if (endDate <= startDate) {
+        endDate.setDate(endDate.getDate() + 1);
+      }
+
+      return {
+        ...data,
+        start: startDate.toISOString(),
+        end: endDate.toISOString(),
+      };
+    });
 
   const form = useForm({ resolver: zodResolver(activeControlMarkSchema) });
 
@@ -188,6 +187,7 @@ export const useActiveControlMark = () => {
     {
       onSuccess() {
         fetchSession();
+        back();
       },
     }
   );
@@ -200,8 +200,24 @@ export const useActiveControlMark = () => {
 
 export const useActiveControlLeave = () => {
   const { setStep } = useActiveControl();
-
   const back = () => setStep({ step: "select" });
 
-  return { back };
+  const activeControlLeaveSchema = z
+    .object({
+      type: z.enum(["LUNCH", "WORK", "BREAK"], { required_error: "Укажите тип выхода" }),
+      comment: z.string().optional(),
+    })
+    .superRefine((data, ctx) => {
+      if (data.type === "BREAK" && !data.comment) {
+        ctx.addIssue({
+          path: ["comment"],
+          code: z.ZodIssueCode.custom,
+          message: "Комментарий не указан",
+        });
+      }
+    }) satisfies ZodType<ApiSchema["SessionEntryLeaveRequest"]>;
+
+  const form = useForm({ resolver: zodResolver(activeControlLeaveSchema) });
+
+  return { back, form };
 };

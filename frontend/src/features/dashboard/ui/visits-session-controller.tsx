@@ -1,5 +1,5 @@
 import { Button } from "@/shared/components/ui/button";
-import { Play, RefreshCcw, Ban, Coffee, Pencil, ArrowLeft } from "lucide-react";
+import { Play, RefreshCcw, Ban, Coffee, Pencil, ArrowLeft, Soup } from "lucide-react";
 import {
   useActiveControlExit,
   useActiveControlLeave,
@@ -14,7 +14,9 @@ import type { ApiSchema } from "@/shared/api/schema";
 import { Input } from "@/shared/components/ui/input";
 import { formatTime } from "@/shared/lib/utils";
 import { ActiveControlProvider, useActiveControl } from "../model/active-control.context";
-import { Form, FormField, FormItem, FormMessage } from "@/shared/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
+import type { ControllerRenderProps, FieldValues, ControllerFieldState, UseFormStateReturn } from "react-hook-form";
 
 const SessionControl: FC = () => {
   const { session } = useSessionControl();
@@ -223,12 +225,61 @@ const ActiveControlMark: FC = () => {
 };
 
 const ActiveControlLeave: FC = () => {
-  const { back } = useActiveControlLeave();
+  const { back, form } = useActiveControlLeave();
+
+  const type = form.watch("type");
 
   return (
-    <Form>
-      <form>
-        
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(() => {})}>
+        <FormField
+          name="type"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <RadioGroup onValueChange={field.onChange} value={field.value}>
+                  <FormItem className="flex items-center">
+                    <FormControl>
+                      <RadioGroupItem value="LUNCH" />
+                    </FormControl>
+                    <FormLabel>
+                      {" "}
+                      <Soup /> Обед
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center">
+                    <FormControl>
+                      <RadioGroupItem value="BREAK" />
+                    </FormControl>
+                    <FormLabel>
+                      {" "}
+                      <Coffee /> Перерыв
+                    </FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {type === "LUNCH" && <Button className="mt-6 w-full">Отправить</Button>}
+
+        {type === "BREAK" && (
+          <>
+            <FormField
+              control={form.control}
+              name="comment"
+              render={({ field }) => (
+                <FormItem>
+                  <Input {...field} placeholder="Комментарий" className="mt-6" />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button className="mt-3 w-full">Отправить</Button>
+          </>
+        )}
       </form>
       <Button className="mt-9 w-full" onClick={back} variant="outline">
         <ArrowLeft /> Вернуться
