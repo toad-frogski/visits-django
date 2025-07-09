@@ -1,6 +1,6 @@
 import AppSidebar from "@/app/components/app-sidebar";
 import MobileNav from "@/app/components/mobile-nav";
-import { SidebarProvider } from "@/shared/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/shared/components/ui/sidebar";
 import useDesktop from "@/shared/hooks/useDesktop";
 import type { FC } from "react";
 import { Outlet } from "react-router";
@@ -10,8 +10,9 @@ const App: FC = () => {
 
   return (
     <SidebarProvider defaultOpen={false}>
-      {desktop && <AppSidebar />}
-      <main className="w-full p-3 md:p-6 pb-12 md:pb-0">
+      <AppSidebar />
+      <main className="w-full p-3 md:p-6 pb-24 md:pb-0">
+        {!desktop && <SidebarTrigger />}
         <Outlet />
       </main>
       {!desktop && <MobileNav />}

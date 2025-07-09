@@ -52,7 +52,7 @@ const SessionControlRoot: FC = () => {
       <DialogTrigger asChild>
         <div className="size-full p-2">
           <div
-            className={cn("rounded-md w-full h-4", {
+            className={cn("rounded-md w-full h-4 min-w-4", {
               "bg-muted": session?.status === "inactive" || !session?.status,
               "bg-primary": session?.status === "active",
               "bg-destructive": session?.status === "cheater",
