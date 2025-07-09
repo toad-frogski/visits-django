@@ -17,6 +17,7 @@ RUN pip install \
   uwsgi \
   django-auth-ldap \
   Pillow \
+  pymongo \
   drf-spectacular \
   django-cors-headers \
   requests \
