@@ -104,11 +104,9 @@ const CheaterControl: FC = () => {
   const cheaterActionControls = useMemo(() => entries.map((entry) => <CheaterItemControl entry={entry} />), [entries]);
 
   return (
-    <div className="flex gap-3 flex-col lg:flex-row items-center">
-      <p className="text-gray font-semibold flex-1 text-center">
-        Вы ушли и не отметились в системе. Пожалуйста, укажите время выхода
-      </p>
-      <div className="flex-1 space-y-4">{cheaterActionControls}</div>
+    <div>
+      <p className="text-gray text-center">Вы ушли и не отметились в системе. Пожалуйста, укажите время выхода</p>
+      <div className="space-y-4 mt-3 w-full">{cheaterActionControls}</div>
     </div>
   );
 };
@@ -118,7 +116,7 @@ const CheaterItemControl: FC<{ entry: ApiSchema["SessionEntryModel"] }> = ({ ent
 
   return (
     <div className="flex gap-3">
-      <label>
+      <div className="flex-1">
         <div className="flex gap-3 items-center">
           {(() => {
             const time = new Date(entry.start!);
@@ -128,7 +126,7 @@ const CheaterItemControl: FC<{ entry: ApiSchema["SessionEntryModel"] }> = ({ ent
           <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
         </div>
         {error && <p className="text-destructive">{error}</p>}
-      </label>
+      </div>
       <Button disabled={isPending} onClick={() => submit(entry)}>
         Подтвердить
       </Button>
