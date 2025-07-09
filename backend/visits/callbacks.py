@@ -1,8 +1,9 @@
-from rest_framework.serializers import Serializer
-from django.contrib.auth.models import User
 from datetime import date
-from typing import Callable, Generic, List, TypeVar, TypedDict
+from typing import Callable, Generic, TypeVar, TypedDict
+from django.contrib.auth import get_user_model
+from django.contrib.admin.options import InlineModelAdmin
 
+User = get_user_model()
 
 T = TypeVar("T")
 
@@ -14,19 +15,13 @@ class StatisticsExtraDataResult(TypedDict, Generic[T]):
 
 StatisticsExtraDataCallback = Callable[[User, date], T]
 
-_registered_statistics_extra_callbacks: List[StatisticsExtraDataCallback] = []
+_statistics_extra_registry: list[StatisticsExtraDataCallback] = []
+_user_admin_inline_registry: list[type[InlineModelAdmin]] = []
 
 
-def register_statistics_extra(*, type: str, serializer_class: type[Serializer]):
-    def decorator(callback: StatisticsExtraDataCallback[T]):
-        setattr(callback, "_type", type)
-        setattr(callback, "_serializer_class", serializer_class)
-        _registered_statistics_extra_callbacks.append(callback)
-
-        return callback
-
-    return decorator
+def statistics_extra_callbacks() -> list[StatisticsExtraDataCallback]:
+    return _statistics_extra_registry.copy()
 
 
-def statistics_extra_callbacks() -> List[StatisticsExtraDataCallback]:
-    return _registered_statistics_extra_callbacks.copy()
+def get_user_admin_inline() -> list[type[InlineModelAdmin]]:
+    return _user_admin_inline_registry.copy()

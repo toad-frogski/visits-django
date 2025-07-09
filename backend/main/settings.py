@@ -49,10 +49,10 @@ INSTALLED_APPS = [
     "corsheaders",
     # app
     "session",
-    "visits",
     "rfid",
     "redmine",
     "holidays",
+    "visits",
 ]
 
 MIDDLEWARE = [

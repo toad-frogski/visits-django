@@ -2,17 +2,17 @@ from os import getenv
 import calendar
 import requests
 from datetime import date
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.core.cache import cache
 from rest_framework import status
-from visits.callbacks import register_statistics_extra
+from visits.decorators import register_statistics_extra
 from .serializers import HolidaysExtraFieldPayloadSerializer
 
 
 @register_statistics_extra(
     type="holidays", serializer_class=HolidaysExtraFieldPayloadSerializer
 )
-def holidays_statistics_extra(user: User, date: date):
+def holidays_statistics_extra(user: AbstractUser, date: date):
     holidays = _get_holidays(month=date)
     holiday = holidays.get(date.strftime("%Y-%m-%d"))
 
