@@ -1,11 +1,13 @@
 import { VisitsSessionController } from "@/features/visits-controller";
 import { cn } from "@/shared/lib/utils";
 import { ROUTES } from "@/shared/model/routes";
-import { Blocks, Users } from "lucide-react";
+import { useSession } from "@/shared/model/session";
+import { Blocks, LogIn, Users } from "lucide-react";
 import { useEffect, useRef, useState, type FC } from "react";
-import { NavLink, useLocation } from "react-router";
+import { NavLink, useLocation } from "react-router-dom";
 
 const MobileNav: FC = () => {
+  const user = useSession((state) => state.user);
   const [sliderStyle, setSliderStyle] = useState<{ left: number; width: number }>({
     left: 0,
     width: 0,
@@ -39,23 +41,33 @@ const MobileNav: FC = () => {
   return (
     <nav ref={menuRef} className="fixed bottom-0 w-full p-2 bg-card">
       <ul className="flex gap-12 justify-around items-center pt-2">
-        <li>
-          <NavLink to={ROUTES.USERS} className={({ isActive }) => cn("w-12 block", isActive && "active")}>
-            <Users className="mx-auto size-6" />
-          </NavLink>
-        </li>
-        <li>
-          <VisitsSessionController />
-        </li>
-        <li>
-          <NavLink to={ROUTES.DASHBOARD} className={({ isActive }) => cn("w-12 block", isActive && "active")}>
-            <Blocks className="mx-auto size-6" />
-          </NavLink>
-        </li>
-        <span
-          className="absolute top-2 h-1 bg-primary rounded-md transition-all duration-300 ease-in-out"
-          style={sliderStyle}
-        />
+        {user ? (
+          <>
+            <li>
+              <NavLink to={ROUTES.USERS} className={({ isActive }) => cn("w-12 block", isActive && "active")}>
+                <Users className="mx-auto size-6" />
+              </NavLink>
+            </li>
+            <li>
+              <VisitsSessionController />
+            </li>
+            <li>
+              <NavLink to={ROUTES.DASHBOARD} className={({ isActive }) => cn("w-12 block", isActive && "active")}>
+                <Blocks className="mx-auto size-6" />
+              </NavLink>
+              <span
+                className="absolute top-2 h-1 bg-primary rounded-md transition-all duration-300 ease-in-out"
+                style={sliderStyle}
+              />
+            </li>
+          </>
+        ) : (
+          <li>
+            <NavLink to={ROUTES.LOGIN} className={cn("w-12 block")}>
+              <LogIn className="mx-auto size-6" />
+            </NavLink>
+          </li>
+        )}
       </ul>
     </nav>
   );

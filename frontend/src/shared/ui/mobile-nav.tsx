@@ -1,5 +1,5 @@
 import { type FC } from "react";
-import { NavLink } from "react-router";
+import { NavLink } from "react-router-dom";
 import useDesktop from "@/shared/hooks/useDesktop";
 import type { NavItem } from "@/shared/ui/sidebar";
 import { cn } from "@/shared/lib/cn";

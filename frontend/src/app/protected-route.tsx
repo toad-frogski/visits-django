@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { ROUTES } from "@/shared/model/routes";
-import { Navigate, Outlet, redirect } from "react-router";
+import { Navigate, Outlet, redirect } from "react-router-dom";
 import { useSession } from "@/shared/model/session";
 
 const ProtectedRoute: FC = () => {

@@ -1,8 +1,9 @@
-import { createBrowserRouter, redirect } from "react-router";
+import { createBrowserRouter, redirect } from "react-router-dom";
 import App from "@/app/app";
 import { ROUTES } from "@/shared/model/routes";
 import Providers from "@/app/providers";
 import ProtectedRoute, { protectedLoader } from "@/app/protected-route";
+import { Component as DashboardPage } from "@/features/dashboard/dashboard.page";
 
 const router = createBrowserRouter([
   {
@@ -18,7 +19,8 @@ const router = createBrowserRouter([
         children: [
           {
             path: ROUTES.DASHBOARD,
-            lazy: () => import("@/features/dashboard/dashboard.page"),
+            // lazy: () => import("@/features/dashboard/dashboard.page"),
+            Component: DashboardPage,
           },
           {
             path: ROUTES.SETTINGS,

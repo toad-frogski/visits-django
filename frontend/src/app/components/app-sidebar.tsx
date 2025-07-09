@@ -24,7 +24,7 @@ import { useSession } from "@/shared/model/session";
 import { Users, LogIn, LogOut, Blocks, Settings } from "lucide-react";
 
 import type { FC } from "react";
-import { NavLink } from "react-router";
+import { NavLink } from "react-router-dom";
 
 // Menu items.
 const publicItems = [

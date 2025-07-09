@@ -136,7 +136,7 @@ export const useActiveControlExit = () => {
   const { setOpen } = useSessionControl();
   const [comment, setComment] = useState("");
   const now = new Date();
-  const needsComment = now.getHours() < (CONFIG.SESSION_END_TIME || 18);
+  const needsComment = now.getHours() < (CONFIG.SESSION_DEFAULT_END_TIME || 18);
 
   const back = () => setStep({ step: "select" });
 

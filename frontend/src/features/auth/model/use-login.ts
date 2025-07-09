@@ -1,7 +1,7 @@
 import { rqClient } from "@/shared/api/instance";
 import type { ApiSchema } from "@/shared/api/schema";
 import { useSession } from "@/shared/model/session";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 export const useLogin = () => {
   const navigate = useNavigate();

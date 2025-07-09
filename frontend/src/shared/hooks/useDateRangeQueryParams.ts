@@ -1,5 +1,5 @@
 import { type RangeValue } from "@react-types/shared";
-import { useSearchParams } from "react-router";
+import { useSearchParams } from "react-router-dom";
 import { formatDate, parseDate } from "@/shared/lib/utils";
 import type { DateValue } from "react-aria-components";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
