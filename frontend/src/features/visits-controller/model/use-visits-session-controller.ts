@@ -4,7 +4,7 @@ import { rqClient } from "@/shared/api/instance";
 import type { ApiSchema } from "@/shared/api/schema";
 import { CONFIG } from "@/shared/model/config";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import z, { ZodType } from "zod";
 
@@ -14,7 +14,7 @@ export function useSessionControl() {
 
   useEffect(() => {
     if (!session) fetchSession();
-  }, [session]);
+  }, []);
 
   return { session };
 }
@@ -24,12 +24,12 @@ export function useSessionInactive() {
   const fetchSession = useVisitsSession((state) => state.fetchSession);
 
   const status = useMemo(() => {
-    if (!session || !session.entries.length) return "new";
+    if (!session || session.entries.length === 0) return "new";
 
     const last = session.entries[session.entries.length - 1];
     if (last.type !== "WORK" && !last.end) return "comeback";
 
-    return "new";
+    return "restore";
   }, [session]);
 
   const leaveMutation = rqClient.useMutation("post", "/api/v1/visits/leave", {
@@ -199,6 +199,7 @@ export const useActiveControlMark = () => {
 };
 
 export const useActiveControlLeave = () => {
+  const fetchSession = useVisitsSession((state) => state.fetchSession);
   const { setStep } = useActiveControl();
   const back = () => setStep({ step: "select" });
 
@@ -219,5 +220,15 @@ export const useActiveControlLeave = () => {
 
   const form = useForm({ resolver: zodResolver(activeControlLeaveSchema) });
 
-  return { back, form };
+  const { mutate, error, isPending } = rqClient.useMutation("post", "/api/v1/visits/leave", {
+    onSuccess() {
+      fetchSession();
+      back();
+    },
+  });
+
+  const submit = (data: ApiSchema["SessionEntryLeaveRequest"]) =>
+    mutate({ body: { ...data, time: new Date().toISOString() } });
+
+  return { back, form, submit, error, isPending };
 };

@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/shared/components/ui/card";
 import SessionControl from "./ui/visits-session-controller";
 import type { FC } from "react";
 
-const DashboardPage: FC = () => {
+const VisitsController: FC = () => {
   return (
     <Card>
       <CardContent>
@@ -12,4 +12,4 @@ const DashboardPage: FC = () => {
   );
 };
 
-export const Component = DashboardPage;
+export default VisitsController;

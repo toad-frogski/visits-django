@@ -6,37 +6,26 @@ import { cn } from "@/shared/lib/utils";
 
 type UserCardProps = ApiSchema["UserSession"] & ComponentProps<"div">;
 
-const UserCard: FC<UserCardProps> = ({
-  user,
-  session,
-  className,
-  ...props
-}) => {
+const UserCard: FC<UserCardProps> = ({ user, session, className, ...props }) => {
   return (
-    <Card
-      {...props}
-      className={cn(className, "rounded-l-full p-3 relative group")}
-    >
+    <Card {...props} className={cn(className, "rounded-l-full p-3 relative group")}>
       <CardContent className="flex gap-3 items-center p-0">
         <Avatar src={user.avatar} alt={user.full_name} />
-        <p className="text-gray font-bold md:text-h3">{user.full_name}</p>
-        {session.comment && (
-          <p
-            className="block overflow-hidden text-ellipsis whitespace-nowrap text-gray"
-            title={session.comment}
-          >
-            {session.comment}
-          </p>
-        )}
+        <div>
+          <p className="text-gray font-bold md:text-h3">{user.full_name}</p>
+          {session.comment && (
+            <p className="block overflow-hidden text-ellipsis whitespace-nowrap text-gray" title={session.comment}>
+              {session.comment}
+            </p>
+          )}
+        </div>
       </CardContent>
       <StatusLine status={session.status} />
     </Card>
   );
 };
 
-const StatusLine: FC<{ status: ApiSchema["Session"]["status"] }> = ({
-  status,
-}) => {
+const StatusLine: FC<{ status: ApiSchema["Session"]["status"] }> = ({ status }) => {
   return (
     <div
       className={cn(

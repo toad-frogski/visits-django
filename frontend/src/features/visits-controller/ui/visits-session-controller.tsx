@@ -16,7 +16,6 @@ import { formatTime } from "@/shared/lib/utils";
 import { ActiveControlProvider, useActiveControl } from "../model/active-control.context";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
-import type { ControllerRenderProps, FieldValues, ControllerFieldState, UseFormStateReturn } from "react-hook-form";
 
 const SessionControl: FC = () => {
   const { session } = useSessionControl();
@@ -42,10 +41,21 @@ const InactiveControl: FC = () => {
   const { status, leave, enter, leaveIsPending, enterIsPending } = useSessionInactive();
 
   switch (status) {
+    case "restore":
     case "new":
       return (
         <Button className="w-full justify-start" disabled={enterIsPending} onClick={enter}>
-          <Play /> Начать
+          {status === "restore" ? (
+            <>
+              <RefreshCcw />
+              Возобновить
+            </>
+          ) : (
+            <>
+              <Play />
+              Начать
+            </>
+          )}
         </Button>
       );
 
@@ -225,13 +235,14 @@ const ActiveControlMark: FC = () => {
 };
 
 const ActiveControlLeave: FC = () => {
-  const { back, form } = useActiveControlLeave();
+  const { back, form, isPending, submit } = useActiveControlLeave();
 
   const type = form.watch("type");
+  const comment = form.watch("comment");
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(() => {})}>
+      <form onSubmit={form.handleSubmit(submit)}>
         <FormField
           name="type"
           control={form.control}
@@ -244,7 +255,6 @@ const ActiveControlLeave: FC = () => {
                       <RadioGroupItem value="LUNCH" />
                     </FormControl>
                     <FormLabel>
-                      {" "}
                       <Soup /> Обед
                     </FormLabel>
                   </FormItem>
@@ -253,7 +263,6 @@ const ActiveControlLeave: FC = () => {
                       <RadioGroupItem value="BREAK" />
                     </FormControl>
                     <FormLabel>
-                      {" "}
                       <Coffee /> Перерыв
                     </FormLabel>
                   </FormItem>
@@ -277,7 +286,9 @@ const ActiveControlLeave: FC = () => {
                 </FormItem>
               )}
             />
-            <Button className="mt-3 w-full">Отправить</Button>
+            <Button className="mt-3 w-full" disabled={isPending || !comment}>
+              Отправить
+            </Button>
           </>
         )}
       </form>
