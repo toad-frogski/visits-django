@@ -37,21 +37,19 @@ const MobileNav: FC = () => {
   }, [location.pathname]);
 
   return (
-    <nav ref={menuRef} className="fixed bottom-0 w-full p-4 bg-card">
-      <ul className="flex gap-12 justify-around items-center">
+    <nav ref={menuRef} className="fixed bottom-0 w-full p-2 bg-card">
+      <ul className="flex gap-12 justify-around items-center pt-2">
         <li>
-          <NavLink to={ROUTES.USERS} className={({ isActive }) => cn(isActive && "active")}>
-            <Users className="mx-auto" />
-            <span>Users</span>
+          <NavLink to={ROUTES.USERS} className={({ isActive }) => cn("w-12 block", isActive && "active")}>
+            <Users className="mx-auto size-6" />
           </NavLink>
         </li>
         <li>
           <VisitsSessionController />
         </li>
         <li>
-          <NavLink to={ROUTES.DASHBOARD} className={({ isActive }) => cn(isActive && "active")}>
-            <Blocks className="mx-auto" />
-            <span>Dashboard</span>
+          <NavLink to={ROUTES.DASHBOARD} className={({ isActive }) => cn("w-12 block", isActive && "active")}>
+            <Blocks className="mx-auto size-6" />
           </NavLink>
         </li>
         <span

@@ -43,7 +43,7 @@ export const Timer: FC<TimerProps> = ({
             className="z-10 absolute text-md text-primary"
           />
         </div>
-        {extra !== 0 && (
+        {extra && (
           <TimeLabel
             days={extraTime.days}
             hours={extraTime.hours}
