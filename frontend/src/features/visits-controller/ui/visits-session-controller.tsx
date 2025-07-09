@@ -6,35 +6,65 @@ import {
   useActiveControlMark,
   useSessionCheater,
   useSessionCheaterItem,
-  useSessionControl,
+  useSessionControlRoot,
   useSessionInactive,
 } from "../model/use-visits-session-controller";
 import { useEffect, useMemo, type FC } from "react";
 import type { ApiSchema } from "@/shared/api/schema";
 import { Input } from "@/shared/components/ui/input";
-import { formatTime } from "@/shared/lib/utils";
+import { cn, formatTime } from "@/shared/lib/utils";
 import { ActiveControlProvider, useActiveControl } from "../model/active-control.context";
+import { SessionControlProvider, useSessionControl } from "../model/session-control.context";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
+import { Dialog, DialogContent, DialogTrigger } from "@/shared/components/ui/dialog";
 
 const SessionControl: FC = () => {
-  const { session } = useSessionControl();
+  return (
+    <SessionControlProvider>
+      <SessionControlRoot />
+    </SessionControlProvider>
+  );
+};
 
-  switch (session?.status) {
-    case "active":
-      return (
-        <ActiveControlProvider>
-          <ActiveControl />
-        </ActiveControlProvider>
-      );
+const SessionControlRoot: FC = () => {
+  const { session } = useSessionControlRoot();
+  const { open, setOpen } = useSessionControl();
 
-    case "cheater":
-      return <CheaterControl />;
+  const control = useMemo(() => {
+    switch (session?.status) {
+      case "active":
+        return (
+          <ActiveControlProvider>
+            <ActiveControl />
+          </ActiveControlProvider>
+        );
+      case "cheater":
+        return <CheaterControl />;
+      default:
+      case "inactive":
+        return <InactiveControl />;
+    }
+  }, [session?.status]);
 
-    default:
-    case "inactive":
-      return <InactiveControl />;
-  }
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <div className="size-full p-2">
+          <div
+            className={cn("rounded-md w-full h-4", {
+              "bg-muted": session?.status === "inactive" || !session?.status,
+              "bg-primary": session?.status === "active",
+              "bg-destructive": session?.status === "cheater",
+            })}
+          />
+        </div>
+      </DialogTrigger>
+      <DialogContent>
+        <div className="p-2">{control}</div>
+      </DialogContent>
+    </Dialog>
+  );
 };
 
 const InactiveControl: FC = () => {
@@ -113,15 +143,27 @@ const ActiveControl: FC = () => {
     return (
       <div>
         <p className="text-lg font-bold">Выберите тип действия</p>
-        <div className="flex gap-3 mt-3 flex-col md:flex-row">
-          <Button variant="destructive" className="flex-1" onClick={() => setStep({ step: "form", type: "exit" })}>
+        <div className="flex gap-3 mt-3 flex-col">
+          <Button
+            variant="destructive"
+            className="flex-1 whitespace-normal"
+            onClick={() => setStep({ step: "form", type: "exit" })}
+          >
             <Ban />
             Завершить сессию
           </Button>
-          <Button variant="outline" className="flex-1" onClick={() => setStep({ step: "form", type: "leave" })}>
+          <Button
+            variant="outline"
+            className="flex-1 whitespace-normal"
+            onClick={() => setStep({ step: "form", type: "leave" })}
+          >
             <Coffee /> Отлучиться
           </Button>
-          <Button variant="outline" className="flex-1" onClick={() => setStep({ step: "form", type: "mark" })}>
+          <Button
+            variant="outline"
+            className="flex-1 whitespace-normal"
+            onClick={() => setStep({ step: "form", type: "mark" })}
+          >
             <Pencil />
             Отлучился, но не отметился
           </Button>

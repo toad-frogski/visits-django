@@ -1,14 +1,15 @@
+import { useSessionControl } from "../model/session-control.context";
 import { useActiveControl } from "../model/active-control.context";
-import { useVisitsSession } from "../model/visits-session-store";
 import { rqClient } from "@/shared/api/instance";
 import type { ApiSchema } from "@/shared/api/schema";
 import { CONFIG } from "@/shared/model/config";
+import { useVisitsSession } from "@/shared/model/visits-session";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import z, { ZodType } from "zod";
 
-export function useSessionControl() {
+export function useSessionControlRoot() {
   const session = useVisitsSession((state) => state.session);
   const fetchSession = useVisitsSession((state) => state.fetchSession);
 
@@ -22,6 +23,7 @@ export function useSessionControl() {
 export function useSessionInactive() {
   const session = useVisitsSession((state) => state.session);
   const fetchSession = useVisitsSession((state) => state.fetchSession);
+  const { setOpen } = useSessionControl();
 
   const status = useMemo(() => {
     if (!session || session.entries.length === 0) return "new";
@@ -34,12 +36,14 @@ export function useSessionInactive() {
 
   const leaveMutation = rqClient.useMutation("post", "/api/v1/visits/leave", {
     onSuccess() {
+      setOpen(false);
       fetchSession();
     },
   });
 
   const enterMutation = rqClient.useMutation("post", "/api/v1/visits/enter", {
     onSuccess() {
+      setOpen(false);
       fetchSession();
     },
   });
@@ -84,9 +88,11 @@ export function useSessionCheater() {
 export function useSessionCheaterItem() {
   const fetchSession = useVisitsSession((state) => state.fetchSession);
   const [endTime, setEndTime] = useState("");
+  const { setOpen } = useSessionControl();
 
   const { mutate, isPending, error } = rqClient.useMutation("post", "/api/v1/visits/session-entry/{id}/cheater", {
     onSuccess() {
+      setOpen(false);
       fetchSession();
     },
   });
@@ -127,6 +133,7 @@ export function useSessionCheaterItem() {
 export const useActiveControlExit = () => {
   const fetchSession = useVisitsSession((state) => state.fetchSession);
   const { setStep } = useActiveControl();
+  const { setOpen } = useSessionControl();
   const [comment, setComment] = useState("");
   const now = new Date();
   const needsComment = now.getHours() < (CONFIG.SESSION_END_TIME || 18);
@@ -135,8 +142,8 @@ export const useActiveControlExit = () => {
 
   const { mutate, isPending, error } = rqClient.useMutation("put", "/api/v1/visits/exit", {
     onSuccess() {
+      setOpen(false);
       fetchSession();
-      setStep({ step: "select" });
     },
   });
 
@@ -147,6 +154,7 @@ export const useActiveControlExit = () => {
 
 export const useActiveControlMark = () => {
   const fetchSession = useVisitsSession((state) => state.fetchSession);
+  const { setOpen } = useSessionControl();
   const session = useVisitsSession((state) => state.session)!;
   const activeControlMarkSchema = z
     .object({
@@ -186,8 +194,8 @@ export const useActiveControlMark = () => {
     "/api/v1/visits/{session_id}/session-entry/create",
     {
       onSuccess() {
+        setOpen(false);
         fetchSession();
-        back();
       },
     }
   );
@@ -200,6 +208,7 @@ export const useActiveControlMark = () => {
 
 export const useActiveControlLeave = () => {
   const fetchSession = useVisitsSession((state) => state.fetchSession);
+  const { setOpen } = useSessionControl();
   const { setStep } = useActiveControl();
   const back = () => setStep({ step: "select" });
 
@@ -222,8 +231,8 @@ export const useActiveControlLeave = () => {
 
   const { mutate, error, isPending } = rqClient.useMutation("post", "/api/v1/visits/leave", {
     onSuccess() {
+      setOpen(false);
       fetchSession();
-      back();
     },
   });
 

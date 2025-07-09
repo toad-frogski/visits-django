@@ -1,4 +1,5 @@
 import { useLogout } from "@/features/auth";
+import { VisitsSessionController } from "@/features/visits-controller";
 import Avatar from "@/shared/components/ui/avatar";
 import {
   DropdownMenu,
@@ -85,19 +86,20 @@ const AppSidebar: FC = () => {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          {user && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <VisitsSessionController />
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton size="lg">
-                    <Avatar
-                      src={user.avatar}
-                      alt={user.full_name}
-                      className="!size-8"
-                    />
-                    <span className="text-xs">
-                      {user.email ? user.email : user.full_name}
-                    </span>
+                    <Avatar src={user.avatar} alt={user.full_name} className="!size-8" />
+                    <span className="text-xs">{user.email ? user.email : user.full_name}</span>
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent sideOffset={12} side="right">

@@ -1,3 +1,3 @@
-import VisitsController from "@/features/visits-controller/visits-controller";
+import SessionControl from "./ui/visits-session-controller";
 
-export { VisitsController };
+export { SessionControl as VisitsSessionController };
