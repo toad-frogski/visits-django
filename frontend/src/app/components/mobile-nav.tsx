@@ -39,7 +39,7 @@ const MobileNav: FC = () => {
   }, [location.pathname]);
 
   return (
-    <nav ref={menuRef} className="fixed bottom-0 w-full p-2 bg-card">
+    <nav ref={menuRef} className="fixed bottom-0 w-full p-2 bg-card z-100">
       <ul className="flex gap-12 justify-around items-center pt-2">
         {user ? (
           <>

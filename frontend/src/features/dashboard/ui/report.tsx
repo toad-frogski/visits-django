@@ -1,10 +1,10 @@
-import { useState, type FC, type SVGProps } from "react";
-import { useReport } from "../model/use-report";
+import { useState, type FC } from "react";
 import type { ApiSchema } from "@/shared/api/schema";
 import { cn } from "@/shared/lib/utils";
-import { Clock, Coffee, Hammer, Home, PartyPopper, Soup } from "lucide-react";
+import { Clock, Coffee, Hammer, Home, PartyPopper, Settings, Soup } from "lucide-react";
 import TimeBadge from "@/shared/components/ui/time-badge";
 import moment from "moment";
+import { useReport } from "../model/report.context";
 
 const Report: FC = () => {
   const { sessions } = useReport();
@@ -44,9 +44,10 @@ const ReportItem: FC<ApiSchema["UserMonthStatisticsResponse"]> = ({ date, sessio
         )}
         data-special={Boolean(holiday)}
       >
-        <span className="opacity-50">{date}</span>
+        <span className="opacity-50 hidden md:inline">{date}</span>
+        <span className="opacity-50 md:hidden">{moment(date).format("MM-DD")}</span>
         {session && <StatisticsBadge statistics={statistics} />}
-        <ExtraBadge extra={extra} />
+        <ExtraBadge extra={extra} date={date} />
       </div>
       {open && (
         <ul className="bg-card pl-8 pr-4 py-2 space-y-4">
@@ -58,7 +59,7 @@ const ReportItem: FC<ApiSchema["UserMonthStatisticsResponse"]> = ({ date, sessio
                     WORK: <Hammer className="size-4" />,
                     BREAK: <Coffee className="size-4" />,
                     LUNCH: <Soup className="size-4" />,
-                    SYSTEM: null,
+                    SYSTEM: <Settings className="size-4" />,
                   }[entry.type ?? "SYSTEM"]
                 }
               </span>
@@ -89,13 +90,18 @@ const StatisticsBadge: FC<Pick<ApiSchema["UserMonthStatisticsResponse"], "statis
   );
 };
 
-const ExtraBadge: FC<Pick<ApiSchema["UserMonthStatisticsResponse"], "extra">> = ({ extra }) => {
+const ExtraBadge: FC<Pick<ApiSchema["UserMonthStatisticsResponse"], "extra" | "date">> = ({ extra, date }) => {
   return (
     <div className="flex gap-3 md:ml-auto md:pr-3">
       {extra.map(
         ({ type, payload }) =>
           ({
-            redmine: <TimeBadge ms={(payload as ApiSchema["RedmineExtraFieldPayload"]).hours * 60 * 60 * 1000} />,
+            redmine: (
+              <TimeBadge
+                key={`${date}-redmine`}
+                ms={(payload as ApiSchema["RedmineExtraFieldPayload"]).hours * 60 * 60 * 1000}
+              />
+            ),
             holidays: (() => {
               const holidayPayload = payload as ApiSchema["HolidaysExtraFieldPayload"];
               let Icon: FC<React.SVGProps<SVGSVGElement>> | null = null;
@@ -106,7 +112,11 @@ const ExtraBadge: FC<Pick<ApiSchema["UserMonthStatisticsResponse"], "extra">> = 
                 Icon = Home;
               }
 
-              return Icon && <Icon className="absolute left-2 size-4 -translate-y-1/2 top-1/2 z-20" />;
+              return (
+                Icon && (
+                  <Icon key={`${date}-holiday`} className="absolute left-2 size-4 -translate-y-1/2 top-1/2 z-20" />
+                )
+              );
             })(),
           }[type])
       )}

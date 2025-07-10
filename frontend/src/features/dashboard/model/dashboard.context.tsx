@@ -1,4 +1,3 @@
-// src/shared/context/dashboard-context.tsx
 import { useDateRangeQueryParams } from "./use-date-range-query";
 import { createContext, useContext, type FC, type PropsWithChildren } from "react";
 import type { DateRange } from "react-day-picker";

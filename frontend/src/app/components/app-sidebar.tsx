@@ -21,7 +21,7 @@ import {
 } from "@/shared/components/ui/sidebar";
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
-import { Users, LogIn, LogOut, Blocks, Settings } from "lucide-react";
+import { Users, LogIn, Blocks, Settings } from "lucide-react";
 
 import type { FC } from "react";
 import { NavLink } from "react-router-dom";
@@ -41,11 +41,15 @@ const privateItems = [
     url: ROUTES.DASHBOARD,
     icon: Blocks,
   },
+  {
+    title: "Settings",
+    url: ROUTES.SETTINGS,
+    icon: Settings,
+  },
 ];
 
 const AppSidebar: FC = () => {
   const user = useSession((state) => state.user);
-  const { logout } = useLogout();
 
   return (
     <Sidebar collapsible="icon">
@@ -86,39 +90,14 @@ const AppSidebar: FC = () => {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          {user && (
+          {user ? (
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <VisitsSessionController />
               </SidebarMenuButton>
             </SidebarMenuItem>
-          )}
-          <SidebarMenuItem>
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <SidebarMenuButton size="lg">
-                    <Avatar src={user.avatar} alt={user.full_name} className="!size-8" />
-                    <span className="text-xs">{user.email ? user.email : user.full_name}</span>
-                  </SidebarMenuButton>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent sideOffset={12} side="right">
-                  <DropdownMenuGroup>
-                    <NavLink to={ROUTES.SETTINGS}>
-                      <DropdownMenuItem>
-                        <Settings />
-                        Settings
-                      </DropdownMenuItem>
-                    </NavLink>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout}>
-                      <LogOut />
-                      Log out
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
+          ) : (
+            <SidebarMenuItem>
               <NavLink to={ROUTES.LOGIN}>
                 {({ isActive }) => (
                   <SidebarMenuButton isActive={isActive}>
@@ -126,8 +105,8 @@ const AppSidebar: FC = () => {
                   </SidebarMenuButton>
                 )}
               </NavLink>
-            )}
-          </SidebarMenuItem>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

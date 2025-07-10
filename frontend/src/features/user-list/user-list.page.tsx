@@ -23,8 +23,8 @@ const UserListPage: FC = () => {
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-4">
       {isLoading
-        ? [...Array(12)].map(() => (
-            <Card className="rounded-l-full animate-pulse" />
+        ? [...Array(12)].map((_, i) => (
+            <Card key={i} className="rounded-l-full animate-pulse" />
           ))
         : sessions.map(({ user, session }) => (
             <UserCard key={user.id} user={user} session={session} />
