@@ -1,8 +1,8 @@
-import { useState, type FC } from "react";
+import { useState, type FC, type SVGProps } from "react";
 import { useReport } from "../model/use-report";
 import type { ApiSchema } from "@/shared/api/schema";
 import { cn } from "@/shared/lib/utils";
-import { Clock, Coffee, Hammer, Home, Soup } from "lucide-react";
+import { Clock, Coffee, Hammer, Home, PartyPopper, Soup } from "lucide-react";
 import TimeBadge from "@/shared/components/ui/time-badge";
 import moment from "moment";
 
@@ -96,7 +96,18 @@ const ExtraBadge: FC<Pick<ApiSchema["UserMonthStatisticsResponse"], "extra">> = 
         ({ type, payload }) =>
           ({
             redmine: <TimeBadge ms={(payload as ApiSchema["RedmineExtraFieldPayload"]).hours * 60 * 60 * 1000} />,
-            holidays: <Home className="absolute left-2 size-4 -translate-y-1/2 top-1/2 z-20" />,
+            holidays: (() => {
+              const holidayPayload = payload as ApiSchema["HolidaysExtraFieldPayload"];
+              let Icon: FC<React.SVGProps<SVGSVGElement>> | null = null;
+
+              if (holidayPayload.type === "holiday") {
+                Icon = PartyPopper;
+              } else if (holidayPayload.type === "weekend") {
+                Icon = Home;
+              }
+
+              return Icon && <Icon className="absolute left-2 size-4 -translate-y-1/2 top-1/2 z-20" />;
+            })(),
           }[type])
       )}
     </div>
