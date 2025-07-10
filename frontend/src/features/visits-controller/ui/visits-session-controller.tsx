@@ -52,10 +52,10 @@ const SessionControlRoot: FC = () => {
       <DialogTrigger asChild>
         <div className="size-full p-2">
           <div
-            className={cn("rounded-xl w-full h-4 min-w-4", {
-              "bg-muted": session?.status === "inactive" || !session?.status,
-              "bg-primary": session?.status === "active",
-              "bg-destructive": session?.status === "cheater",
+            className={cn("rounded-xl h-4 min-w-4 relative before:w-full before:min-w-7 before:h-7 before:border-2 before:rounded-xl before:block before:absolute before:top-1/2 before:left-1/2 before:-translate-1/2", {
+              "before:border-muted bg-muted": session?.status === "inactive" || !session?.status,
+              "before:border-primary bg-primary": session?.status === "active",
+              "before:border-destructive bg-destructive": session?.status === "cheater",
             })}
           />
         </div>
