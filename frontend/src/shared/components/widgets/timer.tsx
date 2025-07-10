@@ -1,5 +1,5 @@
 import { type FC, type HTMLAttributes } from "react";
-import useDesktop from "@/shared/hooks/useDesktop";
+import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { cn, parseMs } from "@/shared/lib/utils";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import CircleProgress, { type CircleProgressStyleProps } from "@/shared/components/ui/circle-progress";
@@ -21,7 +21,7 @@ export const Timer: FC<TimerProps> = ({
   size = 128,
   ...props
 }) => {
-  const desktop = useDesktop();
+  const isMobile = useIsMobile();
 
   const currentTime = parseMs(current);
   const extraTime = parseMs(extra ?? 0);
@@ -31,8 +31,8 @@ export const Timer: FC<TimerProps> = ({
       <CardContent className="relative p-2">
         <div className="flex items-center justify-center ">
           <CircleProgress
-            size={desktop ? size : 96}
-            strokeWidth={desktop ? strokeWidth : 7}
+            size={isMobile ? size : 96}
+            strokeWidth={isMobile ? strokeWidth : 7}
             progress={(current / total) * 100}
             circleClassName={circleClassName}
           />

@@ -1,6 +1,6 @@
 import { publicRqClient } from "@/shared/api/instance";
 import type { ApiSchema } from "@/shared/api/schema";
-import { useWebSocket } from "@/shared/hooks/useWebsocket";
+import { useWebSocket } from "@/shared/hooks/us-websocket";
 import { useSession } from "@/shared/model/session";
 import { useEffect, useState } from "react";
 
