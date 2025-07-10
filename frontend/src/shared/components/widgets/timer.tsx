@@ -40,7 +40,7 @@ export const Timer: FC<TimerProps> = ({
             days={currentTime.days}
             hours={currentTime.hours}
             minutes={currentTime.minutes}
-            className="z-10 absolute text-md text-primary"
+            className="z-10 absolute text-md"
           />
         </div>
         {!!extra && (
@@ -48,7 +48,7 @@ export const Timer: FC<TimerProps> = ({
             days={extraTime.days}
             hours={extraTime.hours}
             minutes={extraTime.minutes}
-            className="mt-3 text-center text-sm text-primary/80"
+            className="mt-3 text-center text-sm"
           />
         )}
       </CardContent>

@@ -44,7 +44,7 @@ const ReportItem: FC<ApiSchema["UserMonthStatisticsResponse"]> = ({ date, sessio
         )}
         data-special={Boolean(holiday)}
       >
-        <span>{date}</span>
+        <span className="opacity-50">{date}</span>
         {session && <StatisticsBadge statistics={statistics} />}
         <ExtraBadge extra={extra} />
       </div>
@@ -62,8 +62,8 @@ const ReportItem: FC<ApiSchema["UserMonthStatisticsResponse"]> = ({ date, sessio
                   }[entry.type ?? "SYSTEM"]
                 }
               </span>
-              <span>{entry.start ? moment(entry.start).format("H:m") : "--:--"}</span>-
-              <span>{entry.end ? moment(entry.end).format("H:m") : "--:--"}</span>
+              <span>{entry.start ? moment(entry.start).format("HH:mm") : "--:--"}</span>-
+              <span>{entry.end ? moment(entry.end).format("HH:mm") : "--:--"}</span>
               {entry.comment}
             </li>
           ))}

@@ -27,7 +27,7 @@ const CircleProgress: FC<CircleProgressProps> = ({
   return (
     <svg width={size} height={size} className={className}>
       <circle
-        className={"stroke-background"}
+        className={"stroke-accent"}
         fill="transparent"
         strokeWidth={strokeWidth}
         r={radius}

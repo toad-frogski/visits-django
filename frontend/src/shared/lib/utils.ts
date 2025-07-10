@@ -36,10 +36,7 @@ export const parseMs = (
 
 export const formatTime = (hours: number, minutes: number): string => {
   if (hours > 0 || minutes > 0) {
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
-      2,
-      "0"
-    )}`;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   }
 
   return "--:--";
