@@ -6,7 +6,7 @@ const Calendar: FC = () => {
   const { dateRange, setDateRange } = useDashboard();
 
   return (
-    <UICalendar className="rounded-lg border shadow-sm" mode="range" selected={dateRange} onSelect={setDateRange} />
+    <UICalendar className="w-full rounded-lg border shadow-sm" mode="range" selected={dateRange} onSelect={setDateRange} />
   );
 };
 

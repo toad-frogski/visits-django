@@ -14,10 +14,12 @@ const DashboardPage: FC = () => {
           <Report />
         </div>
         <div className="relative">
-          <div className="flex gap-3 justify-between md:flex-col md:justify-start items-end flex-wrap sticky top-6">
+          <div className="flex gap-3 justify-between md:flex-col md:justify-start items-end flex-wrap sticky top-6 items-stretch">
             <Calendar />
-            <VisitsTimer />
-            <RedmineTimer />
+            <div className="flex gap-3 flex-1 justify-between">
+              <VisitsTimer />
+              <RedmineTimer />
+            </div>
             <DownloadReport />
           </div>
         </div>
