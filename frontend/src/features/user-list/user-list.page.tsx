@@ -1,11 +1,18 @@
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { useUserList } from "./model/use-user-list";
 import UserCard from "./ui/user-card";
-import type { FC } from "react";
+import type { FC, PropsWithChildren } from "react";
 import { AlertCircle } from "lucide-react";
+import { useSession } from "@/shared/model/session";
+import { VisitsSessionController } from "@/features/visits-controller";
+
+const UserListLayout: FC<PropsWithChildren> = ({ children }) => {
+  return <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-4">{children}</section>;
+};
 
 const UserListPage: FC = () => {
   const { sessions, isLoading, error } = useUserList();
+  const currentUser = useSession((state) => state.user);
 
   if (error) {
     return (
@@ -20,16 +27,31 @@ const UserListPage: FC = () => {
     );
   }
 
+  if (isLoading) {
+    return (
+      <UserListLayout>
+        {[...Array(12)].map((_, i) => (
+          <Card key={i} className="rounded-l-full animate-pulse" />
+        ))}
+        ;
+      </UserListLayout>
+    );
+  }
+
   return (
-    <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-4">
-      {isLoading
-        ? [...Array(12)].map((_, i) => (
-            <Card key={i} className="rounded-l-full animate-pulse" />
-          ))
-        : sessions.map(({ user, session }) => (
-            <UserCard key={user.id} user={user} session={session} />
-          ))}
-    </section>
+    <UserListLayout>
+      {sessions.map(({ user, session }) => {
+        if (currentUser && user.id === currentUser.id) {
+          return (
+            <VisitsSessionController>
+              <UserCard key={user.id} user={user} session={session} />
+            </VisitsSessionController>
+          );
+        }
+
+        return <UserCard key={user.id} user={user} session={session} />;
+      })}
+    </UserListLayout>
   );
 };
 

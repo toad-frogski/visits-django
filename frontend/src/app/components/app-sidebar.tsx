@@ -1,14 +1,4 @@
-import { useLogout } from "@/features/auth";
-import { VisitsSessionController } from "@/features/visits-controller";
-import Avatar from "@/shared/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/shared/components/ui/dropdown-menu";
+import { VisitsSessionButton } from "@/features/visits-controller";
 import {
   Sidebar,
   SidebarContent,
@@ -93,7 +83,7 @@ const AppSidebar: FC = () => {
           {user ? (
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <VisitsSessionController />
+                <VisitsSessionButton />
               </SidebarMenuButton>
             </SidebarMenuItem>
           ) : (

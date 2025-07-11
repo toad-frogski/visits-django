@@ -8,7 +8,7 @@ type UserCardProps = ApiSchema["UserSession"] & ComponentProps<"div">;
 
 const UserCard: FC<UserCardProps> = ({ user, session, className, ...props }) => {
   return (
-    <Card {...props} className={cn(className, "rounded-l-full p-3 relative group")}>
+    <Card {...props} className={cn(className, "p-3 relative group rounded-md overflow-hidden")}>
       <CardContent className="flex gap-3 items-center p-0">
         <Avatar src={user.avatar} alt={user.full_name} />
         <div>
