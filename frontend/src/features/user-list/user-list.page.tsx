@@ -44,7 +44,7 @@ const UserListPage: FC = () => {
         if (currentUser && user.id === currentUser.id) {
           return (
             <VisitsSessionController>
-              <UserCard key={user.id} user={user} session={session} />
+              <UserCard key={user.id} user={user} session={session} className="cursor-pointer" />
             </VisitsSessionController>
           );
         }

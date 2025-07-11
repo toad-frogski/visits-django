@@ -50,6 +50,8 @@ export const useRedmineBadge = () => {
       if (!redmine) return acc;
 
       const redminePayload = redmine.payload as ApiSchema["RedmineExtraFieldPayload"];
+      if (redminePayload.hours === 0) return acc;
+
       acc += redminePayload.hours * 60 * 60 * 1000;
 
       return acc;
@@ -57,7 +59,8 @@ export const useRedmineBadge = () => {
 
     if (ms <= 0) return "";
 
-    return "";
+    const parsed = parseMs(ms, { roundHours: false });
+    return formatTime(parsed.hours, parsed.minutes);
   }, [sessions]);
 
   return { time };

@@ -9,7 +9,7 @@ const ReportBadges: FC = () => {
   return (
     <div className="mb-4 space-x-4">
       {visits && <Badge className="font-bold">Visits: {visits}</Badge>}
-      {redmine && <Badge variant="secondary" className="font-bold">{redmine}</Badge>}
+      {redmine && <Badge variant="secondary" className="font-bold">Redmine: {redmine}</Badge>}
     </div>
   );
 };

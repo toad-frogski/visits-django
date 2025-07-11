@@ -6,7 +6,7 @@ const VisitsSessionButton: FC = () => {
   return (
     <SessionControl>
       {(status) => (
-        <div className="size-full p-2">
+        <div className="size-full p-2 cursor-pointer">
           <div
             className={cn("rounded-md h-4 min-w-4", {
               "bg-muted": status === "inactive",

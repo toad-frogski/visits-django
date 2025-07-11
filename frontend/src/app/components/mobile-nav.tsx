@@ -1,4 +1,4 @@
-import { VisitsSessionController } from "@/features/visits-controller";
+import { VisitsSessionButton, VisitsSessionController } from "@/features/visits-controller";
 import { cn } from "@/shared/lib/utils";
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
@@ -49,7 +49,7 @@ const MobileNav: FC = () => {
               </NavLink>
             </li>
             <li>
-              <VisitsSessionController />
+              <VisitsSessionButton />
             </li>
             <li>
               <NavLink to={ROUTES.DASHBOARD} className={({ isActive }) => cn("w-12 block", isActive && "active")}>

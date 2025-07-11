@@ -1,4 +1,4 @@
-import { createContext, useContext, useLayoutEffect, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useState } from "react";
 
 type ThemeMode = "dark" | "light" | "system";
 type ThemeVariant = string;
@@ -45,15 +45,22 @@ export function ThemeProvider({
     return defaultTheme;
   });
 
+  const resolveMode = (mode: ThemeMode): "dark" | "light" => {
+    if (mode === "system") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+
+    return mode;
+  };
+
   useLayoutEffect(() => {
     const root = window.document.documentElement;
 
-    const mode =
-      theme.mode === "system"
-        ? window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light"
-        : theme.mode;
+    const mode = resolveMode(theme.mode);
+    if (theme.mode === "system") {
+      setTheme({...theme, mode: mode});
+      return;
+    }
 
     root.dataset.mode = mode;
     root.dataset.variant = theme.variant;
@@ -76,8 +83,7 @@ export function ThemeProvider({
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
 
-  if (context === undefined)
-    throw new Error("useTheme must be used within a ThemeProvider");
+  if (context === undefined) throw new Error("useTheme must be used within a ThemeProvider");
 
   return context;
 };

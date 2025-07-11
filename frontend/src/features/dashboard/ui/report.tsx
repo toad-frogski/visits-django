@@ -52,7 +52,7 @@ const ReportItem: FC<ApiSchema["UserMonthStatisticsResponse"]> = ({ date, sessio
       {open && (
         <ul className="bg-card pl-8 pr-4 py-2 space-y-4">
           {session?.entries.map((entry) => (
-            <li className="flex items-center gap-2">
+            <li key={entry.id} className="flex items-center gap-2">
               <span>
                 {
                   {
