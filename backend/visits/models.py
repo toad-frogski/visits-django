@@ -112,7 +112,13 @@ class Session(models.Model):
             return Session.SessionStatus.INACTIVE
 
         for i in range(1, len(entries)):
-            if entries[i - 1].end is None or entries[i].start < entries[i - 1].end:
+            if entries[i - 1].end is None:
+                return Session.SessionStatus.CHEATER
+
+            prev_end = entries[i - 1].end.replace(microsecond=0)
+            next_start = entries[i].start.replace(microsecond=0)
+
+            if prev_end > next_start:
                 return Session.SessionStatus.CHEATER
 
         last = entries[-1]
