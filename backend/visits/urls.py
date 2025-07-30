@@ -20,6 +20,7 @@ session_entry_detail = views.SessionEntryModelViewset.as_view(
 urlpatterns = [
     path("current", views.CurrentSessionView.as_view()),
     path("<int:session_id>/session-entry/create", session_entry_create),
+    path("<int:session_id>/session-entry/insert", views.InsertLeaveView.as_view()),
     path("session-entry/<int:pk>", session_entry_detail),
     path("session-entry/<int:pk>/cheater", views.CheaterLeaveView.as_view()),
     path("enter", views.EnterView.as_view()),

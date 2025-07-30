@@ -13,6 +13,7 @@ class SessionAdmin(admin.ModelAdmin):
     class SessionEntryInline(admin.TabularInline):
         model = SessionEntry
         extra = 0
+        ordering= ("start",)
 
     list_display = ("session",)
     inlines = [SessionEntryInline]

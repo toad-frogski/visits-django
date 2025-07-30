@@ -2,14 +2,16 @@ import pytz
 import math
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, tzinfo
 from django.utils import timezone
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from django.db.models import Subquery, OuterRef, Q
 from django.db.models.functions import Trunc
-from visits.models import Session, SessionEntry
-from visits.callbacks import statistics_extra_callbacks, StatisticsExtraDataResult
+from django.db import transaction
+
+from .models import Session, SessionEntry
+from .callbacks import statistics_extra_callbacks, StatisticsExtraDataResult
+from .helpers import to_utc
 
 
 class SessionService:
@@ -38,23 +40,6 @@ class SessionService:
             session.add_enter(start=time, type=type)
 
         raise ValueError("Cannot create enter for session.")
-
-    def update_entry(
-        self,
-        entry_id: int,
-        type: SessionEntry.SessionEntryType,
-        start: datetime | None = None,
-        end: datetime | None = None,
-        comment: str | None = None,
-    ):
-        entry = get_object_or_404(SessionEntry, id=entry_id)
-
-        for attr, value in {"start": start, "end": end, "comment": comment}.items():
-            if value is not None:
-                setattr(entry, attr, value)
-
-        entry.type = type
-        entry.save()
 
     def exit(self, user: User, time: datetime, comment: str | None = None):
         session = Session.objects.get_last_user_session(user)
@@ -92,13 +77,6 @@ class SessionService:
         session.add_enter(start=time, type=type, comment=comment)
 
     def handle_cheater_leave(self, user: User, entry: SessionEntry, end: datetime):
-
-        def to_utc(dt: datetime):
-            if timezone.is_naive(dt):
-                return timezone.make_aware(dt, timezone=pytz.UTC)
-            else:
-                return dt.astimezone(pytz.UTC)
-
         session: Session = entry.session
         last_entry = session.get_last_entry()
 
@@ -140,6 +118,68 @@ class SessionService:
             end=last_entry.start,
             type=SessionEntry.SessionEntryType.BREAK,
         )
+
+    def insert_leave(
+        self,
+        user: User,
+        start: datetime,
+        end: datetime,
+        type: SessionEntry.SessionEntryType,
+        comment: str = "",
+        session: Session | None = None,
+    ):
+        session = session or self.get_current_session(user)
+        if not session:
+            raise Session.DoesNotExist()
+
+        start = to_utc(start)
+        end = to_utc(end)
+
+        qs = (
+            SessionEntry.objects.filter(session=session)
+            .annotate(
+                start_trunc=Trunc("start", "seconds", tzinfo=pytz.utc),
+                end_trunc=Trunc("end", "seconds", tzinfo=pytz.utc),
+            )
+            .filter(Q(end_trunc__gte=start) & Q(start_trunc__lte=end))
+        )
+
+        stored_leaves = qs.exclude(
+            type__in=[
+                SessionEntry.SessionEntryType.WORK,
+                SessionEntry.SessionEntryType.SYSTEM,
+            ]
+        ).exists()
+
+        if stored_leaves:
+            raise ValueError("Stored leaves already exist")
+
+        overlapped_entries = list(qs.order_by("start"))
+
+        if len(overlapped_entries) == 0:
+            return
+
+        with transaction.atomic():
+            # Delete all except edge entries.
+            to_delete = overlapped_entries[1:-1]
+            for entry in to_delete:
+                entry.delete()
+                overlapped_entries.remove(entry)
+
+            if len(overlapped_entries) == 1:
+                _end = overlapped_entries[0].end
+                overlapped_entries[0].end = start
+                overlapped_entries[0].save()
+                SessionEntry.objects.create(session=session, start=end, end=_end, type=overlapped_entries[0].type)
+            elif len(overlapped_entries) == 2:
+                overlapped_entries[0].end = start
+                overlapped_entries[0].save()
+                overlapped_entries[1].start = end
+                overlapped_entries[1].save()
+
+            SessionEntry.objects.create(
+                session=session, start=start, end=end, type=type, comment=comment
+            )
 
     def get_current_session(self, user: User) -> Session | None:
         session = Session.objects.get_last_user_session(user)

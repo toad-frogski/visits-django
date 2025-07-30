@@ -191,7 +191,7 @@ export const useActiveControlMark = () => {
 
   const { mutate, isPending, error } = rqClient.useMutation(
     "post",
-    "/api/v1/visits/{session_id}/session-entry/create",
+    "/api/v1/visits/{session_id}/session-entry/insert",
     {
       onSuccess() {
         setOpen(false);
@@ -201,7 +201,7 @@ export const useActiveControlMark = () => {
   );
 
   const submit = (data: ApiSchema["SessionEntryModelRequest"]) =>
-    mutate({ body: data, params: { path: { session_id: session.id } } });
+    mutate({ body: {...data, type: "BREAK"}, params: { path: { session_id: session.id } } });
 
   return { form, back, submit, isPending, error };
 };

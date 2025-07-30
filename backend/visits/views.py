@@ -124,6 +124,37 @@ class LeaveView(APIView):
 
 
 @extend_schema(tags=["visits"])
+class InsertLeaveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema("insertLeave", request=serializers.SessionEntryModelSerializer)
+    def post(self, request: Request, *args, **kwargs):
+        session_id = self.kwargs.get("session_id")
+        serializer = serializers.SessionEntryModelSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        type: SessionEntry.SessionEntryType = serializer.validated_data.get("type")  # type: ignore
+        start: datetime = serializer.validated_data.get("start")  # type: ignore
+        end: datetime = serializer.validated_data.get("end")  # type: ignore
+        type: SessionEntry.SessionEntryType = serializer.validated_data.get("type")  # type: ignore
+        comment: str = serializer.validated_data.get("comment")  # type: ignore
+
+        session_service = services.SessionService()
+
+        try:
+            session = Session.objects.get(pk=session_id)
+            session_service.insert_leave(request.user, start, end, type, comment, session)
+        except Session.DoesNotExist as e:
+            raise NotFound(detail=str(e))
+        except ValueError as e:
+            raise ValidationError(detail=str(e))
+        except Exception as e:
+            raise APIException(detail=str(e))
+
+        return Response()
+
+
+@extend_schema(tags=["visits"])
 class CheaterLeaveView(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.SessionEntryModelSerializer
