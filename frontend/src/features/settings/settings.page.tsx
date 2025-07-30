@@ -23,7 +23,7 @@ const SettingsPage: FC = () => {
         <Separator className="my-9" />
         <Button variant="ghost" onClick={logout}>
           <LogOut />
-          Выйти
+          Exit
         </Button>
       </CardContent>
     </Card>

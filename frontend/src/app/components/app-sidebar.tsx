@@ -8,10 +8,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "@/shared/components/ui/sidebar";
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
-import { Users, LogIn, Blocks, Settings } from "lucide-react";
+import { Users, LogIn, Blocks, Settings, Notebook } from "lucide-react";
 
 import type { FC } from "react";
 import { NavLink } from "react-router-dom";
@@ -38,6 +39,14 @@ const privateItems = [
   },
 ];
 
+const adminItems = [
+  {
+    title: "Reports",
+    url: ROUTES.ADMIN_REPORTS,
+    icon: Notebook,
+  },
+];
+
 const AppSidebar: FC = () => {
   const user = useSession((state) => state.user);
 
@@ -45,7 +54,7 @@ const AppSidebar: FC = () => {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupContent className="mt-3">
+          <SidebarGroupContent>
             <SidebarMenu className="gap-3">
               {/* Public routes */}
               {publicItems.map((item) => (
@@ -77,6 +86,30 @@ const AppSidebar: FC = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {/* Admin routes */}
+        {user?.is_superuser && (
+          <>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {adminItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <NavLink to={item.url}>
+                        {({ isActive }) => (
+                          <SidebarMenuButton isActive={isActive}>
+                            <item.icon />
+                            <span>{item.title}</span>
+                          </SidebarMenuButton>
+                        )}
+                      </NavLink>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

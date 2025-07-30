@@ -1,10 +1,13 @@
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field, PolymorphicProxySerializer
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 
 from session.serializers import UserModelSerializer
 from .models import Session, SessionEntry
 from .callbacks import statistics_extra_callbacks
+
+User = get_user_model()
 
 
 class SessionEnterSerializer(serializers.ModelSerializer):

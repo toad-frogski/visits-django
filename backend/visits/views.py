@@ -2,7 +2,7 @@ from io import BytesIO
 from datetime import date, datetime
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework import mixins
@@ -16,8 +16,10 @@ from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 
-from .models import Session, SessionEntry
+
 from . import serializers, services
+from .models import Session, SessionEntry
+from session.serializers import UserModelSerializer
 
 
 @extend_schema(tags=["visits"])
@@ -339,3 +341,8 @@ class ExportUserReportView(APIView):
         )
 
         return response
+
+@extend_schema(tags=["users"])
+class UsersView(ListAPIView):
+    queryset = User.objects.filter(is_active=True)
+    serializer_class = UserModelSerializer

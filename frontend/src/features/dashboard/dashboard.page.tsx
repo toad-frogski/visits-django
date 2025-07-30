@@ -5,10 +5,14 @@ import RedmineTimer from "./ui/redmine-timer";
 import Calendar from "./ui/calendar";
 import ReportBadges from "./ui/report-badges";
 import DownloadReport from "./ui/download-report";
+import SelectUser from "./ui/select-user";
 import { DashboardProvider } from "./model/dashboard.context";
-import { ReportProvider } from "@/features/dashboard/model/report.context";
+import { ReportProvider } from "./model/report.context";
+import { useSession } from "@/shared/model/session";
 
 const DashboardPage: FC = () => {
+  const user = useSession((state) => state.user);
+
   return (
     <DashboardProvider>
       <div className="flex flex-col-reverse md:flex-row gap-6">
@@ -25,6 +29,7 @@ const DashboardPage: FC = () => {
               <VisitsTimer />
               <RedmineTimer />
             </div>
+            {user?.is_superuser && <SelectUser />}
             <DownloadReport />
           </div>
         </div>

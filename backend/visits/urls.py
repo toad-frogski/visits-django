@@ -29,6 +29,7 @@ urlpatterns = [
     path("today", views.UsersTodayView.as_view()),
     path("stats/me", views.UserMonthStatisticsView.as_view()),
     path("stats/export", views.ExportUserReportView.as_view()),
+    path("users", views.UsersView.as_view())
 ]
 
 websocket_urlpatterns = [

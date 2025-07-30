@@ -5,6 +5,7 @@ export const ROUTES = {
   LOGIN: "/sign-in",
   USERS: "/users",
   SETTINGS: "/settings",
+  ADMIN_REPORTS: "/reports",
 };
 
 export type PathParams = unknown;

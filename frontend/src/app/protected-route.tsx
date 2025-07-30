@@ -13,7 +13,7 @@ const ProtectedRoute: FC = () => {
   return <Outlet />;
 };
 
-export async function protectedLoader() {
+export async function userLoader() {
   const { user, fetchUser } = useSession.getState();
   await fetchUser();
 
