@@ -31,9 +31,8 @@ const UserListPage: FC = () => {
     return (
       <UserListLayout>
         {[...Array(12)].map((_, i) => (
-          <Card key={i} className="rounded-l-full animate-pulse" />
+          <Card key={i} className="animate-pulse" />
         ))}
-        ;
       </UserListLayout>
     );
   }
@@ -43,8 +42,8 @@ const UserListPage: FC = () => {
       {sessions.map(({ user, session }) => {
         if (currentUser && user.id === currentUser.id) {
           return (
-            <VisitsSessionController>
-              <UserCard key={user.id} user={user} session={session} className="cursor-pointer" />
+            <VisitsSessionController key={user.id}>
+              <UserCard user={user} session={session} className="cursor-pointer" />
             </VisitsSessionController>
           );
         }

@@ -17,7 +17,9 @@ import { ActiveControlProvider, useActiveControl } from "../model/active-control
 import { SessionControlProvider, useSessionControl } from "../model/session-control.context";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
-import { Dialog, DialogContent, DialogTrigger } from "@/shared/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/shared/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 type SessionControlProps = {
   children: ((status: ApiSchema["SessionModel"]["status"]) => ReactNode) | ReactNode;
@@ -57,6 +59,10 @@ const SessionControlRoot: FC<SessionControlProps> = ({ children }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
+        <VisuallyHidden>
+          <DialogTitle>Visits controller</DialogTitle>
+          <DialogDescription>Controller for visits session</DialogDescription>
+        </VisuallyHidden>
         <div className="p-2">{control}</div>
       </DialogContent>
     </Dialog>

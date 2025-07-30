@@ -22,19 +22,22 @@ class SessionService:
         session, _ = Session.objects.get_or_create(user=user, date=timezone.localdate())
         last_entry = session.get_last_entry()
 
-        if not last_entry or not last_entry.end:
+        if not last_entry:
             session.add_enter(start=time, type=type)
             return
 
-        # Try to restore session
-        break_entry = SessionEntry.objects.create(
-            session=session,
-            type=SessionEntry.SessionEntryType.BREAK,
-            start=last_entry.end,
-            end=time,
-        )
-        break_entry.save()
-        session.add_enter(start=time, type=type)
+        if last_entry.end:
+            # Try to restore session
+            break_entry = SessionEntry.objects.create(
+                session=session,
+                type=SessionEntry.SessionEntryType.BREAK,
+                start=last_entry.end,
+                end=time,
+            )
+            break_entry.save()
+            session.add_enter(start=time, type=type)
+
+        raise ValueError("Cannot create enter for session.")
 
     def update_entry(
         self,

@@ -5,6 +5,7 @@ import { Clock, Coffee, Hammer, Home, PartyPopper, Settings, Soup } from "lucide
 import TimeBadge from "@/shared/components/ui/time-badge";
 import moment from "moment";
 import { useReport } from "../model/report.context";
+import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 
 const Report: FC = () => {
   const { sessions } = useReport();
@@ -31,52 +32,54 @@ const ReportItem: FC<ApiSchema["UserMonthStatisticsResponse"]> = ({ date, sessio
   };
 
   return (
-    <div className="rounded-md w-full overflow-hidden relative" data-open={open}>
-      <div
-        className={cn("absolute h-full w-4 left-0 top-0 rounded-l-md z-10 data-[open=true]:bg-primary")}
-        data-open={open}
-      />
-      <div
-        onClick={handleOpen}
-        className={cn(
-          "flex gap-6 py-2 pr-4 pl-8 relative bg-card data-[special=true]:bg-accent transition-all duration-200 ease",
-          clickable && "cursor-pointer hover:bg-accent/80"
-        )}
-        data-special={Boolean(holiday)}
-      >
-        <span className="opacity-50 hidden md:inline">{date}</span>
-        <span className="opacity-50 md:hidden">{moment(date).format("MM-DD")}</span>
-        {session && <StatisticsBadge statistics={statistics} />}
-        <ExtraBadge extra={extra} date={date} />
-      </div>
-      {open && (
-        <ul className="bg-card pl-8 pr-4 py-2 space-y-4">
-          {session?.entries.map((entry) => (
-            <li key={entry.id} className="flex items-center gap-2">
-              <span>
-                {
+    <Card className="p-0 rounded-md w-full overflow-hidden relative" data-open={open}>
+      <CardContent className="p-0">
+        <div
+          className={cn("absolute h-full w-4 left-0 top-0 rounded-l-md z-10 data-[open=true]:bg-primary")}
+          data-open={open}
+        />
+        <CardHeader
+          onClick={handleOpen}
+          className={cn(
+            "flex flex-wrap justify-center gap-3 md:gap-6 py-2 pr-4 pl-8 bg-card data-[special=true]:bg-accent transition-all duration-200 ease",
+            clickable && "cursor-pointer hover:bg-accent/80"
+          )}
+          data-special={Boolean(holiday)}
+        >
+          <span className="opacity-50 hidden md:inline">{date}</span>
+          <span className="opacity-50 md:hidden">{moment(date).format("MM-DD")}</span>
+          {session && <StatisticsBadge statistics={statistics} />}
+          <ExtraBadge extra={extra} date={date} />
+        </CardHeader>
+        {open && (
+          <ul className="bg-card pl-8 pr-4 py-2 space-y-4">
+            {session?.entries.map((entry) => (
+              <li key={entry.id} className="flex items-center gap-2">
+                <span>
                   {
-                    WORK: <Hammer className="size-4" />,
-                    BREAK: <Coffee className="size-4" />,
-                    LUNCH: <Soup className="size-4" />,
-                    SYSTEM: <Settings className="size-4" />,
-                  }[entry.type ?? "SYSTEM"]
-                }
-              </span>
-              <span>{entry.start ? moment(entry.start).format("HH:mm") : "--:--"}</span>-
-              <span>{entry.end ? moment(entry.end).format("HH:mm") : "--:--"}</span>
-              {entry.comment}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+                    {
+                      WORK: <Hammer className="size-4" />,
+                      BREAK: <Coffee className="size-4" />,
+                      LUNCH: <Soup className="size-4" />,
+                      SYSTEM: <Settings className="size-4" />,
+                    }[entry.type ?? "SYSTEM"]
+                  }
+                </span>
+                <span>{entry.start ? moment(entry.start).format("HH:mm") : "--:--"}</span>-
+                <span>{entry.end ? moment(entry.end).format("HH:mm") : "--:--"}</span>
+                {entry.comment}
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
 const StatisticsBadge: FC<Pick<ApiSchema["UserMonthStatisticsResponse"], "statistics">> = ({ statistics }) => {
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-3 mx-auto md:mx-0">
       {[
         { key: "work", time: statistics.work_time, icon: Clock },
         { key: "lunch", time: statistics.lunch_time, icon: Soup },

@@ -1,5 +1,6 @@
 from io import BytesIO
 from datetime import date, datetime
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework.viewsets import GenericViewSet
@@ -170,6 +171,11 @@ class SessionEntryModelViewset(
 
     def get_queryset(self):
         return SessionEntry.objects.filter(session__user=self.request.user)
+
+    def perform_create(self, serializer):
+        session_id = self.kwargs.get("session_id")
+        session = get_object_or_404(Session, id=session_id, user=self.request.user)
+        serializer.save(session=session)
 
 
 @extend_schema(tags=["visits"])
