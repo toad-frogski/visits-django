@@ -39,6 +39,7 @@ class SessionService:
             )
             break_entry.save()
             session.add_enter(start=time, type=type)
+            return
 
         raise ValueError("Cannot create enter for session.")
 
