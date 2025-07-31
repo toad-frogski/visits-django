@@ -28,6 +28,7 @@ urlpatterns = [
     path("leave", views.LeaveView.as_view()),
     path("today", views.UsersTodayView.as_view()),
     path("stats/me", views.UserMonthStatisticsView.as_view()),
+    path("stats/<int:user_id>", views.UserMonthStatisticsView.as_view()),
     path("stats/export", views.ExportUserReportView.as_view()),
     path("users", views.UsersView.as_view())
 ]

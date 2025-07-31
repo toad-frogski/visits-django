@@ -8,7 +8,7 @@ import { createContext, useContext, useEffect, type FC, type PropsWithChildren }
 const ReportContext = createContext<{ sessions: ApiSchema["UserMonthStatisticsResponse"][] }>({ sessions: [] });
 
 export const ReportProvider: FC<PropsWithChildren> = ({ children }) => {
-  const { dateRange } = useDashboard();
+  const { dateRange, user } = useDashboard();
   const session = useVisitsSession((state) => state.session);
 
   const start = moment(dateRange?.from ?? moment().startOf("month")).format("YYYY-MM-DD");
@@ -18,10 +18,11 @@ export const ReportProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const { data: sessions, refetch } = rqClient.useQuery(
     "get",
-    "/api/v1/visits/stats/me",
+    "/api/v1/visits/stats/{user_id}",
     {
       params: {
         query: { start, end },
+        path: { user_id: user!.id },
       },
     },
     { enabled }

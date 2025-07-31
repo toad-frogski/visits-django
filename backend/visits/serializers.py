@@ -68,6 +68,7 @@ class UserSessionSerializer(serializers.Serializer):
 class UserMonthStatisticsRequestSerializer(serializers.Serializer):
     start = serializers.DateField(default=lambda: timezone.localdate().replace(day=1))
     end = serializers.DateField(default=lambda: timezone.localdate())
+    user_id = serializers.IntegerField(required=False)
 
 
 class UserMonthStatisticsResponseSerializer(serializers.Serializer):

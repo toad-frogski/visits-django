@@ -23,7 +23,8 @@ RUN pip install \
   requests \
   pytz \
   channels[daphne] \
-  openpyxl
+  openpyxl \
+  drf-standardized-errors
 
 FROM python:${PYTHON_IMAGE_VERSION}-slim AS runtime
 

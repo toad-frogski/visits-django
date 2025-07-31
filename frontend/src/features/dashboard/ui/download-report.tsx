@@ -6,7 +6,7 @@ import moment from "moment";
 import type { FC } from "react";
 
 const DownloadReport: FC = () => {
-  const { dateRange } = useDashboard();
+  const { dateRange, user } = useDashboard();
 
   const exportReport = () => {
     const start = moment(dateRange?.from ?? moment().startOf("month")).format("YYYY-MM-DD");
@@ -14,7 +14,7 @@ const DownloadReport: FC = () => {
 
     fetchClient
       .GET("/api/v1/visits/stats/export", {
-        params: { query: { start: start, end: end } },
+        params: { query: { start: start, end: end, user_id: user?.id } },
         parseAs: "blob",
       })
       .then(({ data }) => {
@@ -23,7 +23,7 @@ const DownloadReport: FC = () => {
         const url = URL.createObjectURL(data);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "report.xlsx";
+        a.download = `${user?.full_name}-${start}-${end}.xlsx`;
         a.click();
         URL.revokeObjectURL(url);
       });
@@ -32,7 +32,7 @@ const DownloadReport: FC = () => {
   return (
     <Button className="w-full" onClick={exportReport}>
       <NotebookPenIcon />
-      Скачать отчет
+      Download report
     </Button>
   );
 };

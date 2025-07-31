@@ -6,7 +6,12 @@ from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework import mixins
-from rest_framework.exceptions import APIException, ValidationError, NotFound
+from rest_framework.exceptions import (
+    APIException,
+    ValidationError,
+    NotFound,
+    PermissionDenied,
+)
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
@@ -145,7 +150,9 @@ class InsertLeaveView(APIView):
 
         try:
             session = Session.objects.get(pk=session_id)
-            session_service.insert_leave(request.user, start, end, type, comment, session)
+            session_service.insert_leave(
+                request.user, start, end, type, comment, session
+            )
         except Session.DoesNotExist as e:
             raise NotFound(detail=str(e))
         except ValueError as e:
@@ -272,19 +279,28 @@ class UsersTodayView(APIView):
 class UserMonthStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get_user(self, request: Request, user_id: int | None) -> User:
+        if user_id is None or request.user.id == user_id:
+            return request.user
+
+        if not request.user.is_superuser:
+            raise PermissionDenied("You are not allowed to view this user's data.")
+
+        return get_object_or_404(User, id=user_id)
+
     @extend_schema(
         "statistics",
         parameters=[serializers.UserMonthStatisticsRequestSerializer],
         responses=serializers.UserMonthStatisticsResponseSerializer(many=True),
     )
-    def get(self, request: Request):
+    def get(self, request: Request, user_id: int | None = None):
         request_serializer = serializers.UserMonthStatisticsRequestSerializer(
             data=request.query_params
         )
         request_serializer.is_valid(raise_exception=True)
         start: date = request_serializer.validated_data.get("start")  # type: ignore
         end: date = request_serializer.validated_data.get("end")  # type: ignore
-        user = request.user
+        user = self.get_user(request, user_id)
 
         statistics_service = services.StatisticsService()
         result = statistics_service.get_user_date_range_statistics(user, start, end)
@@ -299,6 +315,15 @@ class UserMonthStatisticsView(APIView):
 @extend_schema(tags=["statistics"])
 class ExportUserReportView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get_user(self, request: Request, user_id: int | None) -> User:
+        if user_id is None or request.user.id == user_id:
+            return request.user
+
+        if not request.user.is_superuser:
+            raise PermissionDenied("You are not allowed to view this user's data.")
+
+        return get_object_or_404(User, id=user_id)
 
     @extend_schema(
         "export",
@@ -317,7 +342,9 @@ class ExportUserReportView(APIView):
         request_serializer.is_valid(raise_exception=True)
         start: date = request_serializer.validated_data["start"]  # type: ignore
         end: date = request_serializer.validated_data["end"]  # type: ignore
-        user = request.user
+        user_id: int = request_serializer.validated_data["user_id"]  # type: ignore
+
+        user = self.get_user(request, user_id)
 
         statistics_service = services.StatisticsService()
         result = statistics_service.get_user_date_range_statistics(user, start, end)
@@ -341,6 +368,7 @@ class ExportUserReportView(APIView):
         )
 
         return response
+
 
 @extend_schema(tags=["users"])
 class UsersView(ListAPIView):

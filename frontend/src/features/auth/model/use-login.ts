@@ -7,28 +7,19 @@ export const useLogin = () => {
   const navigate = useNavigate();
 
   const setUser = useSession((state) => state.setUser);
-  const loginMutation = rqClient.useMutation("post", "/api/v1/session/login", {
+  const {mutate, isPending, error} = rqClient.useMutation("post", "/api/v1/session/login", {
     onSuccess(data) {
       setUser(data);
       navigate("/");
     },
   });
 
-  const login = (data: ApiSchema["LoginRequest"]) =>
-    loginMutation.mutate({ body: data });
-
-  const rawError = loginMutation.isError ? loginMutation.error : undefined;
-  const errorMessage =
-    rawError && "data" in rawError
-      ? Array.isArray(rawError.data?.non_field_errors)
-        ? rawError.data.non_field_errors.join(" ")
-        : rawError.data?.detail ?? null
-      : null;
+  const login = (data: ApiSchema["LoginRequest"]) => mutate({ body: data });
 
   return {
     login,
-    isPending: loginMutation.isPending,
-    error: errorMessage,
+    isPending: isPending,
+    error: error,
   };
 };
 

@@ -31,7 +31,7 @@ const ThemeForm: FC<ComponentProps<"div">> = ({ className, ...props }) => {
         <SelectContent>
           <SelectGroup>
             {CONFIG.THEMES.map((variant) => (
-              <SelectItem value={variant}>{variant}</SelectItem>
+              <SelectItem key={variant} value={variant}>{variant}</SelectItem>
             ))}
           </SelectGroup>
         </SelectContent>

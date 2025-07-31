@@ -12,13 +12,19 @@ import {
 } from "@/shared/components/ui/sidebar";
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
-import { Users, LogIn, Blocks, Settings, Notebook } from "lucide-react";
+import { Users, LogIn, Blocks, Settings } from "lucide-react";
 
 import type { FC } from "react";
 import { NavLink } from "react-router-dom";
 
+type SidebarLink = {
+  title: string;
+  url: string,
+  icon: FC;
+}
+
 // Menu items.
-const publicItems = [
+const publicItems: SidebarLink[] = [
   {
     title: "Users",
     url: ROUTES.USERS,
@@ -26,7 +32,7 @@ const publicItems = [
   },
 ];
 
-const privateItems = [
+const privateItems: SidebarLink[] = [
   {
     title: "Dashboard",
     url: ROUTES.DASHBOARD,
@@ -39,13 +45,17 @@ const privateItems = [
   },
 ];
 
-const adminItems = [
-  {
-    title: "Reports",
-    url: ROUTES.ADMIN_REPORTS,
-    icon: Notebook,
-  },
-];
+// Temporary unavailable.
+//
+// const adminItems: SidebarLink[] = [
+//   {
+//     title: "Reports",
+//     url: ROUTES.ADMIN_REPORTS,
+//     icon: Notebook,
+//   },
+// ];
+
+const adminItems: SidebarLink[] = [];
 
 const AppSidebar: FC = () => {
   const user = useSession((state) => state.user);
