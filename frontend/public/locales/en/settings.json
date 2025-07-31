@@ -1,0 +1,22 @@
+{
+  "general": "General",
+  "theme": "Theme",
+  "avatarForm": {
+    "title": "Load avatar",
+    "errors": {
+      "validation": {
+        "fileSize": "File must be less than {{maxSize}}MB"
+      },
+      "invalid_image": "Upload a valid image. The file you uploaded was either not an image or a corrupted image."
+    }
+  },
+  "rfidForm": {
+    "errors": {
+      "save": "Unable to save RFID"
+    },
+    "toast": "RFID was updated"
+  },
+  "themeForm": {
+    "placeholder": "Select a theme"
+  }
+}

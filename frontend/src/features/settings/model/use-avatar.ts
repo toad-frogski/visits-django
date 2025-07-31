@@ -18,21 +18,5 @@ export default function useAvatar() {
 
   const setAvatar = (data) => mutate({ body: data });
 
-  const parseError = (error: unknown) => {
-    if (!error) return "";
-    if (typeof error === "string") return error;
-    if (
-      typeof error === "object" &&
-      "avatar" in error &&
-      error.avatar instanceof Array
-    )
-      return error.avatar[0];
-    if (error instanceof Error) return error.message;
-
-    return "Unknown error";
-  };
-
-  const errorMessage = parseError(error);
-
-  return { avatar: data?.avatar, setAvatar, isPending, error: errorMessage };
+  return { avatar: data?.avatar, setAvatar, isPending, error: error };
 }

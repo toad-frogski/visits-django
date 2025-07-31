@@ -5,7 +5,7 @@ import type { ApiSchema } from "@/shared/api/schema";
 import { CONFIG } from "@/shared/model/config";
 import { useVisitsSession } from "@/shared/model/visits-session";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import z, { ZodType } from "zod";
 
@@ -138,7 +138,7 @@ export const useActiveControlExit = () => {
   const now = new Date();
   const needsComment = now.getHours() < (CONFIG.SESSION_DEFAULT_END_TIME || 18);
 
-  const back = () => setStep({ step: "select" });
+  const back = useCallback(() => setStep({ step: "select" }), [setStep]);
 
   const { mutate, isPending, error } = rqClient.useMutation("put", "/api/v1/visits/exit", {
     onSuccess() {
@@ -147,7 +147,17 @@ export const useActiveControlExit = () => {
     },
   });
 
-  const exit = () => mutate({ body: { comment: comment, end: new Date().toISOString() } });
+  const exit = useCallback(
+    () => mutate({ body: { comment: comment, end: new Date().toISOString() } }),
+    [comment, mutate]
+  );
+
+  useEffect(() => {
+    if (!needsComment) {
+      exit();
+      back();
+    }
+  }, [back, exit, needsComment]);
 
   return { comment, setComment, needsComment, exit, isPending, error, back };
 };
@@ -201,7 +211,7 @@ export const useActiveControlMark = () => {
   );
 
   const submit = (data: ApiSchema["SessionEntryModelRequest"]) =>
-    mutate({ body: {...data, type: "BREAK"}, params: { path: { session_id: session.id } } });
+    mutate({ body: { ...data, type: "BREAK" }, params: { path: { session_id: session.id } } });
 
   return { form, back, submit, isPending, error };
 };

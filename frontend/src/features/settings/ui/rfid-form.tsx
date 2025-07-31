@@ -1,51 +1,10 @@
 import { useRfid } from "@/features/settings/model/use-rfid";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/shared/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/shared/components/ui/form";
 import { Input } from "@/shared/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, type ComponentProps, type FC } from "react";
-import { useForm } from "react-hook-form";
-import z from "zod";
+import type { ComponentProps, FC } from "react";
 
-const rfidSchema = z.object({
-  rfid_token: z.string(),
-});
-
-const RfidForm: FC<Pick<ComponentProps<"div">, "className">> = ({
-  className,
-}) => {
-  const { rfid, setRfid, saveError } = useRfid();
-  const form = useForm({
-    resolver: zodResolver(rfidSchema),
-    defaultValues: {
-      rfid_token: "",
-    },
-  });
-
-  useEffect(() => {
-    if (rfid?.rfid_token) {
-      form.reset({ rfid_token: rfid.rfid_token });
-    }
-  }, [rfid, form]);
-
-  useEffect(() => {
-    if (!saveError) return;
-
-    form.setError("rfid_token", {
-      type: "server",
-      message:
-        (saveError as any)?.rfid_token ||
-        (saveError as Error)?.message ||
-        "Ошибка при сохранении RFID",
-    });
-  }, [saveError, form]);
-
-  const onSubmit = form.handleSubmit(setRfid);
+const RfidForm: FC<Pick<ComponentProps<"div">, "className">> = ({ className }) => {
+  const { form, onSubmit } = useRfid();
 
   return (
     <Form {...form}>

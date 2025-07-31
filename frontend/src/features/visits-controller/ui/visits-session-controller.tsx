@@ -9,7 +9,7 @@ import {
   useSessionControlRoot,
   useSessionInactive,
 } from "../model/use-visits-session-controller";
-import { useEffect, useMemo, type FC, type ReactNode } from "react";
+import { useMemo, type FC, type ReactNode } from "react";
 import type { ApiSchema } from "@/shared/api/schema";
 import { Input } from "@/shared/components/ui/input";
 import { formatTime } from "@/shared/lib/utils";
@@ -20,6 +20,7 @@ import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { useTranslation } from "react-i18next";
 
 type SessionControlProps = {
   children: ((status: ApiSchema["SessionModel"]["status"]) => ReactNode) | ReactNode;
@@ -71,6 +72,7 @@ const SessionControlRoot: FC<SessionControlProps> = ({ children }) => {
 
 const InactiveControl: FC = () => {
   const { status, leave, enter, leaveIsPending, enterIsPending } = useSessionInactive();
+  const [t] = useTranslation(["common", "visits-controller"]);
 
   switch (status) {
     case "restore":
@@ -80,12 +82,12 @@ const InactiveControl: FC = () => {
           {status === "restore" ? (
             <>
               <RefreshCcw />
-              Возобновить
+              {t("common:resume")}
             </>
           ) : (
             <>
               <Play />
-              Начать
+              {t("common:start")}
             </>
           )}
         </Button>
@@ -94,7 +96,7 @@ const InactiveControl: FC = () => {
     case "comeback":
       return (
         <Button className="w-full justify-start" disabled={leaveIsPending} onClick={leave}>
-          <RefreshCcw /> Возобновить
+          <RefreshCcw /> {t("common:resume")}
         </Button>
       );
   }
@@ -102,12 +104,13 @@ const InactiveControl: FC = () => {
 
 const CheaterControl: FC = () => {
   const { entries } = useSessionCheater();
+  const [t] = useTranslation("visits-controller");
 
   const cheaterActionControls = useMemo(() => entries.map((entry) => <CheaterItemControl entry={entry} />), [entries]);
 
   return (
     <div>
-      <p className="text-gray text-center">Вы ушли и не отметились в системе. Пожалуйста, укажите время выхода</p>
+      <p className="text-gray text-center">{t("cheater.title")}</p>
       <div className="space-y-4 mt-3 w-full">{cheaterActionControls}</div>
     </div>
   );
@@ -115,6 +118,7 @@ const CheaterControl: FC = () => {
 
 const CheaterItemControl: FC<{ entry: ApiSchema["SessionEntryModel"] }> = ({ entry }) => {
   const { endTime, setEndTime, submit, isPending, error } = useSessionCheaterItem();
+  const [t] = useTranslation("common");
 
   return (
     <div className="flex gap-3">
@@ -130,7 +134,7 @@ const CheaterItemControl: FC<{ entry: ApiSchema["SessionEntryModel"] }> = ({ ent
         {error && <p className="text-destructive">{error}</p>}
       </div>
       <Button disabled={isPending} onClick={() => submit(entry)}>
-        Подтвердить
+        {t("confirm")}
       </Button>
     </div>
   );
@@ -138,11 +142,12 @@ const CheaterItemControl: FC<{ entry: ApiSchema["SessionEntryModel"] }> = ({ ent
 
 const ActiveControl: FC = () => {
   const { step, setStep } = useActiveControl();
+  const [t] = useTranslation("visits-controller");
 
   if (step.step === "select") {
     return (
       <div>
-        <p className="text-lg font-bold">Выберите тип действия</p>
+        <p className="text-lg font-bold">{t("active.title")}</p>
         <div className="flex gap-3 mt-3 flex-col">
           <Button
             variant="destructive"
@@ -150,14 +155,14 @@ const ActiveControl: FC = () => {
             onClick={() => setStep({ step: "form", type: "exit" })}
           >
             <Ban />
-            Завершить сессию
+            {t("active.end")}
           </Button>
           <Button
             variant="outline"
             className="flex-1 whitespace-normal"
             onClick={() => setStep({ step: "form", type: "leave" })}
           >
-            <Coffee /> Отлучиться
+            <Coffee /> {t("active.break")}
           </Button>
           <Button
             variant="outline"
@@ -165,7 +170,7 @@ const ActiveControl: FC = () => {
             onClick={() => setStep({ step: "form", type: "mark" })}
           >
             <Pencil />
-            Отлучился, но не отметился
+            {t("active.mark")}
           </Button>
         </div>
       </div>
@@ -188,13 +193,7 @@ const ActiveControl: FC = () => {
 
 const ActiveControlExit: FC = () => {
   const { comment, setComment, needsComment, exit, isPending, back } = useActiveControlExit();
-
-  useEffect(() => {
-    if (!needsComment) {
-      exit();
-      back();
-    }
-  }, [needsComment, exit, back]);
+  const [t] = useTranslation(["visits-controller", "common"]);
 
   if (needsComment) {
     return (
@@ -202,14 +201,14 @@ const ActiveControlExit: FC = () => {
         <Input
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Отметьте причину выхода"
+          placeholder={t("visits-controller:active.exitForm.commentPlaceholder")}
           className="mt-3"
         />
         <Button disabled={!comment || isPending} className="mt-3 w-full" onClick={exit}>
-          Отправить
+          {t("common:send")}
         </Button>
         <Button className="mt-9 w-full" onClick={back} variant="outline">
-          <ArrowLeft /> Вернуться
+          <ArrowLeft /> {t("common:back")}
         </Button>
       </div>
     );
@@ -220,18 +219,19 @@ const ActiveControlExit: FC = () => {
 
 const ActiveControlMark: FC = () => {
   const { form, back, submit } = useActiveControlMark();
+  const [t] = useTranslation(["visits-controller", "common"]);
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(submit)}>
-        <h1>Отметьте время</h1>
+        <h1>{t("visits-controller:active.markForm.title")}</h1>
         <div className="flex gap-3 items-center mt-3">
           <FormField
             name="start"
             control={form.control}
             render={({ field }) => (
               <FormItem className="w-full">
-                <Input {...field} type="time" aria-label="start" />
+                <Input {...field} type="time" aria-label={t("common:start")} />
                 <FormMessage />
               </FormItem>
             )}
@@ -244,7 +244,7 @@ const ActiveControlMark: FC = () => {
             control={form.control}
             render={({ field }) => (
               <FormItem className="w-full">
-                <Input {...field} type="time" aria-label="end" />
+                <Input {...field} type="time" aria-label={t("common:end")} />
                 <FormMessage />
               </FormItem>
             )}
@@ -257,7 +257,7 @@ const ActiveControlMark: FC = () => {
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <Input {...field} placeholder="Комментарий" aria-label="comment" />
+                <Input {...field} placeholder={t("common:comment")} aria-label={t("common:comment")} />
                 <FormMessage />
               </FormItem>
             )}
@@ -265,12 +265,12 @@ const ActiveControlMark: FC = () => {
         </div>
 
         <Button type="submit" className="w-full mt-3">
-          Отправить
+          {t("common:send")}
         </Button>
       </form>
 
       <Button className="mt-9 w-full" onClick={back} variant="outline">
-        <ArrowLeft /> Вернуться
+        <ArrowLeft /> {t("common:back")}
       </Button>
     </Form>
   );
@@ -278,6 +278,7 @@ const ActiveControlMark: FC = () => {
 
 const ActiveControlLeave: FC = () => {
   const { back, form, isPending, submit } = useActiveControlLeave();
+  const [t] = useTranslation("common");
 
   const type = form.watch("type");
   const comment = form.watch("comment");
@@ -297,7 +298,7 @@ const ActiveControlLeave: FC = () => {
                       <RadioGroupItem value="LUNCH" />
                     </FormControl>
                     <FormLabel>
-                      <Soup /> Обед
+                      <Soup /> {t("lunch")}
                     </FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center">
@@ -305,7 +306,7 @@ const ActiveControlLeave: FC = () => {
                       <RadioGroupItem value="BREAK" />
                     </FormControl>
                     <FormLabel>
-                      <Coffee /> Перерыв
+                      <Coffee /> {t("break")}
                     </FormLabel>
                   </FormItem>
                 </RadioGroup>
@@ -314,7 +315,7 @@ const ActiveControlLeave: FC = () => {
             </FormItem>
           )}
         />
-        {type === "LUNCH" && <Button className="mt-6 w-full">Отправить</Button>}
+        {type === "LUNCH" && <Button className="mt-6 w-full">{t("send")}</Button>}
 
         {type === "BREAK" && (
           <>
@@ -323,19 +324,19 @@ const ActiveControlLeave: FC = () => {
               name="comment"
               render={({ field }) => (
                 <FormItem>
-                  <Input {...field} placeholder="Комментарий" className="mt-6" />
+                  <Input {...field} placeholder={t("comment")} className="mt-6" />
                   <FormMessage />
                 </FormItem>
               )}
             />
             <Button className="mt-3 w-full" disabled={isPending || !comment}>
-              Отправить
+              {t("send")}
             </Button>
           </>
         )}
       </form>
       <Button className="mt-9 w-full" onClick={back} variant="outline">
-        <ArrowLeft /> Вернуться
+        <ArrowLeft /> {t("back")}
       </Button>
     </Form>
   );

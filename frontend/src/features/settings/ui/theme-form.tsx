@@ -12,9 +12,11 @@ import { CONFIG } from "@/shared/model/config";
 import { Switch } from "@/shared/components/ui/switch";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { useTranslation } from "react-i18next";
 
 const ThemeForm: FC<ComponentProps<"div">> = ({ className, ...props }) => {
   const { theme, setTheme } = useTheme();
+  const [t] = useTranslation("settings");
 
   return (
     <div
@@ -26,7 +28,7 @@ const ThemeForm: FC<ComponentProps<"div">> = ({ className, ...props }) => {
         defaultValue={theme.variant}
       >
         <SelectTrigger>
-          <SelectValue placeholder="Выберите тему" />
+          <SelectValue placeholder={t("themeForm.placeholder")} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>

@@ -4,9 +4,11 @@ import { Button } from "@/shared/components/ui/button";
 import { NotebookPenIcon } from "lucide-react";
 import moment from "moment";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 
 const DownloadReport: FC = () => {
   const { dateRange, user } = useDashboard();
+  const [t] = useTranslation("dashboard");
 
   const exportReport = () => {
     const start = moment(dateRange?.from ?? moment().startOf("month")).format("YYYY-MM-DD");
@@ -32,7 +34,7 @@ const DownloadReport: FC = () => {
   return (
     <Button className="w-full" onClick={exportReport}>
       <NotebookPenIcon />
-      Download report
+      {t("report.download")}
     </Button>
   );
 };

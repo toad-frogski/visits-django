@@ -1,0 +1,17 @@
+{
+  "start": "Start",
+  "end": "End",
+  "resume": "Resume",
+  "confirm": "Confirm",
+  "submit": "Submit",
+  "send": "Send",
+  "back": "Back",
+  "comment": "Comment",
+  "lunch": "Lunch",
+  "break": "Break",
+  "login": "Log in",
+  "logout": "Log out",
+  "errors": {
+    "server": "Something happened that we were too lazy to process. Please check the console."
+  }
+}

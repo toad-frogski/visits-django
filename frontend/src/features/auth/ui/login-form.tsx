@@ -1,30 +1,13 @@
-import type { FC } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/shared/components/ui/form";
+import { type FC } from "react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/components/ui/form";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import { useLogin } from "../model/use-login";
 import { Password } from "@/shared/components/ui/password";
-
-const loginSchema = z.object({
-  username: z.string({
-    required_error: "Username is required",
-  }),
-  password: z.string({
-    required_error: "Password is required",
-  }),
-});
+import { t } from "i18next";
 
 const LoginForm: FC = () => {
-  const form = useForm({
-    resolver: zodResolver(loginSchema),
-  });
-
-  const { error, isPending, login } = useLogin();
-
-  const onSubmit = form.handleSubmit(login);
+  const { error, isPending, form, onSubmit } = useLogin();
 
   return (
     <Form {...form}>
@@ -38,9 +21,7 @@ const LoginForm: FC = () => {
               <FormControl>
                 <Input {...field} name="username" type="username" placeholder="john@doe" />
               </FormControl>
-              {form.formState.errors.username && (
-                <p className="text-destructive text-sm">{form.formState.errors.username.message}</p>
-              )}
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -53,17 +34,18 @@ const LoginForm: FC = () => {
               <FormControl>
                 <Password {...field} name="password" placeholder="secretPwd!" />
               </FormControl>
-              {form.formState.errors.password && (
-                <p className="text-destructive text-sm">{form.formState.errors.password.message}</p>
-              )}
+              <FormMessage />
             </FormItem>
           )}
         />
 
-        {error && error.errors.map((e) => <p className="text-destructive text-sm mt-3">{e.detail}</p>)}
+        {error &&
+          error.errors.map((e) => (
+            <p className="text-destructive text-sm mt-3">{t(`auth:errors.${e.code}.${e.attr}`)}</p>
+          ))}
 
         <Button className="w-full mt-12 border" type="submit" disabled={isPending}>
-          Submit
+          {t("common:submit")}
         </Button>
       </form>
     </Form>

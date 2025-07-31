@@ -1,0 +1,17 @@
+{
+  "cheater": {
+    "title": "You left and did not check out in the system. Please specify the exit time."
+  },
+  "active": {
+    "title": "Select action type",
+    "end": "End session",
+    "break": "Take a break",
+    "mark": "Left, but did not sign out",
+    "exitForm": {
+      "commentPlaceholder": "Please specify the reason for leaving."
+    },
+    "markForm": {
+      "title": "Mark the time"
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useDashboard } from "../model/dashboard.context";
 import { useSelectUser } from "../model/use-select-user";
 import {
@@ -13,6 +14,7 @@ import { useCallback, type FC } from "react";
 const SelectUser: FC = () => {
   const { user, setUser } = useDashboard();
   const { users } = useSelectUser();
+  const [t] = useTranslation("dashboard");
 
   const onSelect = useCallback(
     (user_id: string) => {
@@ -27,7 +29,7 @@ const SelectUser: FC = () => {
   return (
     <Select onValueChange={onSelect}>
       <SelectTrigger className="w-full">
-        <SelectValue defaultValue={user!.id} placeholder="Select user" />
+        <SelectValue defaultValue={user!.id} placeholder={t("user.select")} />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
