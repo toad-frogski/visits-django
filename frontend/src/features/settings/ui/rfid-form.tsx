@@ -15,7 +15,7 @@ const RfidForm: FC<Pick<ComponentProps<"div">, "className">> = ({ className }) =
           render={({ field }) => (
             <FormItem>
               <FormLabel>RFID token</FormLabel>
-              <Input {...field} />
+              <Input {...field} className="mt-3" />
               <FormMessage />
             </FormItem>
           )}

@@ -18,5 +18,6 @@
   },
   "themeForm": {
     "placeholder": "Select a theme"
-  }
+  },
+  "language": "Language"
 }

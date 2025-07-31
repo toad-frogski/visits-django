@@ -1,4 +1,5 @@
 import { useLogout } from "@/features/auth";
+import { LanguageSwitcher } from "@/features/language-switcher";
 import AvatarForm from "@/features/settings/ui/avatar-form";
 import RfidForm from "@/features/settings/ui/rfid-form";
 import ThemeForm from "@/features/settings/ui/theme-form";
@@ -22,6 +23,9 @@ const SettingsPage: FC = () => {
         <Separator className="my-9" />
         <h2 className="text-lg font-bold">{t("settings:theme")}</h2>
         <ThemeForm className="mt-6" />
+        <Separator className="my-9" />
+        <h2 className="text-lg font-bold">{t("settings:language")}</h2>
+        <LanguageSwitcher className="mt-6"/>
         <Separator className="my-9" />
         <Button variant="ghost" onClick={logout}>
           <LogOut />
