@@ -1,0 +1,23 @@
+{
+  "general": "Общие",
+  "theme": "Тема",
+  "avatarForm": {
+    "title": "Загрузить аватар",
+    "errors": {
+      "validation": {
+        "fileSize": "Файл должен быть меньше {{maxSize}}MB"
+      },
+      "invalid_image": "Загрузите действительное изображение. Загруженный файл не является изображением или поврежден."
+    }
+  },
+  "rfidForm": {
+    "errors": {
+      "save": "Невозможно сохранить RFID"
+    },
+    "toast": "RFID был обновлен"
+  },
+  "themeForm": {
+    "placeholder": "Выберите тему"
+  },
+  "language": "Язык"
+}
