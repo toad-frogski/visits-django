@@ -1,3 +1,4 @@
+from time import localtime
 import pytz
 import math
 from openpyxl import Workbook
@@ -344,9 +345,9 @@ class XlsxService:
 
             first_entry, last_entry = entries[0], entries[-1]
             session_start = (
-                first_entry.start.strftime("%H:%M:%S") if first_entry.start else ""
+                timezone.localtime(first_entry.start).strftime("%H:%M:%S") if first_entry.start else ""
             )
-            session_end = last_entry.end.strftime("%H:%M:%S") if last_entry.end else ""
+            session_end = timezone.localtime(last_entry.end).strftime("%H:%M:%S") if last_entry.end else ""
 
             summary = [
                 row["date"],
