@@ -19,9 +19,9 @@ import { NavLink } from "react-router-dom";
 
 type SidebarLink = {
   title: string;
-  url: string,
+  url: string;
   icon: FC;
-}
+};
 
 // Menu items.
 const publicItems: SidebarLink[] = [
@@ -97,6 +97,7 @@ const AppSidebar: FC = () => {
           </SidebarGroupContent>
         </SidebarGroup>
         {/* Admin routes */}
+        {/* temporary unavailable
         {user?.is_superuser && (
           <>
             <SidebarSeparator />
@@ -120,6 +121,7 @@ const AppSidebar: FC = () => {
             </SidebarGroup>
           </>
         )}
+        */}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
