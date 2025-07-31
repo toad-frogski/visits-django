@@ -1,5 +1,4 @@
 # Visits
 
-Alternative implementation of visit tracker based on Django.
+Alternative implementation of visits time tracker.
 
-(WORK IN PROGRESS)
