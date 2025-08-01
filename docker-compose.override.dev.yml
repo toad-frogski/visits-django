@@ -1,7 +1,7 @@
 services:
   nginx:
     volumes:
-      - ./docker/nginx/conf.dev.d:/etc/nginx/conf.d:ro
+      - ./nginx/conf.dev.d:/etc/nginx/conf.d:ro
     ports:
       - 80:80
     depends_on:

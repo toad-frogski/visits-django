@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     image: nginx:alpine
     volumes:
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./backend/static:/var/www/backend/static:ro
       - ./backend/media:/var/www/backend/media:ro
       - ./frontend/dist:/var/www/frontend/dist:ro
@@ -17,10 +17,11 @@ services:
     image: visits_django/backend
     build: backend
     volumes:
+      - ./backend/static:/var/www/backend/static:ro
+      - ./backend/media:/var/www/backend/media:ro
       - python_sock:/var/run/python
     env_file:
       - backend/.env
-
 
   mqtt_subscriber:
     image: visits_django/mqtt_subscriber

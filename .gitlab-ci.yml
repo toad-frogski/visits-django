@@ -118,6 +118,8 @@ deploy_app:
     - test -z "$PROJECT_ROOT" && exit 1
     - test -z "$BACKEND_ENV_FILE" && exit 1
     - test -z "$MQTT_ENV_FILE" && exit 1
+    - rsync -av --delete $CI_PROJECT_DIR/nginx $$PROJECT_ROOT/nginx
+    - rsync -av --delete $CI_PROJECT_DIR/docker-compose.yml $PROJECT_ROOT/
     - cd $PROJECT_ROOT
     - echo "$BACKEND_ENV_FILE" > backend/.env
     - echo "$MQTT_ENV_FILE" > mqtt_subscriber/.env

@@ -40,7 +40,7 @@ ENV PYTHON_IMAGE_VERSION=${PYTHON_IMAGE_VERSION} \
   WSGI_PROCESSES=4
 
 
-RUN apt-get update && apt-get install -y --no-install-recommends libldap-2.5-0 libmariadb3
+RUN apt-get update && apt-get install -y --no-install-recommends libldap-2.5-0 libmariadb3 libexpat1
 
 COPY --from=build /usr/local/lib/python${PYTHON_IMAGE_VERSION}/site-packages /usr/local/lib/python${PYTHON_IMAGE_VERSION}/site-packages
 COPY --from=build /usr/local/bin/uwsgi /usr/local/bin/
