@@ -6,10 +6,10 @@ services:
     restart: unless-stopped
     image: nginx:alpine
     volumes:
-      - docker/nginx/conf.d:/etc/nginx/conf.d:ro
-      - backend/static:/var/www/backend/static:ro
-      - backend/media:/var/www/backend/media:ro
-      - frontend/dist:/var/www/frontend/dist:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./backend/static:/var/www/backend/static:ro
+      - ./backend/media:/var/www/backend/media:ro
+      - ./frontend/dist:/var/www/frontend/dist:ro
       - python_sock:/var/run/python
 
   backend:
