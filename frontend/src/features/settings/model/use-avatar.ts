@@ -16,7 +16,7 @@ export default function useAvatar() {
     }
   );
 
-  const setAvatar = (data) => mutate({ body: data });
+  const setAvatar = (data: any) => mutate({ body: data });
 
   return { avatar: data?.avatar, setAvatar, isPending, error: error };
 }

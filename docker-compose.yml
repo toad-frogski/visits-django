@@ -6,31 +6,24 @@ services:
     restart: unless-stopped
     image: nginx:alpine
     volumes:
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - backend/static:/var/www/backend/static:ro
+      - backend/media:/var/www/backend/media:ro
+      - frontend/dist:/var/www/frontend/dist:ro
       - python_sock:/var/run/python
-      - ./backend/static:/var/www/backend/static:ro
-      - ./backend/media:/var/www/backend/media:ro
 
   backend:
     restart: unless-stopped
     image: visits_django/backend
-    build: docker/backend
+    build: backend
     volumes:
       - python_sock:/var/run/python
-      - ./backend:/var/www/backend
     env_file:
-      - ./backend/.env
+      - backend/.env
 
 
   mqtt_subscriber:
     image: visits_django/mqtt_subscriber
     build: mqtt_subscriber
-    environment:
-      - MQTT_CLIENT
-      - MQTT_TOPIC
-      - MQTT_PASS
-      - MQTT_LOGIN
-      - MQTT_SERVER
-      - MQTT_PORT
-      - WEBAPP_URL
-      - AUTH_TOKEN
+    env_file:
+      - mqtt_subscriber/.env

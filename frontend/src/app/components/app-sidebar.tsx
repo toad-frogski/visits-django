@@ -8,7 +8,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from "@/shared/components/ui/sidebar";
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
@@ -54,8 +53,6 @@ const privateItems: SidebarLink[] = [
 //     icon: Notebook,
 //   },
 // ];
-
-const adminItems: SidebarLink[] = [];
 
 const AppSidebar: FC = () => {
   const user = useSession((state) => state.user);

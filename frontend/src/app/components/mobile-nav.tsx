@@ -1,4 +1,4 @@
-import { VisitsSessionButton, VisitsSessionController } from "@/features/visits-controller";
+import { VisitsSessionButton } from "@/features/visits-controller";
 import { cn } from "@/shared/lib/utils";
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";

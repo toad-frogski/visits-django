@@ -11,13 +11,14 @@ services:
   backend:
     image: visits_django/backend:dev
     build:
-      context: docker/backend
+      context: backend
       dockerfile: Dockerfile.dev
     ports:
       - 5678:5678
+    volumes:
+      - ./backend:/var/www/backend
     depends_on:
       - db
-      - ldap
 
   frontend:
     image: node:20-slim

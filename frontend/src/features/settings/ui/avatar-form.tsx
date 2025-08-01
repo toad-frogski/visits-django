@@ -18,7 +18,7 @@ const AvatarForm: FC<Pick<ComponentProps<"div">, "className">> = ({ className })
     () =>
       z.object({
         avatar: z.instanceof(File).refine((file) => file.size < MAX_SIZE_MB * 1024 * 1024, {
-          message: { key: "avatarForm.errors.validation.fileSize", values: { maxSize: MAX_SIZE_MB } },
+          message: t(`settings:avatarForm.errors.validation.fileSize`, { maxSize: MAX_SIZE_MB }),
         }),
       }),
     [t]
@@ -34,13 +34,7 @@ const AvatarForm: FC<Pick<ComponentProps<"div">, "className">> = ({ className })
       if (file) {
         const result = schema.safeParse({ avatar: file });
         if (!result.success) {
-          setLocalErrors(
-            result.error.errors.map((e) =>
-              typeof e.message === "string"
-                ? t(`settings:${e.message}`)
-                : t(`settings:${e.message.key}`, e.message.values)
-            )
-          );
+          setLocalErrors(result.error.errors.map((e) => e.message));
           return;
         }
 

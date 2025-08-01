@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useState } from "react";
+import { createContext, useContext, useLayoutEffect, useState } from "react";
 
 type ThemeMode = "dark" | "light" | "system";
 type ThemeVariant = string;

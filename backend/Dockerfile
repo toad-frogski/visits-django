@@ -45,4 +45,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends libldap-2.5-0 l
 COPY --from=build /usr/local/lib/python${PYTHON_IMAGE_VERSION}/site-packages /usr/local/lib/python${PYTHON_IMAGE_VERSION}/site-packages
 COPY --from=build /usr/local/bin/uwsgi /usr/local/bin/
 
+COPY . ./
+
 CMD ["sh", "-c", "uwsgi --master --die-on-term --protocol uwsgi --wsgi-file $WSGI_FILE_PATH --socket $SOCK_PATH --chmod-socket=666 --processes=$WSGI_PROCESSES"]
