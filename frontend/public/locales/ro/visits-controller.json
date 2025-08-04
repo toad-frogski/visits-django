@@ -1,0 +1,17 @@
+{
+  "cheater": {
+    "title": "Ai plecat și nu te-ai deconectat în sistem. Te rugăm să specifici ora ieșirii."
+  },
+  "active": {
+    "title": "Selectează tipul de acțiune",
+    "end": "Încheie sesiunea",
+    "break": "Ia o pauză",
+    "mark": "Am plecat, dar nu m-am înregistrat",
+    "exitForm": {
+      "commentPlaceholder": "Te rugăm să specifici motivul plecării."
+    },
+    "markForm": {
+      "title": "Marchează ora"
+    }
+  }
+}

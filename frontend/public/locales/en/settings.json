@@ -11,6 +11,7 @@
     }
   },
   "rfidForm": {
+    "title": "RFID token",
     "errors": {
       "save": "Unable to save RFID"
     },

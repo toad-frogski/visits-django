@@ -1,0 +1,17 @@
+{
+  "start": "Începe",
+  "end": "Sfârșit",
+  "resume": "Reia",
+  "confirm": "Confirmă",
+  "submit": "Trimite",
+  "send": "Expediază",
+  "back": "Înapoi",
+  "comment": "Comentariu",
+  "lunch": "Prânz",
+  "break": "Pauză",
+  "login": "Autentificare",
+  "logout": "Deconectare",
+  "errors": {
+    "server": "S-a întâmplat ceva ce am fost prea leneși să procesăm. Verifică consola, te rugăm."
+  }
+}

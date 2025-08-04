@@ -1,0 +1,24 @@
+{
+  "general": "General",
+  "theme": "Temă",
+  "avatarForm": {
+    "title": "Încarcă avatar",
+    "errors": {
+      "validation": {
+        "fileSize": "Fișierul trebuie să aibă mai puțin de {{maxSize}}MB"
+      },
+      "invalid_image": "Încarcă o imagine validă. Fișierul încărcat nu este o imagine sau este corupt."
+    }
+  },
+  "rfidForm": {
+    "title": "RFID token",
+    "errors": {
+      "save": "Nu s-a putut salva RFID-ul"
+    },
+    "toast": "RFID-ul a fost actualizat"
+  },
+  "themeForm": {
+    "placeholder": "Selectează o temă"
+  },
+  "language": "Limbă"
+}

@@ -2,9 +2,11 @@ import { useRfid } from "@/features/settings/model/use-rfid";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/shared/components/ui/form";
 import { Input } from "@/shared/components/ui/input";
 import type { ComponentProps, FC } from "react";
+import { useTranslation } from "react-i18next";
 
 const RfidForm: FC<Pick<ComponentProps<"div">, "className">> = ({ className }) => {
   const { form, onSubmit } = useRfid();
+  const [t] = useTranslation("settings");
 
   return (
     <Form {...form}>
@@ -14,7 +16,7 @@ const RfidForm: FC<Pick<ComponentProps<"div">, "className">> = ({ className }) =
           name="rfid_token"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>RFID token</FormLabel>
+              <FormLabel>{t("rfidForm.title")}</FormLabel>
               <Input {...field} className="mt-3" />
               <FormMessage />
             </FormItem>
