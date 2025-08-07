@@ -8,23 +8,7 @@ stages:
 #  STAGE: BUILD IMAGE
 #
 
-build_backend_dev:
-  stage: build image
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - docker build -t $CI_REGISTRY_IMAGE/backend:dev backend -f backend/Dockerfile.dev
-    - docker push $CI_REGISTRY_IMAGE/backend:dev
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-      when: on_success
-      changes:
-        - backend/{,**/}*
-        - .gitlab-ci.yml
-  tags:
-    - builder
-
-build_backend:
+build_backend_image:
   stage: build image
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -40,7 +24,7 @@ build_backend:
   tags:
     - builder
 
-build_mqtt_subscriber:
+build_mqtt_subscriber_image:
   stage: build image
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
