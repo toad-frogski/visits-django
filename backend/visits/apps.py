@@ -7,4 +7,4 @@ class VisitsConfig(AppConfig):
 
     def ready(self) -> None:
         from . import signals
-        from . import callbacks
+        from .registry import store

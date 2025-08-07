@@ -11,7 +11,8 @@ from django.db.models.functions import Trunc
 from django.db import transaction
 
 from .models import Session, SessionEntry
-from .callbacks import statistics_extra_callbacks, StatisticsExtraDataResult
+from .registry.store import get_statistics_extra_callbacks
+from .registry.types import StatisticsExtraDataResult
 from .helpers import to_utc
 
 
@@ -172,7 +173,12 @@ class SessionService:
                 _end = overlapped_entries[0].end
                 overlapped_entries[0].end = start
                 overlapped_entries[0].save()
-                SessionEntry.objects.create(session=session, start=end, end=_end, type=overlapped_entries[0].type)
+                SessionEntry.objects.create(
+                    session=session,
+                    start=end,
+                    end=_end,
+                    type=overlapped_entries[0].type,
+                )
             elif len(overlapped_entries) == 2:
                 overlapped_entries[0].end = start
                 overlapped_entries[0].save()
@@ -284,7 +290,7 @@ class StatisticsService:
 
     def _collect_extra(self, user: User, date: date):
         results: list[StatisticsExtraDataResult] = []
-        for callback in statistics_extra_callbacks():
+        for callback in get_statistics_extra_callbacks():
             data = callback(user, date)
             if data:
                 results.append(
@@ -298,6 +304,10 @@ class StatisticsService:
 
 
 class XlsxService:
+    """
+    Service for generating XLSX reports.
+    """
+
     def user_date_period_statistics_xlsx(
         self, user: User, start: date, end: date, data: list[dict]
     ) -> Workbook:
@@ -346,9 +356,15 @@ class XlsxService:
 
             first_entry, last_entry = entries[0], entries[-1]
             session_start = (
-                timezone.localtime(first_entry.start).strftime("%H:%M:%S") if first_entry.start else ""
+                timezone.localtime(first_entry.start).strftime("%H:%M:%S")
+                if first_entry.start
+                else ""
             )
-            session_end = timezone.localtime(last_entry.end).strftime("%H:%M:%S") if last_entry.end else ""
+            session_end = (
+                timezone.localtime(last_entry.end).strftime("%H:%M:%S")
+                if last_entry.end
+                else ""
+            )
 
             summary = [
                 row["date"],

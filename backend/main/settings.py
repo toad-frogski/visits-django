@@ -49,10 +49,10 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_standardized_errors",
     # app
+    "plugins.redmine",
+    "plugins.holidays",
     "session",
     "rfid",
-    "redmine",
-    "holidays",
     "visits",
 ]
 

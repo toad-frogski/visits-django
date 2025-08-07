@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 
 from .models import Session, SessionEntry
-from .callbacks import get_user_admin_inline
+from .registry.store import get_user_admin_inlines
 
 User = get_user_model()
 
@@ -24,7 +24,7 @@ class SessionAdmin(admin.ModelAdmin):
 
 
 class VisitsUserAdmin(UserAdmin):
-    inlines = get_user_admin_inline()
+    inlines = get_user_admin_inlines()
 
 
 admin.site.unregister(User)

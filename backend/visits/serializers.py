@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 
 from session.serializers import UserModelSerializer
 from .models import Session, SessionEntry
-from .callbacks import statistics_extra_callbacks
+from .registry.store import get_statistics_extra_callbacks
 
 User = get_user_model()
 
@@ -82,7 +82,7 @@ class UserMonthStatisticsResponseSerializer(serializers.Serializer):
         type = serializers.ChoiceField(
             choices=[
                 (callback._type, callback._type)
-                for callback in statistics_extra_callbacks()
+                for callback in get_statistics_extra_callbacks()
             ]
         )
         payload = serializers.SerializerMethodField()
@@ -92,7 +92,7 @@ class UserMonthStatisticsResponseSerializer(serializers.Serializer):
                 component_name="ExtraData",
                 serializers=[
                     callback._serializer_class
-                    for callback in statistics_extra_callbacks()
+                    for callback in get_statistics_extra_callbacks()
                 ],
                 resource_type_field_name=None,
             )

@@ -1,14 +1,10 @@
-from typing import Any, Callable, Type, TypeVar
+from typing import Callable
 from rest_framework.serializers import Serializer
 from django.contrib.admin.options import InlineModelAdmin
 
-from .callbacks import (
-    StatisticsExtraDataCallback,
-    _statistics_extra_registry,
-    _user_admin_inline_registry,
-)
+from .types import StatisticsExtraDataCallback
+from .store import _statistics_extra_registry, _user_admin_inline_registry
 
-T = TypeVar("T")
 
 def register_statistics_extra(
     *, type: str, serializer_class: type[Serializer]
@@ -34,6 +30,10 @@ def register_statistics_extra(
 
 
 def register_user_admin_inline(cls: type[InlineModelAdmin]) -> type[InlineModelAdmin]:
+    """
+    Registers a Django admin inline class.
+    """
+
     _user_admin_inline_registry.append(cls)
 
     return cls

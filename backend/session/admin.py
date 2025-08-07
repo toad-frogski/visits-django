@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from .models import Avatar
-from visits.decorators import register_user_admin_inline
+from visits.registry.decorators import register_user_admin_inline
 
 User = get_user_model()
 

@@ -4,8 +4,7 @@ import requests
 from datetime import date
 from django.contrib.auth.models import AbstractUser
 from django.core.cache import cache
-from rest_framework import status
-from visits.decorators import register_statistics_extra
+from visits.registry.decorators import register_statistics_extra
 from .serializers import HolidaysExtraFieldPayloadSerializer
 
 
