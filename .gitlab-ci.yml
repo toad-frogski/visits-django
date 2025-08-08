@@ -72,7 +72,7 @@ build_frontend:
     - cp "$FRONTEND_ENV_FILE" frontend/.env
     - cd frontend
     - yarn install
-    - SCHEMA_URL=$CI_PROJECT_DIR/schema.yml yarn api:api:generate
+    - SCHEMA_URL=$CI_PROJECT_DIR/schema.yml yarn api:generate
     - yarn build
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
