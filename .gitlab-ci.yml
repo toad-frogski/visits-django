@@ -67,7 +67,7 @@ build_frontend:
       artifacts: true
   script:
     - test -z "$FRONTEND_ENV_FILE" && exit 1
-    - echo "$MQTT_ENV_FILE" > frontend/.env
+    - cp "$FRONTEND_ENV_FILE" frontend/.env
     - cd frontend
     - yarn install
     - SCHEMA_URL=$API_SCHEMA_URL yarn api:api:generate
@@ -96,8 +96,8 @@ deploy_app:
     - rsync -av --delete $CI_PROJECT_DIR/docker-compose.yml $PROJECT_ROOT/
     - rsync -av --delete $CI_PROJECT_ROOT/frontend/dist $PROJECT_ROOT/frontend/dist
     - cd $PROJECT_ROOT
-    - echo "$BACKEND_ENV_FILE" > backend/.env
-    - echo "$MQTT_ENV_FILE" > mqtt_subscriber/.env
+    - cp "$BACKEND_ENV_FILE" backend/.env
+    - cp "$MQTT_ENV_FILE" mqtt_subscriber/.env
     - docker compose pull
     - docker compose up -d
   rules:
