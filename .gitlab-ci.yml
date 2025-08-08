@@ -87,8 +87,6 @@ build_frontend:
 
 deploy_app:
   stage: deploy
-  needs:
-    - job: deploy_frontend
   script:
     - echo "Deploying app..."
     - test -z "$PROJECT_ROOT" && exit 1
