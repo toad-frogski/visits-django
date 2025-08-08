@@ -31,6 +31,14 @@ build_mqtt_subscriber_image:
   script:
     - docker build -t $CI_REGISTRY_IMAGE/mqtt_subscriber:latest mqtt_subscriber
     - docker push $CI_REGISTRY_IMAGE/mqtt_subscriber:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: on_success
+      changes:
+        - mqtt_subscriber/{,**/}*
+        - .gitlab-ci.yml
+  tags:
+    - builder
 
 #
 #  STAGE: BUILD
