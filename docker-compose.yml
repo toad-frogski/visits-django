@@ -14,7 +14,7 @@ services:
 
   backend:
     restart: unless-stopped
-    image: visits_django/backend
+    image: registry.deeplace.md/visits/visits-django/backend:latest
     build: backend
     volumes:
       - ./backend/static:/var/www/backend/static:ro
@@ -24,7 +24,7 @@ services:
       - backend/.env
 
   mqtt_subscriber:
-    image: visits_django/mqtt_subscriber
+    image: registry.deeplace.md/visits/visits-django/mqtt_subscriber
     build: mqtt_subscriber
     env_file:
       - mqtt_subscriber/.env

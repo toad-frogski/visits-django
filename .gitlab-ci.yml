@@ -100,6 +100,7 @@ deploy_app:
     - cd $PROJECT_ROOT
     - cp "$BACKEND_ENV_FILE" backend/.env
     - cp "$MQTT_ENV_FILE" mqtt_subscriber/.env
+    - cp -r $$CI_PROJECT_DIR/nginx ./
     - docker compose pull
     - docker compose up -d
   rules:
