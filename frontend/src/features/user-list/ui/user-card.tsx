@@ -12,6 +12,9 @@ const UserCard: FC<UserCardProps> = ({ user, session, className, ...props }) => 
       <CardContent className="flex gap-3 items-center p-0">
         <Avatar src={user.avatar} alt={user.full_name} />
         <div>
+          {session.time && session.status !== "active" && (
+            <p className="text-xs absolute top-3 right-3">{new Date(session.time).toLocaleString()}</p>
+          )}
           <p className="text-gray font-bold md:text-h3">{user.full_name}</p>
           {session.comment && (
             <p className="block overflow-hidden text-ellipsis whitespace-nowrap text-gray" title={session.comment}>

@@ -255,23 +255,24 @@ class UsersTodayView(APIView):
         active_users_with_sessions = session_service.get_active_user_with_sessions()
 
         result = []
-        for user_session in active_users_with_sessions:
-            user: User = user_session.get("user")  # type: ignore
-            session: Session | None = user_session.get("session")
+        for us in active_users_with_sessions:
+            user: User = us["user"]
+            session: Session | None = us.get("session")
+            last_entry = session.get_last_entry() if session else None
 
-            result.append(
-                {
-                    "user": user,
-                    "session": {
-                        "status": session_service.get_session_status(session),
-                        "comment": session_service.get_session_last_comment(session),
-                    },
-                }
-            )
+            result.append({
+                "user": user,
+                "session": {
+                    "status": getattr(session, "status", Session.SessionStatus.INACTIVE),
+                    "comment": getattr(last_entry, "comment", ""),
+                    "time": getattr(last_entry, "start", None),
+                },
+            })
 
         serializer = serializers.UserSessionSerializer(
             result, many=True, context={"request": request}
         )
+
         return Response(serializer.data)
 
 

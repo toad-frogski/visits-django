@@ -58,6 +58,7 @@ class SessionModelSerializer(serializers.ModelSerializer):
 class SessionSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=Session.SessionStatus.choices)
     comment = serializers.CharField(required=False, allow_blank=True)
+    time = serializers.DateTimeField(required=False, allow_null=True)
 
 
 class UserSessionSerializer(serializers.Serializer):
