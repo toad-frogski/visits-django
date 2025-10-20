@@ -59,7 +59,7 @@ const SessionControlRoot: FC<SessionControlProps> = ({ children }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
+      <DialogContent showCloseButton={false} >
         <VisuallyHidden>
           <DialogTitle>Visits controller</DialogTitle>
           <DialogDescription>Controller for visits session</DialogDescription>

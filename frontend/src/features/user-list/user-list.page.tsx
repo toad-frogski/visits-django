@@ -5,12 +5,14 @@ import type { FC, PropsWithChildren } from "react";
 import { AlertCircle } from "lucide-react";
 import { useSession } from "@/shared/model/session";
 import { VisitsSessionController } from "@/features/visits-controller";
+import { useTranslation } from "react-i18next";
 
 const UserListLayout: FC<PropsWithChildren> = ({ children }) => {
   return <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-4">{children}</section>;
 };
 
 const UserListPage: FC = () => {
+  const [t] = useTranslation("common");
   const { sessions, isLoading, error } = useUserList();
   const currentUser = useSession((state) => state.user);
 
@@ -18,10 +20,10 @@ const UserListPage: FC = () => {
     return (
       <Card className="md:mt-15 mt-3 max-w-lg mx-auto">
         <CardContent>
-          <p className="text-destructive">
+          <div className="text-destructive flex">
             <AlertCircle className="inline mr-3" />
-            {JSON.stringify(error)}
-          </p>
+            {t("errors.server")}
+          </div>
         </CardContent>
       </Card>
     );
