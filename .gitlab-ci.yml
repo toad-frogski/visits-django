@@ -98,6 +98,7 @@ test_ruff:
   stage: test
   image: $CI_REGISTRY_IMAGE/backend:dev
   script:
+    - cd /app
     - ruff check .
   tags:
     - docker-builder
