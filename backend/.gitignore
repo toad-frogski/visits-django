@@ -6,3 +6,5 @@ env/
 venv/
 __pycache__/
 *.log
+.ruff_cache/
+*.pyc
