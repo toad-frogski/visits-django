@@ -2,8 +2,11 @@ services:
   nginx:
     volumes:
       - ./nginx/conf.dev.d:/etc/nginx/conf.d:ro
-    ports:
-      - 80:80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx.rule=Host(`visits.<domain>`)"
+      - "traefik.http.routers.nginx.entrypoints=web"
+      - "traefik.http.services.nginx.loadbalancer.server.port=80"
     depends_on:
       - backend
       - frontend
@@ -12,11 +15,14 @@ services:
     image: visits_django/backend:dev
     build:
       context: backend
-      dockerfile: Dockerfile.dev
+      args:
+        PYTHON_IMAGE_VERSION: 3.14
+        ENVIRONMENT: development
+    command: python -m debugpy --listen 0.0.0:5678 -m uvicorn main.asgi:application --host 0.0.0.0 --port 5000
     ports:
       - 5678:5678
     volumes:
-      - ./backend:/var/www/backend
+      - ./backend:/app
     depends_on:
       - db
 
@@ -25,9 +31,7 @@ services:
     working_dir: /app
     volumes:
       - ./frontend:/app
-    command: >
-      sh -c "yarn install &&
-             yarn dev --host"
+    command: sh -c "yarn install && yarn dev --host"
     environment:
       - NODE_ENV=development
 

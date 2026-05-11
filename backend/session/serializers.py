@@ -2,10 +2,12 @@ import hashlib
 from rest_framework import serializers
 from rest_framework.request import Request
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
 
 from .models import Avatar
+
+User = get_user_model()
 
 
 class LoginSerializer(serializers.Serializer):

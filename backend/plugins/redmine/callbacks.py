@@ -1,5 +1,4 @@
 from datetime import date
-from django.contrib.auth.models import AbstractUser
 
 from visits.registry.decorators import register_statistics_extra
 
@@ -10,7 +9,7 @@ from .helpers import get_redmine_user_by_username, get_redmine_user_time_entries
 @register_statistics_extra(
     type="redmine", serializer_class=RedmineExtraFieldPayloadSerializer
 )
-def redmine_statisitcs_extra(user: AbstractUser, date: date):
+def redmine_statisitcs_extra(user, date: date):
     redmine_user = get_redmine_user_by_username(getattr(user, "username"))
     if not redmine_user:
         return None

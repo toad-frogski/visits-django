@@ -1,7 +1,6 @@
 from typing import Callable
 from rest_framework.serializers import Serializer
 from django.contrib.admin.options import InlineModelAdmin
-
 from .types import StatisticsExtraDataCallback
 from .store import _statistics_extra_registry, _user_admin_inline_registry
 

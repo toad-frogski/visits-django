@@ -1,50 +1,69 @@
-ARG PYTHON_IMAGE_VERSION=3.13
+ARG PYTHON_IMAGE_VERSION=3.14
+ARG ENVIRONMENT=production
 
-FROM python:${PYTHON_IMAGE_VERSION}-slim AS build
+FROM python:${PYTHON_IMAGE_VERSION}-slim AS builder
 
+# set environment variables
+ENV DJANGO_SETTINGS_MODULE=main.settings \
+  PATH="/venv/bin:$PATH" \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  UV_CACHE_DIR=/root/.cache/uv \
+  UV_COMPILE_BYTECODE=1 \
+  UV_FROZEN=1 \
+  UV_LINK_MODE=copy \
+  UV_NO_MANAGED_PYTHON=1 \
+  UV_PROJECT_ENVIRONMENT=/venv \
+  UV_PYTHON_DOWNLOADS=never \
+  UV_REQUIRE_HASHES=1 \
+  UV_VERIFY_HASHES=1 \
+  VIRTUAL_ENV=/venv
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# install build dependencies
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
-  build-essential pkg-config python3-dev libldap2-dev libsasl2-dev libffi-dev libmariadb-dev
+  build-essential pkg-config python3-dev libldap2-dev libsasl2-dev libmariadb-dev-compat
 
-RUN pip install --upgrade pip
 
-RUN pip install \
-  Django \
-  djangorestframework \
-  drf-spectacular \
-  django-mysql \
-  mysqlclient \
-  uwsgi \
-  django-auth-ldap \
-  Pillow \
-  pymongo \
-  drf-spectacular \
-  django-cors-headers \
-  requests \
-  pytz \
-  channels[daphne] \
-  openpyxl \
-  drf-standardized-errors
+WORKDIR /app
 
-FROM python:${PYTHON_IMAGE_VERSION}-slim AS runtime
+RUN --mount=type=cache,target=/app/.cache/uv \
+  --mount=type=bind,source=uv.lock,target=uv.lock \
+  --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+  if [ "$ENVIRONMENT" = "production" ]; then \
+    uv sync --frozen --no-dev; \
+  else \
+    uv sync --frozen; \
+  fi
+
+COPY . .
+
+RUN python manage.py collectstatic --noinput
+
+
+FROM python:${PYTHON_IMAGE_VERSION}-slim
 
 ARG PYTHON_IMAGE_VERSION
+ARG PORT=8000
+
+ENV DJANGO_SETTINGS_MODULE=main.settings \
+  PATH="/venv/bin:$PATH" \
+  PORT=${PORT} \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  VIRTUAL_ENV=/venv
+
+EXPOSE ${PORT}
+
+WORKDIR /app
 
 VOLUME [ "/var/run/python" ]
 
-WORKDIR /var/www/backend
+RUN apt-get update && apt-get install -y --no-install-recommends libldap2 libmariadb3 libexpat1
 
-ENV PYTHON_IMAGE_VERSION=${PYTHON_IMAGE_VERSION} \
-  SOCK_PATH=/var/run/python/uwsgi.sock \
-  WSGI_FILE_PATH=/var/www/backend/main/wsgi.py \
-  WSGI_PROCESSES=4
+COPY --from=builder /venv /venv
+COPY --from=builder /app /app
 
-
-RUN apt-get update && apt-get install -y --no-install-recommends libldap-2.5-0 libmariadb3 libexpat1
-
-COPY --from=build /usr/local/lib/python${PYTHON_IMAGE_VERSION}/site-packages /usr/local/lib/python${PYTHON_IMAGE_VERSION}/site-packages
-COPY --from=build /usr/local/bin/uwsgi /usr/local/bin/
-
-COPY . ./
-
-CMD ["sh", "-c", "uwsgi --master --die-on-term --protocol uwsgi --wsgi-file $WSGI_FILE_PATH --socket $SOCK_PATH --chmod-socket=666 --processes=$WSGI_PROCESSES"]
+CMD ["python", "-m", "uvicorn", "main.asgi:application", "--uds", "/var/run/python/asgi.sock"]

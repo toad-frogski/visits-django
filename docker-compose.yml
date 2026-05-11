@@ -1,5 +1,7 @@
 volumes:
   python_sock:
+  static_dir:
+  media_dir:
 
 services:
   nginx:
@@ -7,18 +9,22 @@ services:
     image: nginx:alpine
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./backend/static:/var/www/backend/static:ro
-      - ./backend/media:/var/www/backend/media:ro
       - ./frontend/dist:/var/www/frontend/dist:ro
+      - static_dir:/var/www/static:ro
+      - media_dir:/var/www/media:ro
       - python_sock:/var/run/python
 
   backend:
     restart: unless-stopped
     image: registry.deeplace.md/visits/visits-django/backend:latest
-    build: backend
+    build:
+      context: backend
+      args:
+        PYTHON_IMAGE_VERSION: 3.14
+        ENVIRONMENT: production
     volumes:
-      - ./backend/static:/var/www/backend/static:ro
-      - ./backend/media:/var/www/backend/media:ro
+      - static_dir:/app/static:ro
+      - media_dir:/app/media:ro
       - python_sock:/var/run/python
     env_file:
       - backend/.env

@@ -1,6 +1,7 @@
 from io import BytesIO
 from datetime import date, datetime
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.viewsets import GenericViewSet
@@ -18,13 +19,15 @@ from rest_framework.request import Request
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
 from drf_spectacular.types import OpenApiTypes
 from django.utils.translation import gettext as _
-from django.contrib.auth.models import User
 from django.http import HttpResponse
 
 
 from . import serializers, services
 from .models import Session, SessionEntry
 from session.serializers import UserModelSerializer
+
+
+User = get_user_model()
 
 
 @extend_schema(tags=["visits"])
@@ -143,7 +146,6 @@ class InsertLeaveView(APIView):
         type: SessionEntry.SessionEntryType = serializer.validated_data.get("type")  # type: ignore
         start: datetime = serializer.validated_data.get("start")  # type: ignore
         end: datetime = serializer.validated_data.get("end")  # type: ignore
-        type: SessionEntry.SessionEntryType = serializer.validated_data.get("type")  # type: ignore
         comment: str = serializer.validated_data.get("comment")  # type: ignore
 
         session_service = services.SessionService()
