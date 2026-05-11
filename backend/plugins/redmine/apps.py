@@ -6,7 +6,7 @@ class RedmineConfig(AppConfig):
     name = "plugins.redmine"
 
     def ready(self) -> None:
-        from . import callbacks
+        from . import callbacks  # noqa: F401
         from visits.registry.store import register_urlpatterns
         from .urls import urlpatterns
 

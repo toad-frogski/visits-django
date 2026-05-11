@@ -17,7 +17,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main.settings")
 
 asgi_handler = get_asgi_application()
 
-from .urls import websocket_urlpatterns
+from .urls import websocket_urlpatterns  # noqa: E402
 
 application = ProtocolTypeRouter(
     {

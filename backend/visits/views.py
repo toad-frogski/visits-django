@@ -18,7 +18,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
 from drf_spectacular.types import OpenApiTypes
-from django.utils.translation import gettext as _
 from django.http import HttpResponse
 
 
@@ -354,8 +353,8 @@ class ExportUserReportView(APIView):
 
         try:
             wb = xlsx_service.user_date_period_statistics_xlsx(user, start, end, result)
-        except:
-            raise APIException()
+        except Exception as e:
+            raise APIException(str(e))
 
         output = BytesIO()
         wb.save(output)

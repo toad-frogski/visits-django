@@ -1,9 +1,8 @@
-from time import localtime
 import pytz
 import math
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
-from datetime import date, datetime, timedelta, tzinfo
+from datetime import date, datetime, timedelta
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.db.models import Subquery, OuterRef, Q

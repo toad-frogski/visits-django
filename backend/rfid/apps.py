@@ -6,5 +6,4 @@ class RfidConfig(AppConfig):
     name = 'rfid'
 
     def ready(self) -> None:
-        from . import signals
-        from . import settings
+        pass

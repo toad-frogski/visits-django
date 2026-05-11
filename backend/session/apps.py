@@ -6,4 +6,4 @@ class SessionConfig(AppConfig):
     name = "session"
 
     def ready(self) -> None:
-        from . import signals
+        from . import signals  # noqa: F401

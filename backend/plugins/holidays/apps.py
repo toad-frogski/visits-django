@@ -6,4 +6,4 @@ class HolidaysConfig(AppConfig):
     name = "plugins.holidays"
 
     def ready(self) -> None:
-        from . import callbacks
+        from . import callbacks  # noqa: F401

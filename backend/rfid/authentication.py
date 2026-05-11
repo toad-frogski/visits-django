@@ -1,4 +1,3 @@
-import os
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from .models import RFIDSettings

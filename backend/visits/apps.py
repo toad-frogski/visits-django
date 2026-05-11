@@ -2,9 +2,9 @@ from django.apps import AppConfig
 
 
 class VisitsConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'visits'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "visits"
 
     def ready(self) -> None:
-        from . import signals
-        from .registry import store
+        from . import signals  # noqa: F401
+        from .registry import store  # noqa: F401

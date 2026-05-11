@@ -49,5 +49,5 @@ def _get_holidays(month: date) -> dict:
         cache.set(cache_key, holidays_map, 60 * 60 * 24)
 
         return holidays_map
-    except:
+    except Exception:
         return {}

@@ -51,7 +51,7 @@ class UserModelSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj: User):
         return (
-            f"{(obj.first_name or "").capitalize()} {(obj.last_name or "").capitalize()}"
+            f"{(obj.first_name or '').capitalize()} {(obj.last_name or '').capitalize()}"
             if obj.first_name and obj.last_name
             else f"{obj.username.capitalize()}"
         )
