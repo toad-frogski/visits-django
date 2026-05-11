@@ -6,7 +6,7 @@ stages:
 build_backend_image:
   stage: build
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
   script:
     - docker build -t $CI_REGISTRY_IMAGE/backend:latest backend
     - docker push $CI_REGISTRY_IMAGE/backend:latest
@@ -22,7 +22,7 @@ build_backend_image:
 build_backend_image_dev:
   stage: build
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
   script:
     - docker build -t --build-arg ENVIRONMENT='dev' $CI_REGISTRY_IMAGE/backend:dev backend
     - docker push $CI_REGISTRY_IMAGE/backend:dev
@@ -38,7 +38,7 @@ build_backend_image_dev:
 build_mqtt_subscriber_image:
   stage: build
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
   script:
     - docker build -t $CI_REGISTRY_IMAGE/mqtt_subscriber:latest mqtt_subscriber
     - docker push $CI_REGISTRY_IMAGE/mqtt_subscriber:latest
