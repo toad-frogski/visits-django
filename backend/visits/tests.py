@@ -134,7 +134,7 @@ class SessionServiceTestCase(TestCase):
         session = Session.objects.create(user=self.user, date=timezone.localdate())
         now_dt = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
 
-        start = now_dt.replace(hour=12)
+        start = now_dt.replace(hour=9)
         self.session_service.apply_interval(
             session, SessionEntry.SessionEntryType.WORK, start, None
         )
@@ -149,7 +149,7 @@ class SessionServiceTestCase(TestCase):
         self.assertEqual(status, Session.SessionStatus.ACTIVE)
 
         # Now apply an interval that overlaps with the open entry
-        new_start = now_dt.replace(hour=9)
+        new_start = now_dt.replace(hour=10)
         new_end = now_dt.replace(hour=18)
         self.session_service.apply_interval(
             session, SessionEntry.SessionEntryType.WORK, new_start, new_end
@@ -157,6 +157,6 @@ class SessionServiceTestCase(TestCase):
 
         entries = session.entries.order_by("start").all()
         self.assertEqual(len(entries), 1)
-        self.assertEqual(entries[0].start, new_start)
-        self.assertEqual(entries[0].end, None)
+        self.assertEqual(entries[0].start, start)
+        self.assertEqual(entries[0].end, new_end)
         self.assertEqual(entries[0].type, SessionEntry.SessionEntryType.WORK)

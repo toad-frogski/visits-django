@@ -209,14 +209,13 @@ class SessionService:
         existing entries.
         """
         entries = session.entries.order_by("start").all()
+        normalized_end = end or start
 
-        normalized_end = end or timezone.make_aware(datetime.max)
-
-        # collect new entries
+        # Collect new entries
         new_entries = []
         for entry in entries:
             # no overlap
-            entry_end = entry.end or timezone.make_aware(datetime.max)
+            entry_end = entry.end or entry.start
             if entry_end <= start or entry.start >= normalized_end:
                 new_entries.append((entry.start, entry.end, entry.type, entry.comment))
                 continue
@@ -231,7 +230,7 @@ class SessionService:
 
         new_entries.append((start, end, type, comment))
 
-        # normalize
+        # Normalize entries
         normalized = []
         for s, e, t, c in sorted(new_entries, key=lambda x: x[0]):
             if not normalized:
@@ -239,9 +238,9 @@ class SessionService:
                 continue
 
             prev_s, prev_e, prev_t, prev_c = normalized[-1]
-            normalized_prev_e = prev_e or timezone.make_aware(datetime.max)
+            normalized_prev_e = prev_e or prev_s
 
-            if normalized_prev_e == s and prev_t == t and prev_c == c:
+            if normalized_prev_e <= s and prev_t == t and prev_c == c:
                 normalized[-1] = (prev_s, e, t, c)
             elif normalized_prev_e < s:
                 # Try to fill gaps with break entries
@@ -255,6 +254,7 @@ class SessionService:
             else:
                 normalized.append((s, e, t, c))
 
+        # Write to db
         with transaction.atomic():
             entries.delete()
 
