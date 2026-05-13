@@ -1,4 +1,4 @@
-import type { ComponentProps, FC } from "react";
+import { useMemo, type ComponentProps, type FC } from "react";
 import Avatar from "@/shared/components/ui/avatar";
 import type { ApiSchema } from "@/shared/api/schema";
 import { Card, CardContent } from "@/shared/components/ui/card";
@@ -20,24 +20,35 @@ const UserCard: FC<UserCardProps> = ({ user, session, className, ...props }) => 
           )}
         </div>
       </CardContent>
-      <StatusLine status={session.status} />
+      <Status status={session.status} />
     </Card>
   );
 };
 
-const StatusLine: FC<{ status: ApiSchema["Session"]["status"] }> = ({ status }) => {
-  return (
-    <div
-      className={cn(
-        "absolute h-full w-4 group-hover:opacity-80 -translate-y-1/2 top-1/2 right-0 duration-200 ease transition-all",
-        {
-          "bg-none": status === "inactive",
-          "bg-primary": status === "active",
-          "bg-destructive": status === "cheater",
-        }
-      )}
-    />
-  );
+const Status: FC<{ status: ApiSchema["Session"]["status"] }> = ({ status }) => {
+  const content = useMemo(() => {
+    switch (status) {
+      case "active":
+      case "inactive":
+        return (
+          <div
+            className={cn(
+              "absolute h-full w-4 group-hover:opacity-80 -translate-y-1/2 top-1/2 right-0 duration-200 ease transition-all",
+              {
+                "bg-none": status === "inactive",
+                "bg-primary": status === "active",
+              },
+            )}
+          />
+        );
+      case "cheater":
+        return <div className={cn("absolute -right-3 -bottom-3 -rotate-12")}>
+          <img src="/assets/img/cheater.png" alt="Cheater" className="w-full max-w-32" />
+        </div>;
+    }
+  }, [status]);
+
+  return content;
 };
 
 export default UserCard;

@@ -7,15 +7,18 @@ from .registry.store import get_user_admin_inlines
 
 User = get_user_model()
 
+
 @admin.register(Session)
 class SessionAdmin(admin.ModelAdmin):
 
     class SessionEntryInline(admin.TabularInline):
         model = SessionEntry
         extra = 0
-        ordering= ("start",)
+        ordering = ("start",)
 
-    list_display = ("session",)
+    list_display = ("user", "date")
+    search_fields = ("user__username",)
+    list_filter = ("date", "user__username")
     inlines = [SessionEntryInline]
 
     @admin.display()

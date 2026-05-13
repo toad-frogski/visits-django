@@ -6,4 +6,4 @@ class RfidConfig(AppConfig):
     name = 'rfid'
 
     def ready(self) -> None:
-        pass
+        from . import signals  # noqa: F401

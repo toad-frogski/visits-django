@@ -1,105 +1,162 @@
-from datetime import timedelta
-from django.test import TestCase
 from django.contrib.auth.models import User
-from rest_framework import status
+from django.test import TestCase
 from django.utils import timezone
+
+from visits.services import SessionService
 
 from .models import Session, SessionEntry
 
 
 class SessionServiceTestCase(TestCase):
-    def setUp(self) -> None:
+    def setUp(self):
         self.user = User.objects.create_user(
-            username="test_user", password="test_user_secret_password"
+            username="testuser", password="testpassword"
         )
-        self.client.login(username="test_user", password="test_user_secret_password")
+        self.session_service = SessionService()
 
-    def test_create_session_enter(self):
-        assert_date = timezone.localtime()
-        assert_date.replace(hour=9, minute=0, second=0)
-        response = self.client.post(
-            "/api/v1/visits/enter",
-            {"start": assert_date.isoformat(), "type": SessionEntry.SessionEntryType.SYSTEM},
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_session_enter(self):
+        session = Session.objects.create(user=self.user, date=timezone.localdate())
+        start = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
+        self.session_service.enter(self.user, SessionEntry.SessionEntryType.WORK, start)
 
-        session = Session.objects.filter(user=self.user, date=assert_date).first()
-        self.assertIsNotNone(session)
-
-        entry = session.entries.first()  # type: ignore
-        self.assertIsNotNone(entry)
-        self.assertEqual(entry.start, assert_date)
-        self.assertEqual(entry.type, SessionEntry.SessionEntryType.SYSTEM)
-
-    def test_handle_leave(self):
-        assert_date = timezone.localtime()
-        assert_date.replace(hour=9, minute=0, second=0)
-        session = Session.objects.create(user=self.user, date=assert_date)
-        session.add_enter(start=assert_date, type=SessionEntry.SessionEntryType.WORK)
-
-        leave_time = assert_date + timedelta(hours=1)
-        response = self.client.post(
-            "/api/v1/visits/leave",
-            {"time": leave_time, "type": SessionEntry.SessionEntryType.LUNCH},
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(session.entries.count(), 2)
-
-        [enter, leave] = session.entries.all()
-        self.assertIsNotNone(enter.end)
-        self.assertEqual(leave.type, SessionEntry.SessionEntryType.LUNCH)
-        self.assertEqual(enter.end, leave_time)
-        self.assertEqual(leave.start, leave_time)
-
-    def test_handle_exit(self):
-        assert_date = timezone.localtime().replace(microsecond=0)
-        assert_date.replace(hour=9, minute=0, second=0)
-        session = Session.objects.create(user=self.user, date=assert_date)
-        session.add_enter(start=assert_date, type=SessionEntry.SessionEntryType.WORK)
-        end_date = assert_date + timedelta(hours=1)
-        response = self.client.put(
-            "/api/v1/visits/exit", {"end": end_date}, content_type="application/json"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(session.entries.count(), 1)
+        entry: SessionEntry = session.entries.first()
+        self.assertEqual(entry.start, start)
+        self.assertEqual(entry.type, SessionEntry.SessionEntryType.WORK)
 
-        [entry] = session.entries.all()
-        self.assertEqual(entry.start, assert_date)
-        self.assertEqual(entry.end, end_date)
+        status = session.status
+        self.assertEqual(status, Session.SessionStatus.ACTIVE)
 
-    def test_get_current_session(self):
-        today = timezone.localtime()
-        yesterday = today - timedelta(days=1)
+        entry.close(start.replace(hour=10))
 
-        session: Session = Session.objects.create(user=self.user, date=yesterday)
-        entry: SessionEntry = SessionEntry.objects.create(
-            session=session, start=yesterday
+        new_start = start.replace(hour=11)
+        self.session_service.enter(
+            self.user, SessionEntry.SessionEntryType.WORK, new_start
+        )
+        self.assertEqual(session.entries.count(), 3)
+
+        # check if no cheating
+        entries = session.entries.order_by("start").all()
+        for current, next in zip(entries, entries[1:]):
+            self.assertTrue(current.end <= next.start)
+
+    def test_session_exit(self):
+        session = Session.objects.create(user=self.user, date=timezone.localdate())
+        start = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
+        self.session_service.enter(self.user, SessionEntry.SessionEntryType.WORK, start)
+
+        entry: SessionEntry = session.entries.first()
+        self.assertEqual(entry.start, start)
+        self.assertEqual(entry.type, SessionEntry.SessionEntryType.WORK)
+
+        status = session.status
+        self.assertEqual(status, Session.SessionStatus.ACTIVE)
+
+        end = start.replace(hour=17)
+        self.session_service.exit(self.user, end)
+
+        entry.refresh_from_db()
+        self.assertEqual(entry.end, end)
+
+        status = session.status
+        self.assertEqual(status, Session.SessionStatus.INACTIVE)
+
+    def test_session_apply_interval_overlap(self):
+        session = Session.objects.create(user=self.user, date=timezone.localdate())
+        now_dt = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
+
+        start = now_dt.replace(hour=9)
+        end = now_dt.replace(hour=18)
+        self.session_service.apply_interval(
+            session, SessionEntry.SessionEntryType.WORK, start, end
         )
 
-        response = self.client.get("/api/v1/visits/current")
+        self.assertEqual(session.entries.count(), 1)
+        entry: SessionEntry = session.entries.first()
+        self.assertEqual(entry.start, start)
+        self.assertEqual(entry.end, end)
+        self.assertEqual(entry.type, SessionEntry.SessionEntryType.WORK)
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(session.id, response.data["id"])
+        status = session.status
+        self.assertEqual(status, Session.SessionStatus.INACTIVE)
 
-        entry.end = yesterday
-        entry.save()
+        # insert lunch break
+        lunch_start = start.replace(hour=12)
+        lunch_end = start.replace(hour=13)
+        self.session_service.apply_interval(
+            session,
+            SessionEntry.SessionEntryType.LUNCH,
+            lunch_start,
+            lunch_end,
+            "lunch break",
+        )
+        self.assertEqual(session.entries.count(), 3)
 
-        response = self.client.get("/api/v1/visits/current")
-        self.assertEqual(response.data.get("status"), Session.SessionStatus.INACTIVE)
+        entries = session.entries.order_by("start").all()
+        self.assertEqual(entries[0].start, start)
+        self.assertEqual(entries[0].end, lunch_start)
+        self.assertEqual(entries[0].type, SessionEntry.SessionEntryType.WORK)
 
-        session = Session.objects.create(user=self.user, date=today)
+        self.assertEqual(entries[1].start, lunch_start)
+        self.assertEqual(entries[1].end, lunch_end)
+        self.assertEqual(entries[1].type, SessionEntry.SessionEntryType.LUNCH)
+        self.assertEqual(entries[1].comment, "lunch break")
 
-        response = self.client.get("/api/v1/visits/current")
+    def test_session_apply_interval_gaps(self):
+        session = Session.objects.create(user=self.user, date=timezone.localdate())
+        now_dt = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(session.id, response.data["id"])
+        # Try to insert intervals with gaps
+        start = now_dt.replace(hour=8)
+        end = now_dt.replace(hour=12)
+        self.session_service.apply_interval(
+            session, SessionEntry.SessionEntryType.WORK, start, end
+        )
 
-        entry.start = today
-        entry.end = today
-        entry.session = session
-        entry.save()
+        break_start = now_dt.replace(hour=14)
+        break_end = now_dt.replace(hour=15)
+        self.session_service.apply_interval(
+            session, SessionEntry.SessionEntryType.BREAK, break_start, break_end
+        )
 
-        response = self.client.get("/api/v1/visits/current")
+        self.assertEqual(session.entries.count(), 2)
+        entries = session.entries.order_by("start").all()
+        self.assertEqual(entries[0].start, start)
+        self.assertEqual(entries[0].end, end)
+        self.assertEqual(entries[0].type, SessionEntry.SessionEntryType.WORK)
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(session.id, response.data["id"])
+        # Gap between 12 and 14 should be filled with a break
+        self.assertEqual(entries[1].start, end)
+        self.assertEqual(entries[1].end, break_end)
+        self.assertEqual(entries[1].type, SessionEntry.SessionEntryType.BREAK)
+
+    def test_session_apply_interval_with_null_end(self):
+        session = Session.objects.create(user=self.user, date=timezone.localdate())
+        now_dt = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
+
+        start = now_dt.replace(hour=12)
+        self.session_service.apply_interval(
+            session, SessionEntry.SessionEntryType.WORK, start, None
+        )
+
+        self.assertEqual(session.entries.count(), 1)
+        entry: SessionEntry = session.entries.first()
+        self.assertEqual(entry.start, start)
+        self.assertIsNone(entry.end)
+        self.assertEqual(entry.type, SessionEntry.SessionEntryType.WORK)
+
+        status = session.status
+        self.assertEqual(status, Session.SessionStatus.ACTIVE)
+
+        # Now apply an interval that overlaps with the open entry
+        new_start = now_dt.replace(hour=9)
+        new_end = now_dt.replace(hour=18)
+        self.session_service.apply_interval(
+            session, SessionEntry.SessionEntryType.WORK, new_start, new_end
+        )
+
+        entries = session.entries.order_by("start").all()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].start, new_start)
+        self.assertEqual(entries[0].end, None)
+        self.assertEqual(entries[0].type, SessionEntry.SessionEntryType.WORK)

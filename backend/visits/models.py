@@ -66,7 +66,7 @@ class Session(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sessions"
     )
     date = models.DateField(_("Date"), default=timezone.localdate)
-    objects: SessionManager = SessionManager()
+    objects = SessionManager()
 
     class SessionStatus(models.TextChoices):
         ACTIVE = "active", _("Active")

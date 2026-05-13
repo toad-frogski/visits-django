@@ -1,18 +1,20 @@
-import pytz
 import math
+from datetime import date, datetime, timedelta
+from warnings import deprecated
+
+import pytz
+from django.contrib.auth.models import User
+from django.db import transaction
+from django.db.models import OuterRef, Q, Subquery
+from django.db.models.functions import Trunc
+from django.utils import timezone
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
-from datetime import date, datetime, timedelta
-from django.utils import timezone
-from django.contrib.auth.models import User
-from django.db.models import Subquery, OuterRef, Q
-from django.db.models.functions import Trunc
-from django.db import transaction
 
+from .helpers import to_utc
 from .models import Session, SessionEntry
 from .registry.store import get_statistics_extra_callbacks
 from .registry.types import StatisticsExtraDataResult
-from .helpers import to_utc
 
 
 class SessionService:
@@ -21,7 +23,8 @@ class SessionService:
     It provides methods to enter, exit, update entries, and retrieve session information.
     """
 
-    def enter(self, user: User, type: SessionEntry.SessionEntryType, time: datetime):
+    @classmethod
+    def enter(cls, user: User, type: SessionEntry.SessionEntryType, time: datetime):
         session, _ = Session.objects.get_or_create(user=user, date=timezone.localdate())
         last_entry = session.get_last_entry()
 
@@ -43,7 +46,8 @@ class SessionService:
 
         raise ValueError("Cannot create enter for session.")
 
-    def exit(self, user: User, time: datetime, comment: str | None = None):
+    @classmethod
+    def exit(cls, user: User, time: datetime, comment: str | None = None):
         session = Session.objects.get_last_user_session(user)
         if session is None:
             raise Session.DoesNotExist()
@@ -60,6 +64,7 @@ class SessionService:
         last_entry.comment = comment
         last_entry.save()
 
+    @deprecated("Use apply_interval instead")
     def handle_leave(
         self,
         user: User,
@@ -78,6 +83,7 @@ class SessionService:
         last_entry.close(time)
         session.add_enter(start=time, type=type, comment=comment)
 
+    @deprecated("Use apply_interval instead")
     def handle_cheater_leave(self, user: User, entry: SessionEntry, end: datetime):
         session: Session = entry.session
         last_entry = session.get_last_entry()
@@ -121,6 +127,7 @@ class SessionService:
             type=SessionEntry.SessionEntryType.BREAK,
         )
 
+    @deprecated("Use apply_interval instead")
     def insert_leave(
         self,
         user: User,
@@ -188,7 +195,76 @@ class SessionService:
                 session=session, start=start, end=end, type=type, comment=comment
             )
 
-    def get_current_session(self, user: User) -> Session | None:
+    @classmethod
+    def apply_interval(
+        cls,
+        session: Session,
+        type: SessionEntry.SessionEntryType,
+        start: datetime,
+        end: datetime | None = None,
+        comment: str | None = None,
+    ):
+        """
+        Apply an interval to a session by creating a new entry or adjusting
+        existing entries.
+        """
+        entries = session.entries.order_by("start").all()
+
+        normalized_end = end or timezone.make_aware(datetime.max)
+
+        # collect new entries
+        new_entries = []
+        for entry in entries:
+            # no overlap
+            entry_end = entry.end or timezone.make_aware(datetime.max)
+            if entry_end <= start or entry.start >= normalized_end:
+                new_entries.append((entry.start, entry.end, entry.type, entry.comment))
+                continue
+
+            # left piece
+            if entry.start < start:
+                new_entries.append((entry.start, start, entry.type, entry.comment))
+
+            # right piece
+            if entry_end > normalized_end:
+                new_entries.append((end, entry.end, entry.type, entry.comment))
+
+        new_entries.append((start, end, type, comment))
+
+        # normalize
+        normalized = []
+        for s, e, t, c in sorted(new_entries, key=lambda x: x[0]):
+            if not normalized:
+                normalized.append((s, e, t, c))
+                continue
+
+            prev_s, prev_e, prev_t, prev_c = normalized[-1]
+            normalized_prev_e = prev_e or timezone.make_aware(datetime.max)
+
+            if normalized_prev_e == s and prev_t == t and prev_c == c:
+                normalized[-1] = (prev_s, e, t, c)
+            elif normalized_prev_e < s:
+                # Try to fill gaps with break entries
+                if prev_t == SessionEntry.SessionEntryType.BREAK:
+                  normalized[-1] = (prev_s, e, prev_t, prev_c)
+                elif t == SessionEntry.SessionEntryType.BREAK:
+                    normalized.append((prev_e, e, t, c))
+                else:
+                    normalized.append((prev_e, s, SessionEntry.SessionEntryType.BREAK, None))
+                    normalized.append((s, e, t, c))
+            else:
+                normalized.append((s, e, t, c))
+
+        with transaction.atomic():
+            entries.delete()
+
+            for s, e, t, c in normalized:
+                SessionEntry.objects.create(
+                    session=session, start=s, end=e, type=t, comment=c
+                )
+
+    @classmethod
+    def get_current_session(cls, user: User) -> Session | None:
         session = Session.objects.get_last_user_session(user)
 
         if not session:
@@ -199,17 +275,14 @@ class SessionService:
 
         return None
 
-    def get_session_last_comment(self, session: Session | None) -> str | None:
-        if session is None:
-            return None
-
+    @classmethod
+    def get_session_last_comment(cls, session: Session) -> str | None:
         last_entry = session.get_last_entry()
+
         return last_entry.comment if last_entry else None
 
-    def get_session_status(self, session: Session | None) -> Session.SessionStatus:
-        return session.status if session else Session.SessionStatus.INACTIVE
-
-    def get_active_user_with_sessions(self):
+    @classmethod
+    def get_active_user_with_sessions(cls):
         current_sessions = Session.objects.filter(user=OuterRef("pk")).order_by(
             "-date", "-id"
         )

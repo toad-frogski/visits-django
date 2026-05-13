@@ -1,30 +1,29 @@
-from io import BytesIO
 from datetime import date, datetime
-from django.shortcuts import get_object_or_404
+from io import BytesIO
+
 from django.contrib.auth import get_user_model
-from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView, ListAPIView
-from rest_framework.viewsets import GenericViewSet
-from rest_framework.response import Response
-from rest_framework import mixins
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from rest_framework import mixins, status
 from rest_framework.exceptions import (
     APIException,
-    ValidationError,
     NotFound,
     PermissionDenied,
+    ValidationError,
 )
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
-from drf_spectacular.types import OpenApiTypes
-from django.http import HttpResponse
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 
+from session.serializers import UserModelSerializer
 
 from . import serializers, services
 from .models import Session, SessionEntry
-from session.serializers import UserModelSerializer
-
 
 User = get_user_model()
 
@@ -80,7 +79,9 @@ class ExitView(APIView):
         serializer.is_valid(raise_exception=True)
 
         time: datetime = serializer.validated_data.get("end")  # type: ignore
-        comment: SessionEntry.SessionEntryType = serializer.validated_data.get("comment")  # type: ignore
+        comment: SessionEntry.SessionEntryType = serializer.validated_data.get(
+            "comment"
+        )  # type: ignore
 
         session_service = services.SessionService()
 
@@ -118,10 +119,18 @@ class LeaveView(APIView):
         time: datetime = serializer.validated_data.get("time")  # type: ignore
         comment: str | None = serializer.validated_data.get("comment")  # type: ignore
 
-        session_service = services.SessionService()
-
         try:
-            session_service.handle_leave(request.user, type, time, comment)
+            current_session = services.SessionService.get_current_session(request.user)
+            if current_session is None:
+                raise Session.DoesNotExist()
+
+            services.SessionService.apply_interval(
+                session=current_session,
+                start=time,
+                end=None,
+                type=type,
+                comment=comment,
+            )
         except Session.DoesNotExist as e:
             raise NotFound(detail=str(e))
         except ValueError as e:
@@ -147,12 +156,10 @@ class InsertLeaveView(APIView):
         end: datetime = serializer.validated_data.get("end")  # type: ignore
         comment: str = serializer.validated_data.get("comment")  # type: ignore
 
-        session_service = services.SessionService()
-
         try:
             session = Session.objects.get(pk=session_id)
-            session_service.insert_leave(
-                request.user, start, end, type, comment, session
+            services.SessionService.apply_interval(
+                session=session, start=start, end=end, type=type, comment=comment
             )
         except Session.DoesNotExist as e:
             raise NotFound(detail=str(e))
@@ -180,11 +187,13 @@ class CheaterLeaveView(GenericAPIView):
 
         end: datetime = serializer.validated_data.get("end")
 
-        session_service = services.SessionService()
-
         try:
-            session_service.handle_cheater_leave(
-                user=request.user, entry=instance, end=end
+            services.SessionService.apply_interval(
+                session=instance.session,
+                start=instance.start,
+                end=end,
+                type=SessionEntry.SessionEntryType(instance.type),
+                comment=instance.comment,
             )
         except ValueError as e:
             raise ValidationError(detail=str(e))
@@ -264,8 +273,12 @@ class UsersTodayView(APIView):
                 {
                     "user": user,
                     "session": {
-                        "status": session_service.get_session_status(session),
-                        "comment": session_service.get_session_last_comment(session),
+                        "status": session.status
+                        if session
+                        else Session.SessionStatus.INACTIVE,
+                        "comment": session_service.get_session_last_comment(session)
+                        if session
+                        else None,
                     },
                 }
             )
