@@ -64,137 +64,6 @@ class SessionService:
         last_entry.comment = comment
         last_entry.save()
 
-    @deprecated("Use apply_interval instead")
-    def handle_leave(
-        self,
-        user: User,
-        type: SessionEntry.SessionEntryType,
-        time: datetime,
-        comment: str | None = None,
-    ):
-        session = Session.objects.get_last_user_session(user)
-        if session is None:
-            raise Session.DoesNotExist()
-
-        last_entry = session.get_last_entry()
-        if last_entry is None or last_entry.end is not None:
-            raise ValueError("No open work entry to leave from.")
-
-        last_entry.close(time)
-        session.add_enter(start=time, type=type, comment=comment)
-
-    @deprecated("Use apply_interval instead")
-    def handle_cheater_leave(self, user: User, entry: SessionEntry, end: datetime):
-        session: Session = entry.session
-        last_entry = session.get_last_entry()
-
-        normalized_start = to_utc(entry.start)
-        normalized_end = to_utc(end)
-
-        qs = (
-            SessionEntry.objects.filter(session=session)
-            .annotate(
-                start_trunc=Trunc("start", "seconds", tzinfo=pytz.utc),
-                end_trunc=Trunc("end", "seconds", tzinfo=pytz.utc),
-            )
-            .filter(
-                Q(end_trunc__gt=normalized_start) & Q(start_trunc__lt=normalized_end)
-            )
-            .exclude(pk=entry.pk)
-        )
-
-        if last_entry:
-            qs = qs.exclude(pk=last_entry.pk)
-
-        if qs.exists():
-            raise ValueError("Time overlap with other entries")
-
-        if not last_entry:
-            return
-
-        if last_entry.pk == entry.pk:
-            last_entry.close(end)
-            return
-
-        if last_entry.start < end:
-            raise ValueError("Time overlap with other entries")
-
-        entry.close(end)
-        SessionEntry.objects.create(
-            session=session,
-            start=end,
-            end=last_entry.start,
-            type=SessionEntry.SessionEntryType.BREAK,
-        )
-
-    @deprecated("Use apply_interval instead")
-    def insert_leave(
-        self,
-        user: User,
-        start: datetime,
-        end: datetime,
-        type: SessionEntry.SessionEntryType,
-        comment: str = "",
-        session: Session | None = None,
-    ):
-        session = session or self.get_current_session(user)
-        if not session:
-            raise Session.DoesNotExist()
-
-        start = to_utc(start)
-        end = to_utc(end)
-
-        qs = (
-            SessionEntry.objects.filter(session=session)
-            .annotate(
-                start_trunc=Trunc("start", "seconds", tzinfo=pytz.utc),
-                end_trunc=Trunc("end", "seconds", tzinfo=pytz.utc),
-            )
-            .filter(Q(end_trunc__gte=start) & Q(start_trunc__lte=end))
-        )
-
-        stored_leaves = qs.exclude(
-            type__in=[
-                SessionEntry.SessionEntryType.WORK,
-                SessionEntry.SessionEntryType.SYSTEM,
-            ]
-        ).exists()
-
-        if stored_leaves:
-            raise ValueError("Stored leaves already exist")
-
-        overlapped_entries = list(qs.order_by("start"))
-
-        if len(overlapped_entries) == 0:
-            return
-
-        with transaction.atomic():
-            # Delete all except edge entries.
-            to_delete = overlapped_entries[1:-1]
-            for entry in to_delete:
-                entry.delete()
-                overlapped_entries.remove(entry)
-
-            if len(overlapped_entries) == 1:
-                _end = overlapped_entries[0].end
-                overlapped_entries[0].end = start
-                overlapped_entries[0].save()
-                SessionEntry.objects.create(
-                    session=session,
-                    start=end,
-                    end=_end,
-                    type=overlapped_entries[0].type,
-                )
-            elif len(overlapped_entries) == 2:
-                overlapped_entries[0].end = start
-                overlapped_entries[0].save()
-                overlapped_entries[1].start = end
-                overlapped_entries[1].save()
-
-            SessionEntry.objects.create(
-                session=session, start=start, end=end, type=type, comment=comment
-            )
-
     @classmethod
     def apply_interval(
         cls,
@@ -240,16 +109,18 @@ class SessionService:
             prev_s, prev_e, prev_t, prev_c = normalized[-1]
             normalized_prev_e = prev_e or prev_s
 
-            if normalized_prev_e <= s and prev_t == t and prev_c == c:
+            if normalized_prev_e == s and prev_t == t and prev_c == c:
                 normalized[-1] = (prev_s, e, t, c)
             elif normalized_prev_e < s:
-                # Try to fill gaps with break entries
-                if prev_t == SessionEntry.SessionEntryType.BREAK:
-                  normalized[-1] = (prev_s, e, prev_t, prev_c)
+                # try to insert a break or extend neighboring breaks
+                if prev_t == t == SessionEntry.SessionEntryType.BREAK:
+                    normalized[-1] = (prev_s, e, prev_t, prev_c)
                 elif t == SessionEntry.SessionEntryType.BREAK:
-                    normalized.append((prev_e, e, t, c))
+                    normalized.append((prev_e if prev_e else s, e, t, c))
+                elif prev_t == SessionEntry.SessionEntryType.BREAK:
+                    normalized[-1] = (prev_s, s, prev_t, prev_c)
+                    normalized.append((s, e, t, c))
                 else:
-                    normalized.append((prev_e, s, SessionEntry.SessionEntryType.BREAK, None))
                     normalized.append((s, e, t, c))
             else:
                 normalized.append((s, e, t, c))
