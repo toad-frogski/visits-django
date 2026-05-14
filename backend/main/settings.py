@@ -203,11 +203,11 @@ USE_X_FORWARDED_HOST = True
 VISITS_PLUGINS = {
     "statistics": [
         "plugins.holidays.services.StatisticsPlugin",
-        "plugins.redmine.services.StatisticsPlugin",
+        # "plugins.redmine.services.StatisticsPlugin",
+    ],
+    "session_info": [
+        "plugins.hr_deeplace.services.SessionInfoPlugin",
     ]
 }
 
 HOLIDAYS_URL = os.getenv("HOLIDAYS_URL")
-
-REDMINE_URL = os.getenv("REDMINE_URL")
-REDMINE_API_KEY = os.getenv("REDMINE_API_KEY")

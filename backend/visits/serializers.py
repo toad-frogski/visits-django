@@ -59,6 +59,23 @@ class SessionSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=Session.SessionStatus.choices)
     comment = serializers.CharField(required=False, allow_blank=True)
 
+    @extend_schema_field(
+        PolymorphicProxySerializer(
+            many=True,
+            component_name="SessionExtraField",
+            resource_type_field_name="type",
+            serializers={
+                plugin._type: plugin._serializer_class
+                for plugin in registry.get_plugins("session_info")
+                if hasattr(plugin, "_serializer_class") and hasattr(plugin, "_type")
+            },
+        )
+    )
+    def get_extra(self, obj):
+        return obj.get("extra", [])
+
+    extra = serializers.SerializerMethodField()
+
 
 class UserSessionSerializer(serializers.Serializer):
     user = UserModelSerializer()
@@ -72,7 +89,6 @@ class UserMonthStatisticsRequestSerializer(serializers.Serializer):
 
 
 class UserMonthStatisticsResponseSerializer(serializers.Serializer):
-
     class StatisticsFieldSerializer(serializers.Serializer):
         work_time = serializers.FloatField(default=0.0)
         break_time = serializers.FloatField(default=0.0)
@@ -88,13 +104,14 @@ class UserMonthStatisticsResponseSerializer(serializers.Serializer):
 
     @extend_schema_field(
         PolymorphicProxySerializer(
+            many=True,
             component_name="StatisticsExtraField",
             resource_type_field_name="type",
-            serializers=[
-                plugin._serializer_class
+            serializers={
+                plugin._type: plugin._serializer_class
                 for plugin in registry.get_plugins("statistics")
-                if hasattr(plugin, "_serializer_class")
-            ],
+                if hasattr(plugin, "_serializer_class") and hasattr(plugin, "_type")
+            },
         )
     )
     def get_extra(self, obj):

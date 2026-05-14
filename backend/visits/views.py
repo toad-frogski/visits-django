@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from io import BytesIO
+import logging
 
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
@@ -21,11 +22,13 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from session.serializers import UserModelSerializer
+from visits import registry
 
 from . import serializers, services
 from .models import Session, SessionEntry
 
-User = get_user_model()
+
+logger = logging.getLogger(__name__)
 
 
 @extend_schema(tags=["visits"])
@@ -244,7 +247,7 @@ class CurrentSessionView(APIView):
         session_service = services.SessionService()
         session = session_service.get_current_session(request.user)
         if session is None:
-            return Response({"status": Session.SessionStatus.INACTIVE, "entries": []})
+            raise NotFound()
 
         serializer = serializers.SessionModelSerializer(session)
 
@@ -266,41 +269,63 @@ class UsersTodayView(APIView):
 
         result = []
         for user_session in active_users_with_sessions:
-            user: User = user_session.get("user")  # type: ignore
+            user = user_session.get("user")
             session: Session | None = user_session.get("session")
 
-            result.append(
-                {
-                    "user": user,
-                    "session": {
-                        "status": session.status
-                        if session
-                        else Session.SessionStatus.INACTIVE,
-                        "comment": session_service.get_session_last_comment(session)
-                        if session
-                        else None,
-                    },
-                }
-            )
+            record = {}
+
+            record["user"] = user
+            record["session"] = {
+                "status": getattr(session, "status", Session.SessionStatus.INACTIVE),
+                "comment": session_service.get_session_last_comment(session)
+                if session
+                else None,
+                "extra": self._collect_extra_info(session),
+            }
+
+            result.append(record)
 
         serializer = serializers.UserSessionSerializer(
             result, many=True, context={"request": request}
         )
         return Response(serializer.data)
 
+    def _collect_extra_info(self, session: Session | None):
+        """
+        Collect extra info for the session from registered providers.
+        """
+        extra_info = []
+        if session is None:
+            return extra_info
+
+        for provider_cls in registry.get_plugins("session_info"):
+            try:
+                provider = provider_cls()
+                payload = provider(session)
+
+                if payload is not None:
+                    extra_info.append({"type": provider._type, "payload": payload})
+
+            except Exception as e:
+                logger.error(
+                    f"Error while getting extra info from provider {provider}: {e}"
+                )
+
+        return extra_info
+
 
 @extend_schema(tags=["statistics"])
 class UserMonthStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_user(self, request: Request, user_id: int | None) -> User:
+    def get_user(self, request: Request, user_id: int | None):
         if user_id is None or request.user.id == user_id:
             return request.user
 
         if not request.user.is_superuser:
             raise PermissionDenied("You are not allowed to view this user's data.")
 
-        return get_object_or_404(User, id=user_id)
+        return get_object_or_404(get_user_model(), id=user_id)
 
     @extend_schema(
         "statistics",
@@ -312,8 +337,8 @@ class UserMonthStatisticsView(APIView):
             data=request.query_params
         )
         request_serializer.is_valid(raise_exception=True)
-        start: date = request_serializer.validated_data.get("start")  # type: ignore
-        end: date = request_serializer.validated_data.get("end")  # type: ignore
+        start: date = request_serializer.validated_data.get("start")
+        end: date = request_serializer.validated_data.get("end")
         user = self.get_user(request, user_id)
 
         statistics_service = services.StatisticsService()
@@ -330,14 +355,14 @@ class UserMonthStatisticsView(APIView):
 class ExportUserReportView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_user(self, request: Request, user_id: int | None) -> User:
+    def get_user(self, request: Request, user_id: int | None):
         if user_id is None or request.user.id == user_id:
             return request.user
 
         if not request.user.is_superuser:
             raise PermissionDenied("You are not allowed to view this user's data.")
 
-        return get_object_or_404(User, id=user_id)
+        return get_object_or_404(get_user_model(), id=user_id)
 
     @extend_schema(
         "export",
@@ -386,5 +411,5 @@ class ExportUserReportView(APIView):
 
 @extend_schema(tags=["users"])
 class UsersView(ListAPIView):
-    queryset = User.objects.filter(is_active=True)
+    queryset = get_user_model().objects.filter(is_active=True)
     serializer_class = UserModelSerializer

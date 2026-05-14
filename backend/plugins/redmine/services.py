@@ -3,12 +3,12 @@ from functools import reduce
 from django.utils import timezone
 from django.core.cache import cache
 from plugins.redmine.models import RedmineTimeEntry, RedmineUser
-from plugins.redmine.serializers import RedmineExtraFieldPayloadSerializer
+from plugins.redmine.serializers import RedmineStatisticsPluginSerializer
 
 
 class StatisticsPlugin:
     _type = "redmine"
-    _serializer_class = RedmineExtraFieldPayloadSerializer
+    _serializer_class = RedmineStatisticsPluginSerializer
 
     def __call__(self, user, date):
         redmine_user = get_redmine_user_by_username(getattr(user, "username"))

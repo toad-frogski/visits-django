@@ -39,16 +39,16 @@ const UserListPage: FC = () => {
 
   return (
     <UserListLayout>
-      {sessions.map(({ user, session }) => {
-        if (currentUser && user.id === currentUser.id) {
+      {sessions.map((session) => {
+        if (currentUser && session.user.id === currentUser.id) {
           return (
-            <VisitsSessionController key={user.id}>
-              <UserCard user={user} session={session} className="cursor-pointer" />
+            <VisitsSessionController key={session.user.id}>
+              <UserCard {...session} className="cursor-pointer" />
             </VisitsSessionController>
           );
         }
 
-        return <UserCard key={user.id} user={user} session={session} />;
+        return <UserCard key={session.user.id} {...session} />;
       })}
     </UserListLayout>
   );

@@ -6,12 +6,12 @@ from typing import Any
 from django.conf import settings
 import requests
 
-from plugins.holidays.serializers import HolidaysExtraFieldPayloadSerializer
+from plugins.holidays.serializers import HolidaysStatisticsPluginSerializer
 
 
 class StatisticsPlugin:
     _type = "holidays"
-    _serializer_class = HolidaysExtraFieldPayloadSerializer
+    _serializer_class = HolidaysStatisticsPluginSerializer
 
     def __call__(self, user, date: date) -> Any:
         holidays = get_holidays(month=date)

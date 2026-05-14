@@ -7,7 +7,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
-from .helpers import get_redmine_user_by_username, get_redmine_user_time_entries_sum
+from plugins.redmine.services import get_redmine_user_by_username, get_redmine_user_time_entries_sum
 
 from .serializers import (
     RedmineExtraFieldPayloadSerializer,
