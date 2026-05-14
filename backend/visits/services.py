@@ -1,20 +1,15 @@
 import math
 from datetime import date, datetime, timedelta
-from warnings import deprecated
 
-import pytz
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import OuterRef, Q, Subquery
-from django.db.models.functions import Trunc
+from django.db.models import OuterRef, Subquery
 from django.utils import timezone
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
 
-from .helpers import to_utc
 from .models import Session, SessionEntry
-from .registry.store import get_statistics_extra_callbacks
-from .registry.types import StatisticsExtraDataResult
+from . import registry
 
 
 class SessionService:
@@ -25,6 +20,9 @@ class SessionService:
 
     @classmethod
     def enter(cls, user: User, type: SessionEntry.SessionEntryType, time: datetime):
+        """
+        Enter a session by creating a new entry or restoring an existing one.
+        """
         session, _ = Session.objects.get_or_create(user=user, date=timezone.localdate())
         last_entry = session.get_last_entry()
 
@@ -48,6 +46,9 @@ class SessionService:
 
     @classmethod
     def exit(cls, user: User, time: datetime, comment: str | None = None):
+        """
+        Exit the current session by setting the end time of the last entry.
+        """
         session = Session.objects.get_last_user_session(user)
         if session is None:
             raise Session.DoesNotExist()
@@ -232,16 +233,14 @@ class StatisticsService:
         return result
 
     def _collect_extra(self, user: User, date: date):
-        results: list[StatisticsExtraDataResult] = []
-        for callback in get_statistics_extra_callbacks():
-            data = callback(user, date)
+        results = []
+
+        for plugin_cls in registry.get_plugins("statistics"):
+            plugin = plugin_cls()
+            data = plugin(user, date)
+
             if data:
-                results.append(
-                    {
-                        "type": getattr(callback, "_type"),
-                        "payload": data,
-                    }
-                )
+                results.append({"type": plugin._type, "payload": data})
 
         return results
 

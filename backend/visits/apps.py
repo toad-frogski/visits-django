@@ -7,4 +7,6 @@ class VisitsConfig(AppConfig):
 
     def ready(self) -> None:
         from . import signals  # noqa: F401
-        from .registry import store  # noqa: F401
+        from . import registry
+
+        registry.register_plugins()

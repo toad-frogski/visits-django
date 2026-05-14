@@ -53,12 +53,7 @@ class SessionManager(models.Manager["Session"]):
 
     def get_last_user_session(self, user) -> Optional["Session"]:
         today = timezone.localdate()
-        return (
-            self.filter(user=user)
-            .filter(models.Q(date=today) | models.Q(date__lt=today))
-            .order_by("-date")
-            .first()
-        )
+        return self.filter(user=user).filter(date__lte=today).order_by("-date").first()
 
 
 class Session(models.Model):

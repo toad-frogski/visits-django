@@ -15,6 +15,10 @@ class SessionServiceTestCase(TestCase):
         self.session_service = SessionService()
 
     def test_session_enter(self):
+        """
+        Entering a session should create a new entry with the specified type
+        and start time.
+        """
         session = Session.objects.create(user=self.user, date=timezone.localdate())
         start = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
         self.session_service.enter(self.user, SessionEntry.SessionEntryType.WORK, start)
@@ -41,6 +45,9 @@ class SessionServiceTestCase(TestCase):
             self.assertTrue(current.end <= next.start)
 
     def test_session_exit(self):
+        """
+        Exiting a session should update the last open entry with the end time.
+        """
         session = Session.objects.create(user=self.user, date=timezone.localdate())
         start = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
         self.session_service.enter(self.user, SessionEntry.SessionEntryType.WORK, start)
@@ -62,6 +69,10 @@ class SessionServiceTestCase(TestCase):
         self.assertEqual(status, Session.SessionStatus.INACTIVE)
 
     def test_session_apply_interval_overlap(self):
+        """
+        Insert an interval that overlaps with an existing entry should split
+        the existing entry.
+        """
         session = Session.objects.create(user=self.user, date=timezone.localdate())
         now_dt = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
 
@@ -103,6 +114,9 @@ class SessionServiceTestCase(TestCase):
         self.assertEqual(entries[1].comment, "lunch break")
 
     def test_session_apply_interval_gaps(self):
+        """
+        Insert intervals with gaps must fill the gaps with break entries.
+        """
         session = Session.objects.create(user=self.user, date=timezone.localdate())
         now_dt = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
 
@@ -131,6 +145,9 @@ class SessionServiceTestCase(TestCase):
         self.assertEqual(entries[1].type, SessionEntry.SessionEntryType.BREAK)
 
     def test_session_apply_interval_with_null_end(self):
+        """
+        Apply an interval with a null end time.
+        """
         session = Session.objects.create(user=self.user, date=timezone.localdate())
         now_dt = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
 
@@ -160,3 +177,43 @@ class SessionServiceTestCase(TestCase):
         self.assertEqual(entries[0].start, new_start)
         self.assertEqual(entries[0].end, new_end)
         self.assertEqual(entries[0].type, SessionEntry.SessionEntryType.WORK)
+
+    def test_session_apply_interval_override_open_break(self):
+        """
+        Insert break with gaps must extend the break to cover the gaps.
+        If we then insert another break that overlaps with the open break,
+        it should override the open break and not create a new entry.
+        """
+        session = Session.objects.create(user=self.user, date=timezone.localdate())
+        now_dt = timezone.now().replace(hour=9, minute=0, second=0, microsecond=0)
+
+        first_start = now_dt.replace(hour=10)
+        first_end = now_dt.replace(hour=11)
+        self.session_service.apply_interval(
+            session, SessionEntry.SessionEntryType.WORK, first_start, first_end
+        )
+
+        break_start = now_dt.replace(hour=13)
+        self.session_service.apply_interval(
+            session, SessionEntry.SessionEntryType.BREAK, break_start, None
+        )
+
+        last_start = now_dt.replace(hour=16)
+        last_end = now_dt.replace(hour=17)
+        self.session_service.apply_interval(
+            session, SessionEntry.SessionEntryType.WORK, last_start, last_end
+        )
+
+        # Now apply an interval that overlaps with the open break
+        new_break_start = now_dt.replace(hour=13)
+        new_break_end = now_dt.replace(hour=14)
+        self.session_service.apply_interval(
+            session, SessionEntry.SessionEntryType.BREAK, new_break_start, new_break_end
+        )
+
+        entries = session.entries.order_by("start").all()
+        self.assertEqual(len(entries), 3)
+
+        self.assertEqual(entries[1].start, first_end)
+        self.assertEqual(entries[1].end, last_start)
+        self.assertEqual(entries[1].type, SessionEntry.SessionEntryType.BREAK)

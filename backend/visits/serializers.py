@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 
 from session.serializers import UserModelSerializer
 from .models import Session, SessionEntry
-from .registry.store import get_statistics_extra_callbacks
+from . import registry
 
 User = get_user_model()
 
@@ -78,29 +78,26 @@ class UserMonthStatisticsResponseSerializer(serializers.Serializer):
         break_time = serializers.FloatField(default=0.0)
         lunch_time = serializers.FloatField(default=0.0)
 
-    class ExtraFieldBaseSerializer(serializers.Serializer):
-        type = serializers.ChoiceField(
-            choices=[
-                (callback._type, callback._type)
-                for callback in get_statistics_extra_callbacks()
-            ]
-        )
-        payload = serializers.SerializerMethodField()
-
-        @extend_schema_field(
-            PolymorphicProxySerializer(
-                component_name="ExtraData",
-                serializers=[
-                    callback._serializer_class
-                    for callback in get_statistics_extra_callbacks()
-                ],
-                resource_type_field_name=None,
-            )
-        )
-        def get_payload(self, obj: dict) -> dict:
-            return obj["payload"]
+    class ExtraFieldSerializer(serializers.Serializer):
+        type = serializers.CharField()
+        payload = serializers.DictField()
 
     date = serializers.DateField()
     session = SessionModelSerializer(allow_null=True)
     statistics = StatisticsFieldSerializer()
-    extra = ExtraFieldBaseSerializer(many=True)
+
+    @extend_schema_field(
+        PolymorphicProxySerializer(
+            component_name="StatisticsExtraField",
+            resource_type_field_name="type",
+            serializers=[
+                plugin._serializer_class
+                for plugin in registry.get_plugins("statistics")
+                if hasattr(plugin, "_serializer_class")
+            ],
+        )
+    )
+    def get_extra(self, obj):
+        return obj.get("extra", [])
+
+    extra = serializers.SerializerMethodField()

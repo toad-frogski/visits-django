@@ -2,8 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 
+from visits.registry import get_user_admin_inlines
+
 from .models import Session, SessionEntry
-from .registry.store import get_user_admin_inlines
 
 User = get_user_model()
 

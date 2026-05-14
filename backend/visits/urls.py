@@ -1,6 +1,5 @@
 from django.urls import path
 
-from .registry.store import get_registered_urlpatterns
 from . import views
 from . import consumers
 
@@ -33,8 +32,6 @@ urlpatterns = [
     path("stats/export", views.ExportUserReportView.as_view()),
     path("users", views.UsersView.as_view()),
 ]
-
-urlpatterns += get_registered_urlpatterns()
 
 websocket_urlpatterns = [
     path("notifications", consumers.NotificationsConsumer.as_asgi())

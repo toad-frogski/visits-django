@@ -1,29 +1,32 @@
-from os import getenv
 import calendar
-import requests
-from datetime import date
+
 from django.core.cache import cache
-from visits.registry.decorators import register_statistics_extra
-from .serializers import HolidaysExtraFieldPayloadSerializer
+from datetime import date
+from typing import Any
+from django.conf import settings
+import requests
+
+from plugins.holidays.serializers import HolidaysExtraFieldPayloadSerializer
 
 
-@register_statistics_extra(
-    type="holidays", serializer_class=HolidaysExtraFieldPayloadSerializer
-)
-def holidays_statistics_extra(user, date: date):
-    holidays = _get_holidays(month=date)
-    holiday = holidays.get(date.strftime("%Y-%m-%d"))
+class StatisticsPlugin:
+    _type = "holidays"
+    _serializer_class = HolidaysExtraFieldPayloadSerializer
 
-    return {"type": holiday} if holiday else None
+    def __call__(self, user, date: date) -> Any:
+        holidays = get_holidays(month=date)
+        holiday = holidays.get(date.strftime("%Y-%m-%d"))
+
+        return {"type": holiday} if holiday else None
 
 
-def _get_holidays(month: date) -> dict:
+def get_holidays(month: date) -> dict:
     cache_key = f"holidays_{month.year}_{month.month}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
 
-    if not (url := getenv("HOLIDAYS_URL")):
+    if not (url := settings.HOLIDAYS_URL):
         return {}
 
     days_in_month = calendar.monthrange(month.year, month.month)[1]
