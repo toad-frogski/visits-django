@@ -27,7 +27,6 @@ from visits import registry
 from . import serializers, services
 from .models import Session, SessionEntry
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -127,12 +126,8 @@ class LeaveView(APIView):
             if current_session is None:
                 raise Session.DoesNotExist()
 
-            services.SessionService.apply_interval(
-                session=current_session,
-                start=time,
-                end=None,
-                type=type,
-                comment=comment,
+            services.SessionService.handle_leave(
+                session=current_session, type=type, time=time, comment=comment
             )
         except Session.DoesNotExist as e:
             raise NotFound(detail=str(e))
@@ -198,6 +193,34 @@ class CheaterLeaveView(GenericAPIView):
                 type=SessionEntry.SessionEntryType(instance.type),
                 comment=instance.comment,
             )
+        except ValueError as e:
+            raise ValidationError(detail=str(e))
+        except Exception as e:
+            raise APIException(detail=str(e))
+
+        return Response()
+
+
+class SessionIntervalView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema("insertInterval", request=serializers.SessionEntryModelSerializer)
+    def post(self, request: Request, session_id: int):
+        serializer = serializers.SessionEntryModelSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        type: SessionEntry.SessionEntryType = serializer.validated_data.get("type")
+        start: datetime = serializer.validated_data.get("start")
+        end: datetime = serializer.validated_data.get("end")
+        comment: str = serializer.validated_data.get("comment")
+
+        try:
+            session = Session.objects.get(pk=session_id)
+            services.SessionService.apply_interval(
+                session=session, start=start, end=end, type=type, comment=comment
+            )
+        except Session.DoesNotExist as e:
+            raise NotFound(detail=str(e))
         except ValueError as e:
             raise ValidationError(detail=str(e))
         except Exception as e:
@@ -277,9 +300,11 @@ class UsersTodayView(APIView):
             record["user"] = user
             record["session"] = {
                 "status": getattr(session, "status", Session.SessionStatus.INACTIVE),
-                "comment": session_service.get_session_last_comment(session)
-                if session
-                else None,
+                "comment": (
+                    session_service.get_session_last_comment(session)
+                    if session
+                    else None
+                ),
                 "extra": self._collect_extra_info(session),
             }
 

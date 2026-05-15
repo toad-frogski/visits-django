@@ -206,7 +206,7 @@ VISITS_PLUGINS = {
         # "plugins.redmine.services.StatisticsPlugin",
     ],
     "session_info": [
-        "plugins.hr_deeplace.services.SessionInfoPlugin",
+        # "plugins.hr_deeplace.services.SessionInfoPlugin",
     ]
 }
 

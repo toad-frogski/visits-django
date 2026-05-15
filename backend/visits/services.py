@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import math
 from datetime import date, datetime, timedelta
 
@@ -10,6 +11,14 @@ from openpyxl.styles import PatternFill
 
 from .models import Session, SessionEntry
 from . import registry
+
+
+@dataclass
+class SessionEntryType:
+    type: SessionEntry.SessionEntryType
+    start: datetime
+    end: datetime | None = None
+    comment: str | None = None
 
 
 class SessionService:
@@ -78,62 +87,159 @@ class SessionService:
         Apply an interval to a session by creating a new entry or adjusting
         existing entries.
         """
-        entries = session.entries.order_by("start").all()
-        normalized_end = end or start
+        cls.apply_intervals(
+            session=session,
+            entries=[
+                SessionEntryType(type=type, start=start, end=end, comment=comment)
+            ],
+        )
 
-        # Collect new entries
-        new_entries = []
-        for entry in entries:
-            # no overlap
-            entry_end = entry.end or entry.start
-            if entry_end <= start or entry.start >= normalized_end:
-                new_entries.append((entry.start, entry.end, entry.type, entry.comment))
-                continue
+    @classmethod
+    def apply_intervals(
+        cls,
+        session: Session,
+        entries: list[SessionEntryType],
+    ):
+        """
+        Apply an interval to a session by creating a new entry or adjusting
+        existing entries.
+        """
+        def normalize(
+            data: list[
+                tuple[
+                    datetime,
+                    datetime | None,
+                    SessionEntry.SessionEntryType,
+                    str | None,
+                ]
+            ],
+        ):
+            normalized = []
+            for s, e, t, c in sorted(data, key=lambda x: x[0]):
+                if e is not None and e < s:
+                    raise ValueError("Invalid interval: end before start")
 
-            # left piece
-            if entry.start < start:
-                new_entries.append((entry.start, start, entry.type, entry.comment))
-
-            # right piece
-            if entry_end > normalized_end:
-                new_entries.append((end, entry.end, entry.type, entry.comment))
-
-        new_entries.append((start, end, type, comment))
-
-        # Normalize entries
-        normalized = []
-        for s, e, t, c in sorted(new_entries, key=lambda x: x[0]):
-            if not normalized:
-                normalized.append((s, e, t, c))
-                continue
-
-            prev_s, prev_e, prev_t, prev_c = normalized[-1]
-            normalized_prev_e = prev_e or prev_s
-
-            if normalized_prev_e == s and prev_t == t and prev_c == c:
-                normalized[-1] = (prev_s, e, t, c)
-            elif normalized_prev_e < s:
-                # try to insert a break or extend neighboring breaks
-                if prev_t == t == SessionEntry.SessionEntryType.BREAK:
-                    normalized[-1] = (prev_s, e, prev_t, prev_c)
-                elif t == SessionEntry.SessionEntryType.BREAK:
-                    normalized.append((prev_e if prev_e else s, e, t, c))
-                elif prev_t == SessionEntry.SessionEntryType.BREAK:
-                    normalized[-1] = (prev_s, s, prev_t, prev_c)
+                if not normalized:
                     normalized.append((s, e, t, c))
+                    continue
+
+                prev_s, prev_e, prev_t, prev_c = normalized[-1]
+                normalized_prev_e = prev_e or prev_s
+
+                if normalized_prev_e == s and prev_t == t and prev_c == c:
+                    normalized[-1] = (prev_s, e, t, c)
+                elif normalized_prev_e < s:
+                    # Try to insert a break or extend neighboring breaks.
+                    if prev_t == t == SessionEntry.SessionEntryType.BREAK:
+                        normalized[-1] = (prev_s, e, prev_t, prev_c)
+                    elif t == SessionEntry.SessionEntryType.BREAK:
+                        normalized.append((prev_e if prev_e else s, e, t, c))
+                    elif prev_t == SessionEntry.SessionEntryType.BREAK:
+                        normalized[-1] = (prev_s, s, prev_t, prev_c)
+                        normalized.append((s, e, t, c))
+                    else:
+                        if not prev_e:
+                            raise ValueError(
+                                "Invalid state: open entry cannot be followed by another entry"
+                            )
+                        normalized.append(
+                            (prev_e, s, SessionEntry.SessionEntryType.BREAK, None)
+                        )
+                        normalized.append((s, e, t, c))
                 else:
                     normalized.append((s, e, t, c))
-            else:
-                normalized.append((s, e, t, c))
+
+            return normalized
+
+        stored = session.entries.order_by("start").all()
+        working = [
+            (entry.start, entry.end, entry.type, entry.comment) for entry in stored
+        ]
+
+        for entry in entries:
+            if entry.end is not None and entry.end < entry.start:
+                raise ValueError("Invalid interval: end before start")
+
+            normalized_end = entry.end or entry.start
+            next_working = []
+
+            for stored_start, stored_end, stored_type, stored_comment in working:
+                stored_ends_before = (
+                    stored_end is not None and stored_end <= entry.start
+                )
+                stored_starts_after = (
+                    stored_start >= normalized_end
+                    if entry.end is not None
+                    else False
+                )
+                if stored_ends_before or stored_starts_after:
+                    next_working.append(
+                        (stored_start, stored_end, stored_type, stored_comment)
+                    )
+                    continue
+
+                # Keep the piece before incoming interval.
+                if stored_start < entry.start:
+                    next_working.append(
+                        (
+                            stored_start,
+                            entry.start,
+                            stored_type,
+                            stored_comment,
+                        )
+                    )
+
+                # Keep the piece after incoming interval.
+                if entry.end is not None and stored_end is not None and stored_end > normalized_end:
+                    next_working.append(
+                        (
+                            entry.end,
+                            stored_end,
+                            stored_type,
+                            stored_comment,
+                        )
+                    )
+
+            next_working.append((entry.start, entry.end, entry.type, entry.comment))
+            working = normalize(next_working)
 
         # Write to db
         with transaction.atomic():
-            entries.delete()
+            stored.delete()
 
-            for s, e, t, c in normalized:
+            for s, e, t, c in working:
                 SessionEntry.objects.create(
                     session=session, start=s, end=e, type=t, comment=c
                 )
+
+    @classmethod
+    def handle_leave(
+        cls,
+        session: Session,
+        type: SessionEntry.SessionEntryType,
+        time: datetime,
+        comment: str | None = None,
+    ):
+        """
+        Handle a leave by closing the current entry and creating a break entry until the end of the day.
+        """
+
+        last_entry = session.get_last_entry()
+
+        intervals = []
+        if last_entry and not last_entry.end:
+            intervals.append(
+                SessionEntryType(
+                    type=SessionEntry.SessionEntryType(last_entry.type),
+                    start=last_entry.start,
+                    end=time,
+                    comment=last_entry.comment,
+                )
+            )
+
+        intervals.append(SessionEntryType(type=type, start=time, comment=comment))
+
+        cls.apply_intervals(session=session, entries=intervals)
 
     @classmethod
     def get_current_session(cls, user: User) -> Session | None:
