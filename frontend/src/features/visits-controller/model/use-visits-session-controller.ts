@@ -89,8 +89,9 @@ export function useSessionCheaterItem() {
   const fetchSession = useVisitsSession((state) => state.fetchSession);
   const [endTime, setEndTime] = useState("");
   const { setOpen } = useSessionControl();
+  const session = useVisitsSession((state) => state.session)!;
 
-  const { mutate, isPending, error } = rqClient.useMutation("post", "/api/v1/visits/session-entry/{id}/cheater", {
+  const { mutate, isPending, error } = rqClient.useMutation("post", "/api/v1/visits/{session_id}/time", {
     onSuccess() {
       setOpen(false);
       fetchSession();
@@ -98,7 +99,7 @@ export function useSessionCheaterItem() {
   });
 
   const updateEntry = (id: number, data: ApiSchema["SessionEntryModelRequest"]) =>
-    mutate({ params: { path: { id: id } }, body: data });
+    mutate({ params: { path: { session_id: id } }, body: data });
 
   const getError = useMemo(() => {
     if (!error) return "";
@@ -118,7 +119,7 @@ export function useSessionCheaterItem() {
     end.setSeconds(0);
     end.setMilliseconds(0);
 
-    updateEntry(entry.id, { end: end.toISOString() });
+    updateEntry(session.id, { ...entry, end: end.toISOString() });
   };
 
   return {
@@ -201,7 +202,7 @@ export const useActiveControlMark = () => {
 
   const { mutate, isPending, error } = rqClient.useMutation(
     "post",
-    "/api/v1/visits/{session_id}/session-entry/insert",
+    "/api/v1/visits/{session_id}/time",
     {
       onSuccess() {
         setOpen(false);

@@ -50,10 +50,8 @@ class EnterView(APIView):
         start: datetime = serializer.validated_data.get("start")  # type: ignore
         type: SessionEntry.SessionEntryType = serializer.validated_data.get("type")  # type: ignore
 
-        session_service = services.SessionService()
-
         try:
-            session_service.enter(request.user, type, start)
+            services.SessionService.enter(request.user, type, start)
         except ValueError as e:
             raise ValidationError(detail=str(e))
         except Exception as e:
@@ -131,68 +129,6 @@ class LeaveView(APIView):
             )
         except Session.DoesNotExist as e:
             raise NotFound(detail=str(e))
-        except ValueError as e:
-            raise ValidationError(detail=str(e))
-        except Exception as e:
-            raise APIException(detail=str(e))
-
-        return Response()
-
-
-@extend_schema(tags=["visits"])
-class InsertLeaveView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema("insertLeave", request=serializers.SessionEntryModelSerializer)
-    def post(self, request: Request, *args, **kwargs):
-        session_id = self.kwargs.get("session_id")
-        serializer = serializers.SessionEntryModelSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        type: SessionEntry.SessionEntryType = serializer.validated_data.get("type")  # type: ignore
-        start: datetime = serializer.validated_data.get("start")  # type: ignore
-        end: datetime = serializer.validated_data.get("end")  # type: ignore
-        comment: str = serializer.validated_data.get("comment")  # type: ignore
-
-        try:
-            session = Session.objects.get(pk=session_id)
-            services.SessionService.apply_interval(
-                session=session, start=start, end=end, type=type, comment=comment
-            )
-        except Session.DoesNotExist as e:
-            raise NotFound(detail=str(e))
-        except ValueError as e:
-            raise ValidationError(detail=str(e))
-        except Exception as e:
-            raise APIException(detail=str(e))
-
-        return Response()
-
-
-@extend_schema(tags=["visits"])
-class CheaterLeaveView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = serializers.SessionEntryModelSerializer
-
-    def get_queryset(self):
-        return SessionEntry.objects.filter(session__user=self.request.user)
-
-    @extend_schema("cheaterLeave", request=serializers.SessionEntryModelSerializer)
-    def post(self, request: Request, *args, **kwargs):
-        instance: SessionEntry = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        end: datetime = serializer.validated_data.get("end")
-
-        try:
-            services.SessionService.apply_interval(
-                session=instance.session,
-                start=instance.start,
-                end=end,
-                type=SessionEntry.SessionEntryType(instance.type),
-                comment=instance.comment,
-            )
         except ValueError as e:
             raise ValidationError(detail=str(e))
         except Exception as e:
